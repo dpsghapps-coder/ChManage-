@@ -14,6 +14,7 @@
 .env.backup
 .env.production
 /deploy-chmanage.sh
+/laravel.log
 .phpactor.json
 .phpunit.result.cache
 Homestead.json

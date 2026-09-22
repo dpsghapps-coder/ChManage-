@@ -1,0 +1,1 @@
+var e=e=>e.replace(/[^0-9]/g,``).slice(0,10),t={type:`tel`,inputMode:`numeric`,maxLength:10,pattern:`0[0-9]{9}`,title:`10 digits, starting with 0`,placeholder:`0244123456`,autoComplete:`off`};export{t as n,e as t};

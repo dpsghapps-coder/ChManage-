@@ -318,13 +318,15 @@ class MemberController extends Controller
     }
 
     /** Validation for the form's Next of Kin, Sacraments and Groups steps. @return array<string, mixed> */
-    private function relatedRules(): array
+    private function relatedRules(?Member $member = null): array
     {
         $sacrament = fn (string $kind) => [
             "sacraments.{$kind}.date" => ['nullable', 'date', 'before_or_equal:today'],
             "sacraments.{$kind}.place" => ['nullable', 'string', 'max:150'],
             "sacraments.{$kind}.minister" => ['nullable', 'string', 'max:150'],
         ];
+
+        $notSelf = Rule::notIn([$member?->id ?? 0]);
 
         return [
             // The form always sends this, so an empty list of groups can be told apart from "not sent".
@@ -333,6 +335,11 @@ class MemberController extends Controller
             'next_of_kin.phone' => ['nullable', new PhoneNumber],
             'next_of_kin.residential_address' => ['nullable', 'string', 'max:200'],
             'next_of_kin.postal_address' => ['nullable', 'string', 'max:200'],
+            'next_of_kin.member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), $notSelf],
+            'emergency_contact.name' => ['nullable', 'string', 'max:150'],
+            'emergency_contact.phone' => ['nullable', new PhoneNumber],
+            'emergency_contact.relationship' => ['nullable', 'string', 'max:100'],
+            'emergency_contact.member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), $notSelf],
             ...$sacrament('baptism'),
             ...$sacrament('confirmation'),
             'group_ids' => ['nullable', 'array'],
@@ -354,15 +361,33 @@ class MemberController extends Controller
         }
 
         DB::transaction(function () use ($member, $data) {
+            // A next of kin or emergency contact who is also a member is read from their own
+            // record, so the name can never drift out of step (the same rule spouse follows).
+            $kinMember = filled($data['next_of_kin']['member_id'] ?? null) ? Member::find($data['next_of_kin']['member_id']) : null;
+            $contactMember = filled($data['emergency_contact']['member_id'] ?? null) ? Member::find($data['emergency_contact']['member_id']) : null;
+
             $kin = array_map(
                 fn ($value) => filled($value) ? trim($value) : null,
                 Arr::only($data['next_of_kin'] ?? [], ['name', 'phone', 'residential_address', 'postal_address']),
             );
+            $kin['related_member_id'] = $kinMember?->id;
+            $kin['name'] = $kinMember?->full_name ?? NameFormatter::titleCase($kin['name'] ?? null);
+            $kin['phone'] = $kinMember ? ($kinMember->phoneNumbers()[0] ?? $kin['phone'] ?? null) : ($kin['phone'] ?? null);
 
-            $kin['name'] = NameFormatter::titleCase($kin['name'] ?? null);
+            $contact = array_map(
+                fn ($value) => filled($value) ? trim($value) : null,
+                Arr::only($data['emergency_contact'] ?? [], ['name', 'phone', 'relationship']),
+            );
+            $row = [
+                ...$kin,
+                'emergency_contact_member_id' => $contactMember?->id,
+                'emergency_contact_name' => $contactMember?->full_name ?? NameFormatter::titleCase($contact['name'] ?? null),
+                'emergency_contact_phone' => $contactMember ? ($contactMember->phoneNumbers()[0] ?? $contact['phone'] ?? null) : ($contact['phone'] ?? null),
+                'emergency_contact_relationship' => $contact['relationship'] ?? null,
+            ];
 
-            if (array_filter($kin)) {
-                MemberNextOfKin::updateOrCreate(['member_id' => $member->id], $kin);
+            if (array_filter($row)) {
+                MemberNextOfKin::updateOrCreate(['member_id' => $member->id], $row);
             } else {
                 MemberNextOfKin::where('member_id', $member->id)->delete();
             }
@@ -433,7 +458,7 @@ class MemberController extends Controller
             'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
             'location_accuracy' => ['nullable', 'numeric', 'min:0', 'max:65535'],
-            ...$this->relatedRules(),
+            ...$this->relatedRules($member),
         ];
     }
 

@@ -17,6 +17,6 @@ class MemberServiceRecord extends Model
 
     protected function casts(): array
     {
-        return ['started_on' => 'date', 'ended_on' => 'date'];
+        return ['started_on' => 'date', 'ended_on' => 'date', 'is_sample' => 'boolean'];
     }
 }

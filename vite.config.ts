@@ -64,6 +64,9 @@ export default defineConfig({
         singleAttributePerLine: false,
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
+            'vendor/**',
+            'node_modules/**',
+            'public/**',
             '.github/**',
             'composer.json',
             'resources/js/components/ui/*',

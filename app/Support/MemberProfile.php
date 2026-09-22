@@ -73,8 +73,10 @@ class MemberProfile
     public static function related(Member $m): array
     {
         $kin = $m->nextOfKin;
+        $kin?->loadMissing(['relatedMember', 'emergencyContactMember']);
         $sacraments = $m->sacraments()->get()->keyBy('kind');
         $groups = $m->groups()->orderBy('name')->get(['member_groups.id', 'member_groups.name', 'member_groups.short_name']);
+        $linkedMember = fn (?Member $linked) => $linked ? ['id' => $linked->id, 'member_number' => $linked->member_number, 'full_name' => $linked->full_name] : null;
 
         return [
             'next_of_kin' => [
@@ -82,6 +84,15 @@ class MemberProfile
                 'phone' => $kin?->phone ?? '',
                 'residential_address' => $kin?->residential_address ?? '',
                 'postal_address' => $kin?->postal_address ?? '',
+                'member_id' => $kin?->related_member_id,
+                'member' => $linkedMember($kin?->relatedMember),
+            ],
+            'emergency_contact' => [
+                'name' => $kin?->emergency_contact_name ?? '',
+                'phone' => $kin?->emergency_contact_phone ?? '',
+                'relationship' => $kin?->emergency_contact_relationship ?? '',
+                'member_id' => $kin?->emergency_contact_member_id,
+                'member' => $linkedMember($kin?->emergencyContactMember),
             ],
             'sacraments' => collect(MemberSacrament::KINDS)->map(function ($label, $kind) use ($sacraments) {
                 $s = $sacraments->get($kind);

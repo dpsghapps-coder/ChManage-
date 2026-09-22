@@ -3,6 +3,7 @@ import { ExternalLink } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ClassBadge } from '@/components/class-badge';
 import { DetailList } from '@/components/detail-list';
+import { FamilyTree } from '@/components/family-tree';
 import { mapUrl } from '@/components/gps-capture';
 import { PersonAvatar } from '@/components/person-avatar';
 import { ReachButtons } from '@/components/reach-buttons';
@@ -56,6 +57,12 @@ export type MemberDetail = {
     photo_url: string | null;
 };
 
+type LinkedMember = {
+    id: number;
+    member_number: string;
+    full_name: string;
+} | null;
+
 /** The records that hang off a member. Children are not stored on the member: they come from the Children Service / Junior Youth register. */
 export type RelatedData = {
     next_of_kin: {
@@ -63,6 +70,15 @@ export type RelatedData = {
         phone: string;
         residential_address: string;
         postal_address: string;
+        member_id: number | null;
+        member: LinkedMember;
+    };
+    emergency_contact: {
+        name: string;
+        phone: string;
+        relationship: string;
+        member_id: number | null;
+        member: LinkedMember;
     };
     sacraments: Record<
         'baptism' | 'confirmation',
@@ -91,17 +107,16 @@ export type RelatedData = {
 export type SectionTab =
     | 'basic'
     | 'contact'
-    | 'marital'
+    | 'family'
     | 'church'
     | 'service'
-    | 'sacraments'
-    | 'children';
+    | 'sacraments';
 
 /** The sections of the member details, in the order they are read. Counts appear once the data is known. */
 export const sectionTabs = (related: RelatedData | null) => [
     { key: 'basic' as const, label: 'Basic Info' },
     { key: 'contact' as const, label: 'Contact' },
-    { key: 'marital' as const, label: 'Marital' },
+    { key: 'family' as const, label: 'Family' },
     { key: 'church' as const, label: 'Church' },
     {
         key: 'service' as const,
@@ -109,11 +124,6 @@ export const sectionTabs = (related: RelatedData | null) => [
         count: related?.service_records.length,
     },
     { key: 'sacraments' as const, label: 'Sacraments' },
-    {
-        key: 'children' as const,
-        label: 'Children',
-        count: related?.children.length,
-    },
 ];
 
 const empty = (text: string) => (
@@ -162,6 +172,25 @@ const date = (value: string | null | undefined, age?: number | null) =>
         ? `${value}${age !== null && age !== undefined ? ` (${age} years)` : ''}`
         : null;
 
+/** A person's name, linked to their own member record when they are also a member. */
+function LinkedName({ name, member }: { name: string; member: LinkedMember }) {
+    if (!member) {
+        return name || '—';
+    }
+
+    return (
+        <Link
+            href={showMember(member.id)}
+            className="underline-offset-4 hover:underline"
+        >
+            {name || member.full_name}{' '}
+            <span className="text-xs text-muted-foreground">
+                ({member.member_number})
+            </span>
+        </Link>
+    );
+}
+
 function ContactLine({
     label,
     phone,
@@ -204,6 +233,9 @@ export function MemberSection({
             kin.residential_address ||
             kin.postal_address;
 
+        const contact = related.emergency_contact;
+        const hasContact = contact.name || contact.phone;
+
         return (
             <div className="space-y-5">
                 <DetailList
@@ -230,12 +262,51 @@ export function MemberSection({
                         { label: "Mother's Name", value: member.mother_name },
                     ]}
                 />
+                {hasContact ? (
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <h3 className="font-medium">Emergency Contact</h3>
+                        <DetailList
+                            items={[
+                                {
+                                    label: 'Name',
+                                    value: (
+                                        <LinkedName
+                                            name={contact.name}
+                                            member={contact.member}
+                                        />
+                                    ),
+                                },
+                                { label: 'Phone', value: contact.phone },
+                                {
+                                    label: 'Relationship',
+                                    value: contact.relationship,
+                                },
+                            ]}
+                        />
+                        {contact.phone && (
+                            <ReachButtons
+                                phone={contact.phone}
+                                name={contact.name || member.full_name}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    empty('No emergency contact recorded.')
+                )}
                 {hasKin ? (
                     <div className="space-y-4 rounded-lg border p-4">
                         <h3 className="font-medium">Next of Kin</h3>
                         <DetailList
                             items={[
-                                { label: 'Name', value: kin.name },
+                                {
+                                    label: 'Name',
+                                    value: (
+                                        <LinkedName
+                                            name={kin.name}
+                                            member={kin.member}
+                                        />
+                                    ),
+                                },
                                 { label: 'Phone', value: kin.phone },
                                 {
                                     label: 'Residential Address',
@@ -257,6 +328,7 @@ export function MemberSection({
                 ) : (
                     empty('No next of kin recorded.')
                 )}
+                <FamilyTree member={member} related={related} />
             </div>
         );
     }
@@ -324,41 +396,90 @@ export function MemberSection({
         );
     }
 
-    if (tab === 'marital') {
+    if (tab === 'family') {
         return (
-            <DetailList
-                items={[
-                    {
-                        label: 'Marital Status',
-                        value: member.marital_status
-                            ? statusLabel(member.marital_status)
-                            : null,
-                    },
-                    {
-                        label: 'Marriage Type',
-                        value: member.marriage_type
-                            ? statusLabel(member.marriage_type)
-                            : null,
-                    },
-                    { label: 'Maiden Name', value: member.maiden_name },
-                    {
-                        label: 'Spouse',
-                        value: member.spouse_member ? (
-                            <Link
-                                href={showMember(member.spouse_member.id)}
-                                className="underline-offset-4 hover:underline"
-                            >
-                                {member.spouse_member.full_name}{' '}
-                                <span className="text-xs text-muted-foreground">
-                                    ({member.spouse_member.member_number})
-                                </span>
-                            </Link>
-                        ) : (
-                            member.spouse_name
-                        ),
-                    },
-                ]}
-            />
+            <div className="space-y-5">
+                <DetailList
+                    items={[
+                        {
+                            label: 'Marital Status',
+                            value: member.marital_status
+                                ? statusLabel(member.marital_status)
+                                : null,
+                        },
+                        {
+                            label: 'Marriage Type',
+                            value: member.marriage_type
+                                ? statusLabel(member.marriage_type)
+                                : null,
+                        },
+                        { label: 'Maiden Name', value: member.maiden_name },
+                        {
+                            label: 'Spouse',
+                            value: member.spouse_member ? (
+                                <Link
+                                    href={showMember(member.spouse_member.id)}
+                                    className="underline-offset-4 hover:underline"
+                                >
+                                    {member.spouse_member.full_name}{' '}
+                                    <span className="text-xs text-muted-foreground">
+                                        ({member.spouse_member.member_number})
+                                    </span>
+                                </Link>
+                            ) : (
+                                member.spouse_name
+                            ),
+                        },
+                    ]}
+                />
+                <div className="space-y-2">
+                    <div className="text-xs text-muted-foreground">
+                        Children
+                    </div>
+                    {related.children.length === 0 ? (
+                        empty(
+                            'No children on the Children Service or Junior Youth register list this member as a guardian.',
+                        )
+                    ) : (
+                        <div className="space-y-2">
+                            {related.children.map((child) => (
+                                <div
+                                    key={child.id}
+                                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <PersonAvatar
+                                            name={child.name}
+                                            photoUrl={child.photo_url}
+                                            className="size-10"
+                                        />
+                                        <div className="text-sm">
+                                            <Link
+                                                href={showYoung(child.id)}
+                                                className="font-medium underline-offset-4 hover:underline"
+                                            >
+                                                {child.name}
+                                            </Link>
+                                            <div className="text-xs text-muted-foreground">
+                                                {child.member_number}
+                                                {child.relationship
+                                                    ? ` · ${child.relationship}`
+                                                    : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {child.class && (
+                                            <ClassBadge value={child.class} />
+                                        )}
+                                        <StatusBadge status={child.status} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
         );
     }
 
@@ -498,44 +619,5 @@ export function MemberSection({
         );
     }
 
-    return related.children.length === 0 ? (
-        empty(
-            'No children on the Children Service or Junior Youth register list this member as a guardian.',
-        )
-    ) : (
-        <div className="space-y-2">
-            {related.children.map((child) => (
-                <div
-                    key={child.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
-                >
-                    <div className="flex items-center gap-3">
-                        <PersonAvatar
-                            name={child.name}
-                            photoUrl={child.photo_url}
-                            className="size-10"
-                        />
-                        <div className="text-sm">
-                            <Link
-                                href={showYoung(child.id)}
-                                className="font-medium underline-offset-4 hover:underline"
-                            >
-                                {child.name}
-                            </Link>
-                            <div className="text-xs text-muted-foreground">
-                                {child.member_number}
-                                {child.relationship
-                                    ? ` · ${child.relationship}`
-                                    : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {child.class && <ClassBadge value={child.class} />}
-                        <StatusBadge status={child.status} />
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
+    return null;
 }

@@ -71,6 +71,13 @@ type Member = {
         phone: string;
         residential_address: string;
         postal_address: string;
+        member: { id: number; member_number: string; full_name: string } | null;
+    };
+    emergency_contact: {
+        name: string;
+        phone: string;
+        relationship: string;
+        member: { id: number; member_number: string; full_name: string } | null;
     };
     sacraments: Record<'baptism' | 'confirmation', Sacrament>;
     group_ids: number[];
@@ -92,7 +99,7 @@ type Props = {
 const STEPS = [
     'Basic Info',
     'Contact',
-    'Marital',
+    'Family',
     'Church',
     'Service',
     'Sacraments',
@@ -112,6 +119,7 @@ const STEP_OF_FIELD: Record<string, number> = {
     father_name: 0,
     mother_name: 0,
     next_of_kin: 0,
+    emergency_contact: 0,
     mobile: 1,
     telephone: 1,
     email: 1,
@@ -179,6 +187,12 @@ export default function AdultMemberForm({
     const [spouse, setSpouse] = useState<Member['spouse_member']>(
         member?.spouse_member ?? null,
     );
+    const [kinMember, setKinMember] = useState<Member['next_of_kin']['member']>(
+        member?.next_of_kin?.member ?? null,
+    );
+    const [contactMember, setContactMember] = useState<
+        Member['emergency_contact']['member']
+    >(member?.emergency_contact?.member ?? null);
     const panels = useRef<(HTMLDivElement | null)[]>([]);
     const last = STEPS.length - 1;
 
@@ -216,11 +230,30 @@ export default function AdultMemberForm({
         non_communicant_reason: member?.non_communicant_reason ?? '',
         // Tells the server the Next of Kin, Sacraments, Groups and Service steps were part of this save.
         has_related: true,
-        next_of_kin: member?.next_of_kin ?? {
-            name: '',
-            phone: '',
-            residential_address: '',
-            postal_address: '',
+        next_of_kin: {
+            name: member?.next_of_kin?.member
+                ? ''
+                : (member?.next_of_kin?.name ?? ''),
+            phone: member?.next_of_kin?.member
+                ? ''
+                : (member?.next_of_kin?.phone ?? ''),
+            residential_address: member?.next_of_kin?.residential_address ?? '',
+            postal_address: member?.next_of_kin?.postal_address ?? '',
+            member_id: (member?.next_of_kin?.member?.id ?? null) as
+                | number
+                | null,
+        },
+        emergency_contact: {
+            name: member?.emergency_contact?.member
+                ? ''
+                : (member?.emergency_contact?.name ?? ''),
+            phone: member?.emergency_contact?.member
+                ? ''
+                : (member?.emergency_contact?.phone ?? ''),
+            relationship: member?.emergency_contact?.relationship ?? '',
+            member_id: (member?.emergency_contact?.member?.id ?? null) as
+                | number
+                | null,
         },
         sacraments: member?.sacraments ?? {
             baptism: blankSacrament,
@@ -345,7 +378,7 @@ export default function AdultMemberForm({
     );
 
     const kin = (
-        name: keyof Member['next_of_kin'],
+        name: 'name' | 'phone' | 'residential_address' | 'postal_address',
         label: string,
         multiline = false,
     ) => {
@@ -376,6 +409,31 @@ export default function AdultMemberForm({
                     />
                 )}
                 <InputError message={errors[`next_of_kin.${name}`]} />
+            </div>
+        );
+    };
+
+    const contactField = (
+        name: 'name' | 'phone' | 'relationship',
+        label: string,
+    ) => {
+        const value = form.data.emergency_contact[name];
+        const set = (v: string) =>
+            form.setData('emergency_contact', {
+                ...form.data.emergency_contact,
+                [name]: name === 'phone' ? digitsOnly(v) : v,
+            });
+
+        return (
+            <div className="grid gap-2">
+                <Label htmlFor={`contact-${name}`}>{label}</Label>
+                <Input
+                    id={`contact-${name}`}
+                    value={value}
+                    onChange={(e) => set(e.target.value)}
+                    {...(name === 'phone' ? phoneInputProps : {})}
+                />
+                <InputError message={errors[`emergency_contact.${name}`]} />
             </div>
         );
     };
@@ -578,20 +636,145 @@ export default function AdultMemberForm({
 
                         <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
                             <h2 className="font-medium sm:col-span-2">
-                                Family
+                                Parents
                             </h2>
                             {text('father_name', "Father's name")}
                             {text('mother_name', "Mother's name")}
                         </section>
+
                         <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
                             <div className="sm:col-span-2">
-                                <h2 className="font-medium">Next of Kin</h2>
+                                <h2 className="font-medium">
+                                    Emergency Contact
+                                </h2>
                                 <p className="mt-1 text-sm text-muted-foreground">
                                     Who to contact in an emergency. Optional.
                                 </p>
                             </div>
-                            {kin('name', 'Name')}
-                            {kin('phone', 'Phone')}
+                            {contactMember ? (
+                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3 sm:col-span-2">
+                                    <div className="text-sm">
+                                        <div className="font-medium">
+                                            {contactMember.full_name}
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            {contactMember.member_number} · a
+                                            member
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setContactMember(null);
+                                            form.setData('emergency_contact', {
+                                                ...form.data.emergency_contact,
+                                                member_id: null,
+                                            });
+                                        }}
+                                    >
+                                        <X /> Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {contactField('name', 'Name')}
+                                    {contactField('phone', 'Phone')}
+                                    <div className="grid gap-2 sm:col-span-2">
+                                        <Label className="text-xs font-normal text-muted-foreground">
+                                            Or find them if they are a member
+                                        </Label>
+                                        <MemberPicker
+                                            invalid={Boolean(
+                                                errors[
+                                                    'emergency_contact.member_id'
+                                                ],
+                                            )}
+                                            onPick={(hit: MemberHit) => {
+                                                setContactMember({
+                                                    id: hit.id,
+                                                    member_number:
+                                                        hit.member_number,
+                                                    full_name: hit.full_name,
+                                                });
+                                                form.setData(
+                                                    'emergency_contact',
+                                                    {
+                                                        ...form.data
+                                                            .emergency_contact,
+                                                        member_id: hit.id,
+                                                    },
+                                                );
+                                            }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            {contactField('relationship', 'Relationship')}
+                        </section>
+
+                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
+                            <div className="sm:col-span-2">
+                                <h2 className="font-medium">Next of Kin</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Closest relative for official records.
+                                    Optional.
+                                </p>
+                            </div>
+                            {kinMember ? (
+                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3 sm:col-span-2">
+                                    <div className="text-sm">
+                                        <div className="font-medium">
+                                            {kinMember.full_name}
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            {kinMember.member_number} · a member
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setKinMember(null);
+                                            form.setData('next_of_kin', {
+                                                ...form.data.next_of_kin,
+                                                member_id: null,
+                                            });
+                                        }}
+                                    >
+                                        <X /> Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {kin('name', 'Name')}
+                                    {kin('phone', 'Phone')}
+                                    <div className="grid gap-2 sm:col-span-2">
+                                        <Label className="text-xs font-normal text-muted-foreground">
+                                            Or find them if they are a member
+                                        </Label>
+                                        <MemberPicker
+                                            invalid={Boolean(
+                                                errors['next_of_kin.member_id'],
+                                            )}
+                                            onPick={(hit: MemberHit) => {
+                                                setKinMember({
+                                                    id: hit.id,
+                                                    member_number:
+                                                        hit.member_number,
+                                                    full_name: hit.full_name,
+                                                });
+                                                form.setData('next_of_kin', {
+                                                    ...form.data.next_of_kin,
+                                                    member_id: hit.id,
+                                                });
+                                            }}
+                                        />
+                                    </div>
+                                </>
+                            )}
                             {kin(
                                 'residential_address',
                                 'Residential address',
@@ -677,7 +860,7 @@ export default function AdultMemberForm({
                     </>,
                 )}
 
-                {/* 3. Marital */}
+                {/* 3. Family */}
                 {panel(
                     2,
                     <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">

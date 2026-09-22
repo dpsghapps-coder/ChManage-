@@ -39,7 +39,10 @@ class MemberReport
                     'Home Town' => $m['hometown'],
                     "Father's Name" => $m['father_name'],
                     "Mother's Name" => $m['mother_name'],
-                    'Next of Kin' => $r['next_of_kin']['name'],
+                    'Emergency Contact' => self::withMemberNo($r['emergency_contact']['name'], $r['emergency_contact']['member']),
+                    'Emergency Contact Phone' => $r['emergency_contact']['phone'],
+                    'Emergency Contact Relationship' => $r['emergency_contact']['relationship'],
+                    'Next of Kin' => self::withMemberNo($r['next_of_kin']['name'], $r['next_of_kin']['member']),
                     'Next of Kin Phone' => $r['next_of_kin']['phone'],
                     'Residential Address' => $r['next_of_kin']['residential_address'],
                     'Postal Address' => $r['next_of_kin']['postal_address'],
@@ -228,6 +231,12 @@ class MemberReport
     private static function label(?string $value): ?string
     {
         return $value ? ucfirst(str_replace('_', ' ', $value)) : null;
+    }
+
+    /** A name, with the linked member's number appended when they are also a member. */
+    private static function withMemberNo(?string $name, ?array $member): ?string
+    {
+        return $member ? trim(($name ?: '').' ('.$member['member_number'].')') : $name;
     }
 
     /** The photo as an inline image, so the PDF never has to reach for a file path. */

@@ -1,0 +1,541 @@
+import { Link } from '@inertiajs/react';
+import { ExternalLink } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { ClassBadge } from '@/components/class-badge';
+import { DetailList } from '@/components/detail-list';
+import { mapUrl } from '@/components/gps-capture';
+import { PersonAvatar } from '@/components/person-avatar';
+import { ReachButtons } from '@/components/reach-buttons';
+import { StatusBadge, statusLabel } from '@/components/staff-status';
+import { Badge } from '@/components/ui/badge';
+import { show as showMember } from '@/routes/members';
+import { show as showYoung } from '@/routes/members/young';
+
+/** An adult member's own fields. */
+export type MemberDetail = {
+    id: number;
+    member_number: string;
+    title: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    other_names: string;
+    full_name: string;
+    sex: string | null;
+    date_of_birth: string | null;
+    age: number | null;
+    place_of_birth: string | null;
+    hometown: string | null;
+    mobile: string | null;
+    telephone: string | null;
+    email: string | null;
+    facebook_id: string | null;
+    instagram_id: string | null;
+    twitter_id: string | null;
+    tiktok_id: string | null;
+    residence: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    location_accuracy: number | null;
+    marital_status: string | null;
+    marriage_type: string | null;
+    maiden_name: string | null;
+    spouse_name: string | null;
+    spouse_member: {
+        id: number;
+        member_number: string;
+        full_name: string;
+    } | null;
+    father_name: string | null;
+    mother_name: string | null;
+    joined_on: string | null;
+    generational_group: string | null;
+    is_communicant: boolean | null;
+    non_communicant: boolean;
+    non_communicant_reason: string | null;
+    status: string;
+    photo_url: string | null;
+};
+
+/** The records that hang off a member. Children are not stored on the member: they come from the Children Service / Junior Youth register. */
+export type RelatedData = {
+    next_of_kin: {
+        name: string;
+        phone: string;
+        residential_address: string;
+        postal_address: string;
+    };
+    sacraments: Record<
+        'baptism' | 'confirmation',
+        { date: string; place: string; minister: string }
+    >;
+    groups: { id: number; name: string; short_name: string | null }[];
+    service_records: {
+        type: string;
+        type_label: string;
+        name: string;
+        position: string;
+        started_on: string;
+        ended_on: string;
+    }[];
+    children: {
+        id: number;
+        name: string;
+        member_number: string;
+        class: string | null;
+        status: string;
+        relationship: string;
+        photo_url: string | null;
+    }[];
+};
+
+export type SectionTab =
+    | 'basic'
+    | 'contact'
+    | 'marital'
+    | 'church'
+    | 'service'
+    | 'sacraments'
+    | 'children';
+
+/** The sections of the member details, in the order they are read. Counts appear once the data is known. */
+export const sectionTabs = (related: RelatedData | null) => [
+    { key: 'basic' as const, label: 'Basic Info' },
+    { key: 'contact' as const, label: 'Contact' },
+    { key: 'marital' as const, label: 'Marital' },
+    { key: 'church' as const, label: 'Church' },
+    {
+        key: 'service' as const,
+        label: 'Service',
+        count: related?.service_records.length,
+    },
+    { key: 'sacraments' as const, label: 'Sacraments' },
+    {
+        key: 'children' as const,
+        label: 'Children',
+        count: related?.children.length,
+    },
+];
+
+const empty = (text: string) => (
+    <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+        {text}
+    </p>
+);
+
+const link = (href: string, text: string) => (
+    <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+    >
+        {text} <ExternalLink className="size-3.5" />
+    </a>
+);
+
+/** A social account as a link when it looks like a handle; a name with spaces in it is shown as plain text. */
+const social = (
+    kind: 'facebook' | 'instagram' | 'twitter' | 'tiktok',
+    value: string | null,
+): ReactNode => {
+    if (!value) {
+        return null;
+    }
+
+    const handle = value.replace(/^@/, '');
+    const urls = {
+        facebook: `https://facebook.com/${handle}`,
+        instagram: `https://instagram.com/${handle}`,
+        twitter: `https://x.com/${handle}`,
+        tiktok: `https://tiktok.com/@${handle}`,
+    };
+
+    if (/^https?:\/\//.test(value)) {
+        return link(value, value);
+    }
+
+    return /\s/.test(value) ? value : link(urls[kind], value);
+};
+
+const date = (value: string | null | undefined, age?: number | null) =>
+    value
+        ? `${value}${age !== null && age !== undefined ? ` (${age} years)` : ''}`
+        : null;
+
+function ContactLine({
+    label,
+    phone,
+    name,
+}: {
+    label: string;
+    phone: string | null;
+    name: string;
+}) {
+    if (!phone) {
+        return null;
+    }
+
+    return (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-sm">
+                <div className="font-medium tabular-nums">{phone}</div>
+                <div className="text-xs text-muted-foreground">{label}</div>
+            </div>
+            <ReachButtons phone={phone} name={name} />
+        </div>
+    );
+}
+
+/** The content of one section of the member details. */
+export function MemberSection({
+    tab,
+    member,
+    related,
+}: {
+    tab: SectionTab;
+    member: MemberDetail;
+    related: RelatedData;
+}) {
+    if (tab === 'basic') {
+        const kin = related.next_of_kin;
+        const hasKin =
+            kin.name ||
+            kin.phone ||
+            kin.residential_address ||
+            kin.postal_address;
+
+        return (
+            <div className="space-y-5">
+                <DetailList
+                    items={[
+                        { label: 'Member ID', value: member.member_number },
+                        { label: 'Title', value: member.title },
+                        { label: 'First Name', value: member.first_name },
+                        { label: 'Surname', value: member.last_name },
+                        { label: 'Other Names', value: member.other_names },
+                        {
+                            label: 'Sex',
+                            value: member.sex ? statusLabel(member.sex) : null,
+                        },
+                        {
+                            label: 'Date of Birth',
+                            value: date(member.date_of_birth, member.age),
+                        },
+                        {
+                            label: 'Place of Birth',
+                            value: member.place_of_birth,
+                        },
+                        { label: 'Home Town', value: member.hometown },
+                        { label: "Father's Name", value: member.father_name },
+                        { label: "Mother's Name", value: member.mother_name },
+                    ]}
+                />
+                {hasKin ? (
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <h3 className="font-medium">Next of Kin</h3>
+                        <DetailList
+                            items={[
+                                { label: 'Name', value: kin.name },
+                                { label: 'Phone', value: kin.phone },
+                                {
+                                    label: 'Residential Address',
+                                    value: kin.residential_address,
+                                },
+                                {
+                                    label: 'Postal Address',
+                                    value: kin.postal_address,
+                                },
+                            ]}
+                        />
+                        {kin.phone && (
+                            <ReachButtons
+                                phone={kin.phone}
+                                name={kin.name || member.full_name}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    empty('No next of kin recorded.')
+                )}
+            </div>
+        );
+    }
+
+    if (tab === 'contact') {
+        return (
+            <div className="space-y-5">
+                {!member.mobile && !member.telephone && (
+                    <p className="text-sm text-muted-foreground">
+                        No phone number on file.
+                    </p>
+                )}
+                <ContactLine
+                    label="Primary Mobile"
+                    phone={member.mobile}
+                    name={member.full_name}
+                />
+                <ContactLine
+                    label="Secondary Mobile"
+                    phone={member.telephone}
+                    name={member.full_name}
+                />
+                <DetailList
+                    items={[
+                        {
+                            label: 'Email',
+                            value: member.email
+                                ? link(`mailto:${member.email}`, member.email)
+                                : null,
+                        },
+                        {
+                            label: 'Facebook',
+                            value: social('facebook', member.facebook_id),
+                        },
+                        {
+                            label: 'Instagram',
+                            value: social('instagram', member.instagram_id),
+                        },
+                        {
+                            label: 'Twitter / X',
+                            value: social('twitter', member.twitter_id),
+                        },
+                        {
+                            label: 'TikTok',
+                            value: social('tiktok', member.tiktok_id),
+                        },
+                        { label: 'Residence', value: member.residence },
+                        {
+                            label: 'Home Location',
+                            value:
+                                member.latitude !== null &&
+                                member.longitude !== null
+                                    ? link(
+                                          mapUrl(
+                                              member.latitude,
+                                              member.longitude,
+                                          ),
+                                          'Open Map',
+                                      )
+                                    : null,
+                        },
+                    ]}
+                />
+            </div>
+        );
+    }
+
+    if (tab === 'marital') {
+        return (
+            <DetailList
+                items={[
+                    {
+                        label: 'Marital Status',
+                        value: member.marital_status
+                            ? statusLabel(member.marital_status)
+                            : null,
+                    },
+                    {
+                        label: 'Marriage Type',
+                        value: member.marriage_type
+                            ? statusLabel(member.marriage_type)
+                            : null,
+                    },
+                    { label: 'Maiden Name', value: member.maiden_name },
+                    {
+                        label: 'Spouse',
+                        value: member.spouse_member ? (
+                            <Link
+                                href={showMember(member.spouse_member.id)}
+                                className="underline-offset-4 hover:underline"
+                            >
+                                {member.spouse_member.full_name}{' '}
+                                <span className="text-xs text-muted-foreground">
+                                    ({member.spouse_member.member_number})
+                                </span>
+                            </Link>
+                        ) : (
+                            member.spouse_name
+                        ),
+                    },
+                ]}
+            />
+        );
+    }
+
+    if (tab === 'church') {
+        return (
+            <div className="space-y-5">
+                <DetailList
+                    items={[
+                        { label: 'Date Joined', value: member.joined_on },
+                        {
+                            label: 'Generational Group',
+                            value: member.generational_group,
+                        },
+                    ]}
+                />
+                <div className="space-y-2">
+                    <div className="text-xs text-muted-foreground">
+                        Service Groups
+                    </div>
+                    {related.groups.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">None</p>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {related.groups.map((group) => (
+                                <Badge
+                                    key={group.id}
+                                    variant="secondary"
+                                    className="px-3 py-1 text-sm"
+                                >
+                                    {group.name}
+                                    {group.short_name &&
+                                    group.short_name !== group.name
+                                        ? ` (${group.short_name})`
+                                        : ''}
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    if (tab === 'service') {
+        return related.service_records.length === 0 ? (
+            empty('No service records.')
+        ) : (
+            <div className="space-y-2">
+                {related.service_records.map((record, i) => (
+                    <div key={i} className="rounded-lg border p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium">{record.name}</span>
+                            <Badge variant="secondary">
+                                {record.type_label}
+                            </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                            {record.position}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            {record.started_on || '—'} –{' '}
+                            {record.ended_on || 'Present'}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    if (tab === 'sacraments') {
+        return (
+            <div className="space-y-4">
+                <DetailList
+                    items={[
+                        {
+                            label: 'Non-Communicant',
+                            value:
+                                member.is_communicant === null
+                                    ? null
+                                    : member.non_communicant
+                                      ? 'Yes'
+                                      : 'No',
+                        },
+                        ...(member.non_communicant
+                            ? [
+                                  {
+                                      label: 'Reason',
+                                      value: member.non_communicant_reason,
+                                  },
+                              ]
+                            : []),
+                    ]}
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                    {(['baptism', 'confirmation'] as const).map((kind) => {
+                        const sacrament = related.sacraments[kind];
+                        const recorded =
+                            sacrament.date ||
+                            sacrament.place ||
+                            sacrament.minister;
+
+                        return (
+                            <div
+                                key={kind}
+                                className="space-y-3 rounded-lg border p-4"
+                            >
+                                <h3 className="font-medium capitalize">
+                                    {kind}
+                                </h3>
+                                {recorded ? (
+                                    <DetailList
+                                        items={[
+                                            {
+                                                label: 'Date',
+                                                value: sacrament.date,
+                                            },
+                                            {
+                                                label: 'Place',
+                                                value: sacrament.place,
+                                            },
+                                            {
+                                                label: 'Minister',
+                                                value: sacrament.minister,
+                                            },
+                                        ]}
+                                    />
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">
+                                        Not recorded.
+                                    </p>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
+    return related.children.length === 0 ? (
+        empty(
+            'No children on the Children Service or Junior Youth register list this member as a guardian.',
+        )
+    ) : (
+        <div className="space-y-2">
+            {related.children.map((child) => (
+                <div
+                    key={child.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
+                >
+                    <div className="flex items-center gap-3">
+                        <PersonAvatar
+                            name={child.name}
+                            photoUrl={child.photo_url}
+                            className="size-10"
+                        />
+                        <div className="text-sm">
+                            <Link
+                                href={showYoung(child.id)}
+                                className="font-medium underline-offset-4 hover:underline"
+                            >
+                                {child.name}
+                            </Link>
+                            <div className="text-xs text-muted-foreground">
+                                {child.member_number}
+                                {child.relationship
+                                    ? ` · ${child.relationship}`
+                                    : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {child.class && <ClassBadge value={child.class} />}
+                        <StatusBadge status={child.status} />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}

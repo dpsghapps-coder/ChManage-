@@ -14,12 +14,12 @@
 
 A PHP Framework
 
-* X.509 public key certificates, attribute certificates,
-* X.690 Abstract Syntax Notation One (ASN.1) Distinguished Encoding Rules (DER) encoding and decoding
-* X.501 ASN.1 types, X.520 attributes and DN parsing.
-* [RFC 7468](https://tools.ietf.org/html/rfc7468) textual encodings of cryptographic structures _(PEM)_.
-* Various ASN.1 types for cryptographic applications.
-* Cryptography support for various PKCS applications.
+- X.509 public key certificates, attribute certificates,
+- X.690 Abstract Syntax Notation One (ASN.1) Distinguished Encoding Rules (DER) encoding and decoding
+- X.501 ASN.1 types, X.520 attributes and DN parsing.
+- [RFC 7468](https://tools.ietf.org/html/rfc7468) textual encodings of cryptographic structures _(PEM)_.
+- Various ASN.1 types for cryptographic applications.
+- Cryptography support for various PKCS applications.
 
 ## Requirements
 
@@ -43,11 +43,11 @@ composer require spomky-labs/pki-framework
 contains is chosen by whoever submitted it**, so an issuer must treat it as untrusted input:
 
 - the signature of the request is **not** verified by `fromCSR()`. Call `CertificationRequest::verify()` yourself
-    before using it;
+  before using it;
 - extensions that decide what a certificate is allowed to do — `basicConstraints`, `keyUsage`, `extKeyUsage`,
-    `nameConstraints`, `policyConstraints`, `policyMappings`, `inhibitAnyPolicy`, `certificatePolicies` and
-    `authorityKeyIdentifier` — are never copied from the request. They belong to the issuer, which sets them with
-    `withExtensions()` / `withAdditionalExtensions()`;
+  `nameConstraints`, `policyConstraints`, `policyMappings`, `inhibitAnyPolicy`, `certificatePolicies` and
+  `authorityKeyIdentifier` — are never copied from the request. They belong to the issuer, which sets them with
+  `withExtensions()` / `withAdditionalExtensions()`;
 - **name the extensions you are willing to honour** as the second argument. Anything not named is dropped:
 
 ```php
@@ -55,11 +55,11 @@ $tbsCertificate = TBSCertificate::fromCSR($csr, [Extension::OID_SUBJECT_ALT_NAME
 ```
 
 - leaving the argument out copies every requested extension that is not forbidden, `subjectAltName` and
-    `authorityInformationAccess` included, and raises a deprecation notice. That default is a deny list: the set of
-    extensions that matter grows over time and every future one is copied. It becomes the empty allow list in the
-    next major release. Pass `null` explicitly if you really want it;
+  `authorityInformationAccess` included, and raises a deprecation notice. That default is a deny list: the set of
+  extensions that matter grows over time and every future one is copied. It becomes the empty allow list in the
+  next major release. Pass `null` explicitly if you really want it;
 - an unknown extension marked critical is never copied. It would be signed verbatim and no conforming validator,
-    this library's own included, would then accept the certificate.
+  this library's own included, would then accept the certificate.
 
 ## Validating a certification path
 

@@ -45,10 +45,10 @@ $detector = new SideEffectsDetector();
 var_dump($detector->getSideEffects($code));
 ```
 
-
 ## Disclaimer
 
 Non goals are:
+
 - find the best possible answer for all cases
 - add runtime dependencies
 

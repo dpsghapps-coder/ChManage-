@@ -168,7 +168,7 @@ ways:
   `GuzzleHttp\Exception\ResponseException` with that response attached. This
   exception pre-empts the `ClientException` or `ServerException` that
   `http_errors` would otherwise raise for such a response; `catch
-  (RequestException $e)` catches both. For unchallenged sub-300 probe responses
+(RequestException $e)` catches both. For unchallenged sub-300 probe responses
   libcurl instead re-issues the request unauthenticated, which can cause the
   server to process both the empty probe and the replay; for other statuses it
   surfaces the probe response. If a server does not require authentication,
@@ -1434,18 +1434,18 @@ $data = json_decode($json);
 $data = \json_decode($json, false, 512, \JSON_THROW_ON_ERROR);
 ```
 
-| Original Function | Replacement |
-|-------------------|-------------|
-| `describe_type` | PHP's `get_debug_type` |
-| `headers_from_lines` | `Utils::headersFromLines` |
-| `debug_resource` | `Utils::debugResource` |
-| `choose_handler` | `Utils::chooseHandler` |
-| `default_user_agent` | `Utils::defaultUserAgent` |
-| `default_ca_bundle` | none; use the system trust store or `verify` |
-| `normalize_header_keys` | `Utils::normalizeHeaderKeys` |
-| `is_host_in_noproxy` | `ProxyOptions::isHostInNoProxy` |
-| `json_decode` | PHP's `json_decode` with `JSON_THROW_ON_ERROR` |
-| `json_encode` | PHP's `json_encode` with `JSON_THROW_ON_ERROR` |
+| Original Function       | Replacement                                    |
+| ----------------------- | ---------------------------------------------- |
+| `describe_type`         | PHP's `get_debug_type`                         |
+| `headers_from_lines`    | `Utils::headersFromLines`                      |
+| `debug_resource`        | `Utils::debugResource`                         |
+| `choose_handler`        | `Utils::chooseHandler`                         |
+| `default_user_agent`    | `Utils::defaultUserAgent`                      |
+| `default_ca_bundle`     | none; use the system trust store or `verify`   |
+| `normalize_header_keys` | `Utils::normalizeHeaderKeys`                   |
+| `is_host_in_noproxy`    | `ProxyOptions::isHostInNoProxy`                |
+| `json_decode`           | PHP's `json_decode` with `JSON_THROW_ON_ERROR` |
+| `json_encode`           | PHP's `json_encode` with `JSON_THROW_ON_ERROR` |
 
 The deprecated `Utils::jsonDecode()` and `Utils::jsonEncode()` methods have
 also been removed. Use PHP's native JSON functions with
@@ -1526,9 +1526,10 @@ collected by an attributed variadic; PHP 8.3+ does.
 
 In order to take advantage of the new features of PHP, Guzzle dropped the support
 of PHP 5. The minimum supported PHP version is now PHP 7.2. Type hints and return
-types for functions and methods have been added wherever possible. 
+types for functions and methods have been added wherever possible.
 
 Please make sure:
+
 - You are calling a function or a method with the correct type.
 - If you extend a class of Guzzle; update all signatures on methods you override.
 
@@ -1536,7 +1537,7 @@ Please make sure:
 
 - Class `GuzzleHttp\UriTemplate` is removed.
 - Class `GuzzleHttp\Exception\SeekException` is removed.
-- Classes `GuzzleHttp\Exception\BadResponseException`, `GuzzleHttp\Exception\ClientException`, 
+- Classes `GuzzleHttp\Exception\BadResponseException`, `GuzzleHttp\Exception\ClientException`,
   `GuzzleHttp\Exception\ServerException` can no longer be initialized with an empty
   Response as argument.
 - Class `GuzzleHttp\Exception\ConnectException` now extends `GuzzleHttp\Exception\TransferException`
@@ -1552,7 +1553,7 @@ Please make sure:
 - Pool option `pool_size` is removed. Please use `concurrency`.
 - We now look for environment variables in the `$_SERVER` super global, due to thread safety issues with `getenv`. We continue to fallback to `getenv` in CLI environments, for maximum compatibility.
 - The `get`, `head`, `put`, `post`, `patch`, `delete`, `getAsync`, `headAsync`, `putAsync`, `postAsync`, `patchAsync`, and `deleteAsync` methods are now implemented as genuine methods on `GuzzleHttp\Client`, with strong typing. The original `__call` implementation remains unchanged for now, for maximum backwards compatibility, but won't be invoked under normal operation.
-- The `log` middleware will log the errors with level `error` instead of `notice` 
+- The `log` middleware will log the errors with level `error` instead of `notice`
 - Support for international domain names (IDN) is now disabled by default, and enabling it requires installing ext-intl, linked against a modern version of the C library (ICU 4.6 or higher).
 
 #### Native Functions Calls
@@ -1593,18 +1594,18 @@ functions that wrap handlers (or are injected into a
 - Guzzle no longer uses ReactPHP promises and now uses the
   `guzzlehttp/promises` library. We use a custom promise library for three
   significant reasons:
-  1. React promises (at the time of writing this) are recursive. Promise
-     chaining and promise resolution will eventually blow the stack. Guzzle
-     promises are not recursive as they use a sort of trampolining technique.
-     Note: there has been movement in the React project to modify promises to
-     no longer utilize recursion.
-  2. Guzzle needs to have the ability to synchronously block on a promise to
-     wait for a result. Guzzle promises allows this functionality (and does
-     not require the use of recursion).
-  3. Because we need to be able to wait on a result, doing so using React
-     promises requires wrapping react promises with RingPHP futures. This
-     overhead is no longer needed, reducing stack sizes, reducing complexity,
-     and improving performance.
+    1. React promises (at the time of writing this) are recursive. Promise
+       chaining and promise resolution will eventually blow the stack. Guzzle
+       promises are not recursive as they use a sort of trampolining technique.
+       Note: there has been movement in the React project to modify promises to
+       no longer utilize recursion.
+    2. Guzzle needs to have the ability to synchronously block on a promise to
+       wait for a result. Guzzle promises allows this functionality (and does
+       not require the use of recursion).
+    3. Because we need to be able to wait on a result, doing so using React
+       promises requires wrapping react promises with RingPHP futures. This
+       overhead is no longer needed, reducing stack sizes, reducing complexity,
+       and improving performance.
 - `GuzzleHttp\Mimetypes` has been moved to a function in
   `GuzzleHttp\Psr7\mimetype_from_extension` and
   `GuzzleHttp\Psr7\mimetype_from_filename`.
@@ -1628,23 +1629,23 @@ functions that wrap handlers (or are injected into a
   integration has been removed. Note: while the event system has been removed,
   it is possible to add your own type of event system that is powered by the
   middleware system.
-  - Removed the `Event` namespace.
-  - Removed the `Subscriber` namespace.
-  - Removed `Transaction` class
-  - Removed `RequestFsm`
-  - Removed `RingBridge`
-  - `GuzzleHttp\Subscriber\Cookie` is now provided by
-    `GuzzleHttp\Middleware::cookies`
-  - `GuzzleHttp\Subscriber\HttpError` is now provided by
-    `GuzzleHttp\Middleware::httpError`
-  - `GuzzleHttp\Subscriber\History` is now provided by
-    `GuzzleHttp\Middleware::history`
-  - `GuzzleHttp\Subscriber\Mock` is now provided by
-    `GuzzleHttp\Handler\MockHandler`
-  - `GuzzleHttp\Subscriber\Prepare` is now provided by
-    `GuzzleHttp\PrepareBodyMiddleware`
-  - `GuzzleHttp\Subscriber\Redirect` is now provided by
-    `GuzzleHttp\RedirectMiddleware`
+    - Removed the `Event` namespace.
+    - Removed the `Subscriber` namespace.
+    - Removed `Transaction` class
+    - Removed `RequestFsm`
+    - Removed `RingBridge`
+    - `GuzzleHttp\Subscriber\Cookie` is now provided by
+      `GuzzleHttp\Middleware::cookies`
+    - `GuzzleHttp\Subscriber\HttpError` is now provided by
+      `GuzzleHttp\Middleware::httpError`
+    - `GuzzleHttp\Subscriber\History` is now provided by
+      `GuzzleHttp\Middleware::history`
+    - `GuzzleHttp\Subscriber\Mock` is now provided by
+      `GuzzleHttp\Handler\MockHandler`
+    - `GuzzleHttp\Subscriber\Prepare` is now provided by
+      `GuzzleHttp\PrepareBodyMiddleware`
+    - `GuzzleHttp\Subscriber\Redirect` is now provided by
+      `GuzzleHttp\RedirectMiddleware`
 - Guzzle now uses `Psr\Http\Message\UriInterface` (implements in
   `GuzzleHttp\Psr7\Uri`) for URI support. `GuzzleHttp\Url` is now gone.
 - Static functions in `GuzzleHttp\Utils` have been moved to namespaced
@@ -2305,9 +2306,8 @@ The following methods were removed from interfaces. All of these methods are sti
 that implement them, but you should update your code to use alternative methods:
 
 - Removed `Guzzle\Http\ClientInterface::setDefaultHeaders(). Use
-  `$client->getConfig()->setPath('request.options/headers/{header_name}', 'value')`. or
-  `$client->getConfig()->setPath('request.options/headers', array('header_name' => 'value'))` or
-  `$client->setDefaultOption('headers/{header_name}', 'value')`. or
+`$client->getConfig()->setPath('request.options/headers/{header_name}', 'value')`. or
+  `$client->getConfig()->setPath('request.options/headers', array('header_name' => 'value'))`or`$client->setDefaultOption('headers/{header_name}', 'value')`. or
   `$client->setDefaultOption('headers', array('header_name' => 'value'))`.
 - Removed `Guzzle\Http\ClientInterface::getDefaultHeaders(). Use `$client->getConfig()->getPath('request.options/headers')`.
 - Removed `Guzzle\Http\ClientInterface::expandTemplate()`. This is an implementation detail.
@@ -2324,66 +2324,66 @@ that implement them, but you should update your code to use alternative methods:
 - Always setting X-cache headers on cached responses
 - Default cache TTLs are now handled by the CacheStorageInterface of a CachePlugin
 - `CacheStorageInterface::cache($key, Response $response, $ttl = null)` has changed to `cache(RequestInterface
-  $request, Response $response);`
+$request, Response $response);`
 - `CacheStorageInterface::fetch($key)` has changed to `fetch(RequestInterface $request);`
 - `CacheStorageInterface::delete($key)` has changed to `delete(RequestInterface $request);`
 - Added `CacheStorageInterface::purge($url)`
 - `DefaultRevalidation::__construct(CacheKeyProviderInterface $cacheKey, CacheStorageInterface $cache, CachePlugin
-  $plugin)` has changed to `DefaultRevalidation::__construct(CacheStorageInterface $cache,
-  CanCacheStrategyInterface $canCache = null)`
+$plugin)` has changed to `DefaultRevalidation::__construct(CacheStorageInterface $cache,
+CanCacheStrategyInterface $canCache = null)`
 - Added `RevalidationInterface::shouldRevalidate(RequestInterface $request, Response $response)`
 
 3.5 to 3.6
 ----------
 
-* Mixed casing of headers are now forced to be a single consistent casing across all values for that header.
-* Messages internally use a HeaderCollection object to delegate handling case-insensitive header resolution
-* Removed the whole changedHeader() function system of messages because all header changes now go through addHeader().
+- Mixed casing of headers are now forced to be a single consistent casing across all values for that header.
+- Messages internally use a HeaderCollection object to delegate handling case-insensitive header resolution
+- Removed the whole changedHeader() function system of messages because all header changes now go through addHeader().
   For example, setHeader() first removes the header using unset on a HeaderCollection and then calls addHeader().
   Keeping the Host header and URL host in sync is now handled by overriding the addHeader method in Request.
-* Specific header implementations can be created for complex headers. When a message creates a header, it uses a
+- Specific header implementations can be created for complex headers. When a message creates a header, it uses a
   HeaderFactory which can map specific headers to specific header classes. There is now a Link header and
   CacheControl header implementation.
-* Moved getLinks() from Response to just be used on a Link header object.
+- Moved getLinks() from Response to just be used on a Link header object.
 
 If you previously relied on Guzzle\Http\Message\Header::raw(), then you will need to update your code to use the
 HeaderInterface (e.g. toArray(), getAll(), etc.).
 
 ### Interface changes
 
-* Removed from interface: Guzzle\Http\ClientInterface::setUriTemplate
-* Removed from interface: Guzzle\Http\ClientInterface::setCurlMulti()
-* Removed Guzzle\Http\Message\Request::receivedRequestHeader() and implemented this functionality in
+- Removed from interface: Guzzle\Http\ClientInterface::setUriTemplate
+- Removed from interface: Guzzle\Http\ClientInterface::setCurlMulti()
+- Removed Guzzle\Http\Message\Request::receivedRequestHeader() and implemented this functionality in
   Guzzle\Http\Curl\RequestMediator
-* Removed the optional $asString parameter from MessageInterface::getHeader(). Just cast the header to a string.
-* Removed the optional $tryChunkedTransfer option from Guzzle\Http\Message\EntityEnclosingRequestInterface
-* Removed the $asObjects argument from Guzzle\Http\Message\MessageInterface::getHeaders()
+- Removed the optional $asString parameter from MessageInterface::getHeader(). Just cast the header to a string.
+- Removed the optional $tryChunkedTransfer option from Guzzle\Http\Message\EntityEnclosingRequestInterface
+- Removed the $asObjects argument from Guzzle\Http\Message\MessageInterface::getHeaders()
 
 ### Removed deprecated functions
 
-* Removed Guzzle\Parser\ParserRegister::get(). Use getParser()
-* Removed Guzzle\Parser\ParserRegister::set(). Use registerParser().
+- Removed Guzzle\Parser\ParserRegister::get(). Use getParser()
+- Removed Guzzle\Parser\ParserRegister::set(). Use registerParser().
 
 ### Deprecations
 
-* The ability to case-insensitively search for header values
-* Guzzle\Http\Message\Header::hasExactHeader
-* Guzzle\Http\Message\Header::raw. Use getAll()
-* Deprecated cache control specific methods on Guzzle\Http\Message\AbstractMessage. Use the CacheControl header object
+- The ability to case-insensitively search for header values
+- Guzzle\Http\Message\Header::hasExactHeader
+- Guzzle\Http\Message\Header::raw. Use getAll()
+- Deprecated cache control specific methods on Guzzle\Http\Message\AbstractMessage. Use the CacheControl header object
   instead.
 
 ### Other changes
 
-* All response header helper functions return a string rather than mixing Header objects and strings inconsistently
-* Removed cURL blacklist support. This is no longer necessary now that Expect, Accept, etc. are managed by Guzzle
+- All response header helper functions return a string rather than mixing Header objects and strings inconsistently
+- Removed cURL blacklist support. This is no longer necessary now that Expect, Accept, etc. are managed by Guzzle
   directly via interfaces
-* Removed the injecting of a request object onto a response object. The methods to get and set a request still exist
+- Removed the injecting of a request object onto a response object. The methods to get and set a request still exist
   but are a no-op until removed.
-* Most classes that used to require a `Guzzle\Service\Command\CommandInterface` typehint now request a
+- Most classes that used to require a `Guzzle\Service\Command\CommandInterface` typehint now request a
   `Guzzle\Service\Command\ArrayCommandInterface`.
-* Added `Guzzle\Http\Message\RequestInterface::startResponse()` to the RequestInterface to handle injecting a response
+- Added `Guzzle\Http\Message\RequestInterface::startResponse()` to the RequestInterface to handle injecting a response
   on a request while the request is still being transferred
-* `Guzzle\Service\Command\CommandInterface` now extends from ToArrayInterface and ArrayAccess
+- `Guzzle\Service\Command\CommandInterface` now extends from ToArrayInterface and ArrayAccess
 
 3.3 to 3.4
 ----------

@@ -43,8 +43,8 @@ The following breaking change only affects you if you're using named arguments:
 👌 **Static analysis improvements**
 
 - Narrowed parameter and return types with static analysis annotations:
-  - `nthRoot()`'s `$n` is now `positive-int`
-  - `BigInteger::toBase()`, `toArbitraryBase()`, `toBytes()` and `BigRational::toRepeatingDecimalString()` now return `non-empty-string`
+    - `nthRoot()`'s `$n` is now `positive-int`
+    - `BigInteger::toBase()`, `toArbitraryBase()`, `toBytes()` and `BigRational::toRepeatingDecimalString()` now return `non-empty-string`
 
 ## [0.17.2](https://github.com/brick/math/releases/tag/0.17.2) - 2026-05-25
 
@@ -352,9 +352,9 @@ The following breaking changes are unlikely to affect you:
 - `RoundingMode` is now an `enum`; if you're type-hinting rounding modes, you need to type-hint against `RoundingMode` instead of `int` now
 - `BigNumber` classes do not implement the `Serializable` interface anymore (they use the [new custom object serialization mechanism](https://wiki.php.net/rfc/custom_object_serialization))
 - The following breaking changes only affect you if you're creating your own `BigNumber` subclasses:
-  - the return type of `BigNumber::of()` is now `static`
-  - `BigNumber` has a new abstract method `from()`
-  - all `public` and `protected` functions of `BigNumber` are now `final`
+    - the return type of `BigNumber::of()` is now `static`
+    - `BigNumber` has a new abstract method `from()`
+    - all `public` and `protected` functions of `BigNumber` are now `final`
 
 ## [0.11.0](https://github.com/brick/math/releases/tag/0.11.0) - 2023-01-16
 
@@ -488,7 +488,7 @@ This is a maintenance release: no bug fixes, no new features, no breaking change
 
 ✨ **New feature**
 
-`BigInteger::mod()` returns the **modulo** of two numbers. The *modulo* differs from the *remainder* when the signs of the operands are different.
+`BigInteger::mod()` returns the **modulo** of two numbers. The _modulo_ differs from the _remainder_ when the signs of the operands are different.
 
 ## [0.8.9](https://github.com/brick/math/releases/tag/0.8.9) - 2020-01-08
 
@@ -572,9 +572,9 @@ Performance optimization of `toInt()` methods.
 
 The following deprecated methods have been removed. Use the new method name instead:
 
-| Method removed | Replacement method |
-| --- | --- |
-| `BigDecimal::getIntegral()` | `BigDecimal::getIntegralPart()` |
+| Method removed              | Replacement method                |
+| --------------------------- | --------------------------------- |
+| `BigDecimal::getIntegral()` | `BigDecimal::getIntegralPart()`   |
 | `BigDecimal::getFraction()` | `BigDecimal::getFractionalPart()` |
 
 ---
@@ -583,12 +583,12 @@ The following deprecated methods have been removed. Use the new method name inst
 
 `BigInteger` has been augmented with 5 new methods for bitwise operations:
 
-| New method | Description |
-| --- | --- |
-| `and()` | performs a bitwise `AND` operation on two numbers |
-| `or()` | performs a bitwise `OR` operation on two numbers |
-| `xor()` | performs a bitwise `XOR` operation on two numbers |
-| `shiftedLeft()` | returns the number shifted left by a number of bits |
+| New method       | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| `and()`          | performs a bitwise `AND` operation on two numbers    |
+| `or()`           | performs a bitwise `OR` operation on two numbers     |
+| `xor()`          | performs a bitwise `XOR` operation on two numbers    |
+| `shiftedLeft()`  | returns the number shifted left by a number of bits  |
 | `shiftedRight()` | returns the number shifted right by a number of bits |
 
 Thanks to @DASPRiD 👍
@@ -680,11 +680,12 @@ This allows to convert any `BigNumber` to a `BigDecimal` with a given scale, usi
 ## [0.5.0](https://github.com/brick/math/releases/tag/0.5.0) - 2015-07-04
 
 **New features**
+
 - Common `BigNumber` interface for all classes, with the following methods:
-  - `sign()` and derived methods (`isZero()`, `isPositive()`, ...)
-  - `compareTo()` and derived methods (`isEqualTo()`, `isGreaterThan()`, ...) that work across different `BigNumber` types
-  - `toBigInteger()`, `toBigDecimal()`, `toBigRational`() conversion methods
-  - `toInteger()` and `toFloat()` conversion methods to native types
+    - `sign()` and derived methods (`isZero()`, `isPositive()`, ...)
+    - `compareTo()` and derived methods (`isEqualTo()`, `isGreaterThan()`, ...) that work across different `BigNumber` types
+    - `toBigInteger()`, `toBigDecimal()`, `toBigRational`() conversion methods
+    - `toInteger()` and `toFloat()` conversion methods to native types
 - Unified `of()` behaviour: every class now accepts any type of number, provided that it can be safely converted to the current type
 - New method: `BigDecimal::exactlyDividedBy()`; this method automatically computes the scale of the result, provided that the division yields a finite number of digits
 - New methods: `BigRational::quotient()` and `remainder()`
@@ -697,32 +698,34 @@ This release also comes with many performance improvements.
 ---
 
 **Breaking changes**
+
 - `BigInteger`:
-  - `getSign()` is renamed to `sign()`
-  - `toString()` is renamed to `toBase()`
-  - `BigInteger::dividedBy()` now throws an exception by default if the remainder is not zero; use `quotient()` to get the previous behaviour
+    - `getSign()` is renamed to `sign()`
+    - `toString()` is renamed to `toBase()`
+    - `BigInteger::dividedBy()` now throws an exception by default if the remainder is not zero; use `quotient()` to get the previous behaviour
 - `BigDecimal`:
-  - `getSign()` is renamed to `sign()`
-  - `getUnscaledValue()` is renamed to `unscaledValue()`
-  - `getScale()` is renamed to `scale()`
-  - `getIntegral()` is renamed to `integral()`
-  - `getFraction()` is renamed to `fraction()`
-  - `divideAndRemainder()` is renamed to `quotientAndRemainder()`
-  - `dividedBy()` now takes a **mandatory** `$scale` parameter **before** the rounding mode
-  - `toBigInteger()` does not accept a `$roundingMode` parameter anymore
-  - `toBigRational()` does not simplify the fraction anymore; explicitly add `->simplified()` to get the previous behaviour
+    - `getSign()` is renamed to `sign()`
+    - `getUnscaledValue()` is renamed to `unscaledValue()`
+    - `getScale()` is renamed to `scale()`
+    - `getIntegral()` is renamed to `integral()`
+    - `getFraction()` is renamed to `fraction()`
+    - `divideAndRemainder()` is renamed to `quotientAndRemainder()`
+    - `dividedBy()` now takes a **mandatory** `$scale` parameter **before** the rounding mode
+    - `toBigInteger()` does not accept a `$roundingMode` parameter anymore
+    - `toBigRational()` does not simplify the fraction anymore; explicitly add `->simplified()` to get the previous behaviour
 - `BigRational`:
-  - `getSign()` is renamed to `sign()`
-  - `getNumerator()` is renamed to  `numerator()`
-  - `getDenominator()` is renamed to  `denominator()`
-  - `of()` is renamed to `nd()`, while `parse()` is renamed to `of()`
+    - `getSign()` is renamed to `sign()`
+    - `getNumerator()` is renamed to `numerator()`
+    - `getDenominator()` is renamed to `denominator()`
+    - `of()` is renamed to `nd()`, while `parse()` is renamed to `of()`
 - Miscellaneous:
-  - `ArithmeticException` is moved to an `Exception\` sub-namespace
-  - `of()` factory methods now throw `NumberFormatException` instead of `InvalidArgumentException`
+    - `ArithmeticException` is moved to an `Exception\` sub-namespace
+    - `of()` factory methods now throw `NumberFormatException` instead of `InvalidArgumentException`
 
 ## [0.4.3](https://github.com/brick/math/releases/tag/0.4.3) - 2016-03-31
 
 Backport of two bug fixes from the 0.5 branch:
+
 - `BigInteger::parse()` did not always throw `InvalidArgumentException` as expected
 - Dividing by a negative power of 1 with the same scale as the dividend could trigger an incorrect optimization which resulted in a wrong result. See #6.
 
@@ -750,6 +753,7 @@ Backport of two bug fixes from the 0.5 branch:
 ## [0.3.4](https://github.com/brick/math/releases/tag/0.3.4) - 2015-06-11
 
 New methods:
+
 - `BigInteger::remainder()` returns the remainder of a division only
 - `BigInteger::gcd()` returns the greatest common divisor of two numbers
 
@@ -760,6 +764,7 @@ Fix `toString()` not handling negative numbers.
 ## [0.3.2](https://github.com/brick/math/releases/tag/0.3.2) - 2015-06-07
 
 `BigInteger` and `BigDecimal` now have a `getSign()` method that returns:
+
 - `-1` if the number is negative
 - `0` if the number is zero
 - `1` if the number is positive

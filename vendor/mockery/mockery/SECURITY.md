@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| `2.0.x`   | `yes` |
-| `1.6.x`   | `yes` |
-| `1.5.x`   | `yes` |
-| `<1.5.x` | `no` |
+| Version  | Supported |
+| -------- | --------- |
+| `2.0.x`  | `yes`     |
+| `1.6.x`  | `yes`     |
+| `1.5.x`  | `yes`     |
+| `<1.5.x` | `no`      |
 
 ## Reporting a Vulnerability
 

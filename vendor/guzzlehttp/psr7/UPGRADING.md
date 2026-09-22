@@ -938,30 +938,30 @@ use GuzzleHttp\Psr7\Utils;
 $stream = Utils::streamFor('body');
 ```
 
-| Original Function | Replacement Method |
-|-------------------|--------------------|
-| `str` | `Message::toString` |
-| `uri_for` | `Utils::uriFor` |
-| `stream_for` | `Utils::streamFor` |
-| `parse_header` | `Header::parse` |
-| `normalize_header` | `Header::normalize` |
-| `modify_request` | `Utils::modifyRequest` |
-| `rewind_body` | `Message::rewindBody` |
-| `try_fopen` | `Utils::tryFopen` |
-| `copy_to_string` | `Utils::copyToString` |
-| `copy_to_stream` | `Utils::copyToStream` |
-| `hash` | `Utils::hash` |
-| `readline` | `Utils::readLine` |
-| `parse_request` | `Message::parseRequest` |
-| `parse_response` | `Message::parseResponse` |
-| `parse_query` | `Query::parse` |
-| `build_query` | `Query::build` |
-| `mimetype_from_filename` | `MimeType::fromFilename` |
-| `mimetype_from_extension` | `MimeType::fromExtension` |
-| `_parse_message` | `Message::parseMessage` |
-| `_parse_request_uri` | `Message::parseRequestUri` |
-| `get_message_body_summary` | `Message::bodySummary` |
-| `_caseless_remove` | `Utils::caselessRemove` |
+| Original Function          | Replacement Method         |
+| -------------------------- | -------------------------- |
+| `str`                      | `Message::toString`        |
+| `uri_for`                  | `Utils::uriFor`            |
+| `stream_for`               | `Utils::streamFor`         |
+| `parse_header`             | `Header::parse`            |
+| `normalize_header`         | `Header::normalize`        |
+| `modify_request`           | `Utils::modifyRequest`     |
+| `rewind_body`              | `Message::rewindBody`      |
+| `try_fopen`                | `Utils::tryFopen`          |
+| `copy_to_string`           | `Utils::copyToString`      |
+| `copy_to_stream`           | `Utils::copyToStream`      |
+| `hash`                     | `Utils::hash`              |
+| `readline`                 | `Utils::readLine`          |
+| `parse_request`            | `Message::parseRequest`    |
+| `parse_response`           | `Message::parseResponse`   |
+| `parse_query`              | `Query::parse`             |
+| `build_query`              | `Query::build`             |
+| `mimetype_from_filename`   | `MimeType::fromFilename`   |
+| `mimetype_from_extension`  | `MimeType::fromExtension`  |
+| `_parse_message`           | `Message::parseMessage`    |
+| `_parse_request_uri`       | `Message::parseRequestUri` |
+| `get_message_body_summary` | `Message::bodySummary`     |
+| `_caseless_remove`         | `Utils::caselessRemove`    |
 
 `Header::normalize()` remains the direct 2.0 replacement for
 `normalize_header()`. In newer 2.x versions, prefer `Header::splitList()` for

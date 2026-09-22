@@ -8,6 +8,7 @@
 **CBOR Object Signing and Encryption (COSE) for PHP** is a comprehensive library that provides full support for COSE operations including signing, encryption, and MAC (Message Authentication Code) operations.
 
 This library implements:
+
 - **[RFC 9052](https://datatracker.ietf.org/doc/html/rfc9052)** - COSE: Structures and Process
 - **[RFC 9053](https://datatracker.ietf.org/doc/html/rfc9053)** - COSE: Initial Algorithms
 - **[RFC 9864](https://www.rfc-editor.org/rfc/rfc9864.html)** - COSE: Fully-Specified Algorithms
@@ -15,36 +16,42 @@ This library implements:
 ## Features
 
 ✅ **RFC 9052 Cryptographic Structures**
+
 - `Sig_structure`: `Signature1` (§4.4) and `Signature`, which also covers the signer's own protected header
 - `MAC_structure`: `Mac0Structure` and `MacStructure` (§6.3) — a MAC tag covers this, never the bare payload
 - `Enc_structure`: `Encrypt0Structure`, `EncryptStructure` and `RecipientStructure` (§5.3)
 - Each takes the optional `external_aad`, defaulting to the zero-length byte string the RFC prescribes
 
 ✅ **RFC 9052 Header and Structure Rules**
-- `CoseHeaders` reads the two buckets of any COSE message: a label is an integer *or* a text string (§1.5) and the
+
+- `CoseHeaders` reads the two buckets of any COSE message: a label is an integer _or_ a text string (§1.5) and the
   two never answer for each other, the zero-length protected header is accepted (§3), trailing bytes in the
   protected bucket are not, and the protected value wins a combined lookup
 - `CoseSignature` and `CoseRecipient` are the checked views over the `signatures` and `recipients` lists (`[+ ...]`)
 - Works on the COSE message classes of spomky-labs/cbor-php 3.4.0
 
 ✅ **COSE Tag Support** (via [spomky-labs/cbor-php](https://github.com/Spomky-Labs/cbor-php) 3.4.0)
+
 - `CBOR\Tag\CoseSign1Tag` (18), `CoseSignTag` (98), `CoseEncrypt0Tag` (16), `CoseEncryptTag` (96),
   `CoseMac0Tag` (17), `CoseMacTag` (97), plus `CwtTag` (61), all registered in the default decoder
 - The `Cose\...Tag` classes of this library are **deprecated since 4.8.0** and removed in 5.0.0; see
   [Upgrading](doc/Usage.md#upgrading-from-the-cosetag-classes)
 
 ✅ **Cryptographic Algorithms**
+
 - **Signatures**: ECDSA (ES256, ES384, ES512, ES256K), EdDSA (Ed25519, Ed448), RSA (RS256/384/512, PS256/384/512)
 - **Fully-specified identifiers** ([RFC 9864](https://www.rfc-editor.org/rfc/rfc9864.html)): ESP256/384/512, ESB256/320/384/512, Ed25519, Ed448
 - **MAC**: HMAC with SHA-256/384/512
 - Compatible with WebAuthn, FIDO2, and digital COVID certificates
 
 ✅ **Key Restrictions** ([RFC 9052](https://www.rfc-editor.org/rfc/rfc9052.html#section-7.1) §7.1)
+
 - Opt-in enforcement of the `alg` (label 3) and `key_ops` (label 4) parameters a COSE key carries
 - Turned on per algorithm or for a whole `Manager`: `ES256::create()->withKeyRestrictionsEnforced()`
 - See [Key Restrictions](doc/Usage.md#key-restrictions-alg-and-key_ops)
 
 ✅ **Modern PHP**
+
 - PHP 8.1+ with strict types
 - Full type safety and PHPStan compliance
 - Comprehensive test coverage
@@ -216,40 +223,40 @@ This library is perfect for:
 
 ### Signature Algorithms
 
-| Algorithm | Identifier | Description |
-|-----------|------------|-------------|
-| ES256 | -7 | ECDSA with SHA-256 |
-| ES384 | -35 | ECDSA with SHA-384 |
-| ES512 | -36 | ECDSA with SHA-512 |
-| ES256K | -47 | ECDSA with secp256k1 |
-| EdDSA | -8 | EdDSA |
-| Ed25519 | -8 | Alias of EdDSA (Curve25519); see -19 below for the fully-specified form |
-| Ed256 | -260 | Ed25519 over a SHA-256 digest — non-standard, see below |
-| Ed512 | -261 | Ed25519 over a SHA-512 digest — non-standard, see below |
-| RS256 | -257 | RSASSA-PKCS1-v1_5 with SHA-256 |
-| RS384 | -258 | RSASSA-PKCS1-v1_5 with SHA-384 |
-| RS512 | -259 | RSASSA-PKCS1-v1_5 with SHA-512 |
-| PS256 | -37 | RSASSA-PSS with SHA-256 |
-| PS384 | -38 | RSASSA-PSS with SHA-384 |
-| PS512 | -39 | RSASSA-PSS with SHA-512 |
-| RS1 | -65535 | RSASSA-PKCS1-v1_5 with SHA-1 — legacy only, see below |
+| Algorithm | Identifier | Description                                                             |
+| --------- | ---------- | ----------------------------------------------------------------------- |
+| ES256     | -7         | ECDSA with SHA-256                                                      |
+| ES384     | -35        | ECDSA with SHA-384                                                      |
+| ES512     | -36        | ECDSA with SHA-512                                                      |
+| ES256K    | -47        | ECDSA with secp256k1                                                    |
+| EdDSA     | -8         | EdDSA                                                                   |
+| Ed25519   | -8         | Alias of EdDSA (Curve25519); see -19 below for the fully-specified form |
+| Ed256     | -260       | Ed25519 over a SHA-256 digest — non-standard, see below                 |
+| Ed512     | -261       | Ed25519 over a SHA-512 digest — non-standard, see below                 |
+| RS256     | -257       | RSASSA-PKCS1-v1_5 with SHA-256                                          |
+| RS384     | -258       | RSASSA-PKCS1-v1_5 with SHA-384                                          |
+| RS512     | -259       | RSASSA-PKCS1-v1_5 with SHA-512                                          |
+| PS256     | -37        | RSASSA-PSS with SHA-256                                                 |
+| PS384     | -38        | RSASSA-PSS with SHA-384                                                 |
+| PS512     | -39        | RSASSA-PSS with SHA-512                                                 |
+| RS1       | -65535     | RSASSA-PKCS1-v1_5 with SHA-1 — legacy only, see below                   |
 
 #### Fully-Specified Algorithms ([RFC 9864](https://www.rfc-editor.org/rfc/rfc9864.html))
 
 These identifiers determine the curve and the hash on their own, instead of leaving them to the other parameters of
 the key. They live in the `Cose\Algorithm\Signature\FullySpecified` namespace.
 
-| Algorithm | Identifier | Description |
-|-----------|------------|-------------|
-| ESP256 | -9 | ECDSA with the P-256 curve and SHA-256 |
-| ESP384 | -51 | ECDSA with the P-384 curve and SHA-384 |
-| ESP512 | -52 | ECDSA with the P-521 curve and SHA-512 |
-| ESB256 | -265 | ECDSA with the brainpoolP256r1 curve and SHA-256 |
-| ESB320 | -266 | ECDSA with the brainpoolP320r1 curve and SHA-384 |
-| ESB384 | -267 | ECDSA with the brainpoolP384r1 curve and SHA-384 |
-| ESB512 | -268 | ECDSA with the brainpoolP512r1 curve and SHA-512 |
-| Ed25519 | -19 | EdDSA with the Ed25519 parameter set |
-| Ed448 | -53 | EdDSA with the Ed448 parameter set — requires PHP 8.4 or later |
+| Algorithm | Identifier | Description                                                    |
+| --------- | ---------- | -------------------------------------------------------------- |
+| ESP256    | -9         | ECDSA with the P-256 curve and SHA-256                         |
+| ESP384    | -51        | ECDSA with the P-384 curve and SHA-384                         |
+| ESP512    | -52        | ECDSA with the P-521 curve and SHA-512                         |
+| ESB256    | -265       | ECDSA with the brainpoolP256r1 curve and SHA-256               |
+| ESB320    | -266       | ECDSA with the brainpoolP320r1 curve and SHA-384               |
+| ESB384    | -267       | ECDSA with the brainpoolP384r1 curve and SHA-384               |
+| ESB512    | -268       | ECDSA with the brainpoolP512r1 curve and SHA-512               |
+| Ed25519   | -19        | EdDSA with the Ed25519 parameter set                           |
+| Ed448     | -53        | EdDSA with the Ed448 parameter set — requires PHP 8.4 or later |
 
 > [!NOTE]
 > `Cose\Algorithm\Signature\FullySpecified\Ed25519` (-19) and `Cose\Algorithm\Signature\EdDSA\Ed25519` (-8)
@@ -303,12 +310,12 @@ the key. They live in the `Cose\Algorithm\Signature\FullySpecified` namespace.
 
 ### MAC Algorithms
 
-| Algorithm | Identifier | Description |
-|-----------|------------|-------------|
-| HS256 | 5 | HMAC with SHA-256 |
-| HS384 | 6 | HMAC with SHA-384 |
-| HS512 | 7 | HMAC with SHA-512 |
-| HS256/64 | 4 | HMAC with SHA-256 truncated to 64 bits |
+| Algorithm | Identifier | Description                            |
+| --------- | ---------- | -------------------------------------- |
+| HS256     | 5          | HMAC with SHA-256                      |
+| HS384     | 6          | HMAC with SHA-384                      |
+| HS512     | 7          | HMAC with SHA-512                      |
+| HS256/64  | 4          | HMAC with SHA-256 truncated to 64 bits |
 
 #### The HMAC Key
 
@@ -448,7 +455,7 @@ As of the next major version, that warning becomes an `InvalidArgumentException`
 `verify()`.
 
 To keep accepting weaker keys, hand the algorithm a validator carrying the bound you actually accept. Writing the
-bound down is the acknowledgement: a key below *it* is still refused, right away and with an exception, because you
+bound down is the acknowledgement: a key below _it_ is still refused, right away and with an exception, because you
 chose that bound.
 
 ```php
@@ -570,6 +577,7 @@ composer test
 ```
 
 The library includes comprehensive tests including:
+
 - Unit tests for all COSE tag types
 - Integration tests with real cryptographic operations
 - COVID-19 certificate verification examples

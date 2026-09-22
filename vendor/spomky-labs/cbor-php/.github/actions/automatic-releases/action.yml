@@ -19,19 +19,19 @@ name: 'laminas/automatic-releases (digest-pinned)'
 description: 'Automates automatic releases for semver-compliant repositories'
 
 inputs:
-  command-name:
-    description: |
-      Command to execute: one of
-       * `laminas:automatic-releases:release`
-       * `laminas:automatic-releases:create-merge-up-pull-request`
-       * `laminas:automatic-releases:switch-default-branch-to-next-minor`
-       * `laminas:automatic-releases:bump-changelog`
-       * `laminas:automatic-releases:create-milestones`
-    required: true
+    command-name:
+        description: |
+            Command to execute: one of
+             * `laminas:automatic-releases:release`
+             * `laminas:automatic-releases:create-merge-up-pull-request`
+             * `laminas:automatic-releases:switch-default-branch-to-next-minor`
+             * `laminas:automatic-releases:bump-changelog`
+             * `laminas:automatic-releases:create-milestones`
+        required: true
 
 runs:
-  using: 'docker'
-  # Digest of ghcr.io/laminas/automatic-releases:1 as of 2026-09-10.
-  image: 'docker://ghcr.io/laminas/automatic-releases@sha256:c86f165782c462d031f7f8a5932cad237c4a7d16a57b1b0ab0e76e68e08ffba1'
-  args:
-    - ${{ inputs.command-name }}
+    using: 'docker'
+    # Digest of ghcr.io/laminas/automatic-releases:1 as of 2026-09-10.
+    image: 'docker://ghcr.io/laminas/automatic-releases@sha256:c86f165782c462d031f7f8a5932cad237c4a7d16a57b1b0ab0e76e68e08ffba1'
+    args:
+        - ${{ inputs.command-name }}

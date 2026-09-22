@@ -13,42 +13,42 @@
 Flysystem is a file storage library for PHP. It provides one interface to
 interact with many types of filesystems. When you use Flysystem, you're
 not only protected from vendor lock-in, you'll also have a consistent experience
-for which ever storage is right for you. 
+for which ever storage is right for you.
 
 ## Getting Started
 
-* **[New in V3](https://flysystem.thephpleague.com/docs/what-is-new/)**: What is new in Flysystem V2/V3?
-* **[Architecture](https://flysystem.thephpleague.com/docs/architecture/)**: Flysystem's internal architecture
-* **[Flysystem API](https://flysystem.thephpleague.com/docs/usage/filesystem-api/)**: How to interact with your Flysystem instance
-* **[Upgrade from 1x](https://flysystem.thephpleague.com/docs/upgrade-from-1.x/)**: How to upgrade from 1.x/2.x
+- **[New in V3](https://flysystem.thephpleague.com/docs/what-is-new/)**: What is new in Flysystem V2/V3?
+- **[Architecture](https://flysystem.thephpleague.com/docs/architecture/)**: Flysystem's internal architecture
+- **[Flysystem API](https://flysystem.thephpleague.com/docs/usage/filesystem-api/)**: How to interact with your Flysystem instance
+- **[Upgrade from 1x](https://flysystem.thephpleague.com/docs/upgrade-from-1.x/)**: How to upgrade from 1.x/2.x
 
 ### Officially supported adapters
 
-* **[Local](https://flysystem.thephpleague.com/docs/adapter/local/)**
-* **[FTP](https://flysystem.thephpleague.com/docs/adapter/ftp/)**
-* **[SFTP](https://flysystem.thephpleague.com/docs/adapter/sftp-v3/)**
-* **[Memory](https://flysystem.thephpleague.com/docs/adapter/in-memory/)**
-* **[AWS S3](https://flysystem.thephpleague.com/docs/adapter/aws-s3-v3/)**
-* **[AsyncAws S3](https://flysystem.thephpleague.com/docs/adapter/async-aws-s3/)**
-* **[Google Cloud Storage](https://flysystem.thephpleague.com/docs/adapter/google-cloud-storage/)**
-* **[MongoDB GridFS](https://flysystem.thephpleague.com/docs/adapter/gridfs/)**
-* **[WebDAV](https://flysystem.thephpleague.com/docs/adapter/webdav/)**
-* **[ZipArchive](https://flysystem.thephpleague.com/docs/adapter/zip-archive/)**
+- **[Local](https://flysystem.thephpleague.com/docs/adapter/local/)**
+- **[FTP](https://flysystem.thephpleague.com/docs/adapter/ftp/)**
+- **[SFTP](https://flysystem.thephpleague.com/docs/adapter/sftp-v3/)**
+- **[Memory](https://flysystem.thephpleague.com/docs/adapter/in-memory/)**
+- **[AWS S3](https://flysystem.thephpleague.com/docs/adapter/aws-s3-v3/)**
+- **[AsyncAws S3](https://flysystem.thephpleague.com/docs/adapter/async-aws-s3/)**
+- **[Google Cloud Storage](https://flysystem.thephpleague.com/docs/adapter/google-cloud-storage/)**
+- **[MongoDB GridFS](https://flysystem.thephpleague.com/docs/adapter/gridfs/)**
+- **[WebDAV](https://flysystem.thephpleague.com/docs/adapter/webdav/)**
+- **[ZipArchive](https://flysystem.thephpleague.com/docs/adapter/zip-archive/)**
 
 ### Third party Adapters
 
-* **[Azure Blob Storage](https://github.com/Azure-OSS/azure-storage-php-adapter-flysystem)**
-* **[Gitlab](https://github.com/RoyVoetman/flysystem-gitlab-storage)**
-* **[Google Drive (using regular paths)](https://github.com/masbug/flysystem-google-drive-ext)**
-* **[bunny.net / BunnyCDN](https://github.com/PlatformCommunity/flysystem-bunnycdn/tree/v3)**
-* **[Sharepoint 365 / One Drive (Using MS Graph)](https://github.com/shitware-ltd/flysystem-msgraph)**
-* **[OneDrive](https://github.com/doerffler/flysystem-onedrive)**
-* **[Dropbox](https://github.com/spatie/flysystem-dropbox)**
-* **[ReplicateAdapter](https://github.com/ajgarlag/flysystem-replicate)**
-* **[Uploadcare](https://github.com/vormkracht10/flysystem-uploadcare)**
-* **[Useful adapters (FallbackAdapter, LogAdapter, ReadWriteAdapter, RetryAdapter)](https://github.com/ElGigi/FlysystemUsefulAdapters)**
-* **[Metadata Cache](https://github.com/jgivoni/flysystem-cache-adapter)**
-* **[Migration adapter (lazy)](https://github.com/antonsacred/flysystem-lazy-migration-adapter)**
+- **[Azure Blob Storage](https://github.com/Azure-OSS/azure-storage-php-adapter-flysystem)**
+- **[Gitlab](https://github.com/RoyVoetman/flysystem-gitlab-storage)**
+- **[Google Drive (using regular paths)](https://github.com/masbug/flysystem-google-drive-ext)**
+- **[bunny.net / BunnyCDN](https://github.com/PlatformCommunity/flysystem-bunnycdn/tree/v3)**
+- **[Sharepoint 365 / One Drive (Using MS Graph)](https://github.com/shitware-ltd/flysystem-msgraph)**
+- **[OneDrive](https://github.com/doerffler/flysystem-onedrive)**
+- **[Dropbox](https://github.com/spatie/flysystem-dropbox)**
+- **[ReplicateAdapter](https://github.com/ajgarlag/flysystem-replicate)**
+- **[Uploadcare](https://github.com/vormkracht10/flysystem-uploadcare)**
+- **[Useful adapters (FallbackAdapter, LogAdapter, ReadWriteAdapter, RetryAdapter)](https://github.com/ElGigi/FlysystemUsefulAdapters)**
+- **[Metadata Cache](https://github.com/jgivoni/flysystem-cache-adapter)**
+- **[Migration adapter (lazy)](https://github.com/antonsacred/flysystem-lazy-migration-adapter)**
 
 You can always [create an adapter](https://flysystem.thephpleague.com/docs/advanced/creating-an-adapter/) yourself.
 

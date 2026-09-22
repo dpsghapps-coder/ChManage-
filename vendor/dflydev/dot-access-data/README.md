@@ -10,14 +10,12 @@ Dot Access Data
 
 Given a deep data structure, access data by dot notation.
 
-
 Requirements
 ------------
 
- * PHP (7.1+)
+- PHP (7.1+)
 
 > For PHP (5.3+) please refer to version `1.0`.
-
 
 Usage
 -----
@@ -149,7 +147,6 @@ License
 
 This library is licensed under the MIT License - see the LICENSE file
 for details.
-
 
 Community
 ---------

@@ -8,11 +8,11 @@
 [![Quality Score](https://img.shields.io/scrutinizer/g/thephpleague/config.svg?style=flat-square)](https://scrutinizer-ci.com/g/thephpleague/config)
 [![Sponsor development of this project](https://img.shields.io/badge/sponsor%20this%20package-%E2%9D%A4-ff69b4.svg?style=flat-square)](https://www.colinodell.com/sponsor)
 
-**league/config** helps you define nested configuration arrays with strict schemas and access configuration values with dot notation.  It was created by [Colin O'Dell][@colinodell].
+**league/config** helps you define nested configuration arrays with strict schemas and access configuration values with dot notation. It was created by [Colin O'Dell][@colinodell].
 
 ## 📦 Installation
 
-This project requires PHP 7.4 or higher.  To install it via [Composer] simply run:
+This project requires PHP 7.4 or higher. To install it via [Composer] simply run:
 
 ```bash
 composer require league/config
@@ -115,9 +115,9 @@ Any classes or methods marked `@internal` are not intended for use outside this 
 
 ## 🛠️ Maintenance & Support
 
-When a new **minor** version (e.g. `1.0` -> `1.1`) is released, the previous one (`1.0`) will continue to receive security and critical bug fixes for *at least* 3 months.
+When a new **minor** version (e.g. `1.0` -> `1.1`) is released, the previous one (`1.0`) will continue to receive security and critical bug fixes for _at least_ 3 months.
 
-When a new **major** version is released (e.g. `1.1` -> `2.0`), the previous one (`1.1`) will receive critical bug fixes for *at least* 3 months and security updates for 6 months after that new release comes out.
+When a new **major** version is released (e.g. `1.1` -> `2.0`), the previous one (`1.1`) will receive critical bug fixes for _at least_ 3 months and security updates for 6 months after that new release comes out.
 
 (This policy may change in the future and exceptions may be made on a case-by-case basis.)
 
@@ -133,9 +133,9 @@ composer test
 
 ## 📄 License
 
-**league/config** is licensed under the BSD-3 license.  See the [`LICENSE.md`][license] file for more details.
+**league/config** is licensed under the BSD-3 license. See the [`LICENSE.md`][license] file for more details.
 
-## 🗺️  Who Uses It?
+## 🗺️ Who Uses It?
 
 This project is used by [league/commonmark][league-commonmark].
 

@@ -58,13 +58,13 @@ npm install @laravel/passkeys
 ```
 
 ```js
-import { Passkeys } from '@laravel/passkeys'
+import { Passkeys } from '@laravel/passkeys';
 
 // Registration (authenticated user)
-await Passkeys.register({ name: 'My MacBook' })
+await Passkeys.register({ name: 'My MacBook' });
 
 // Verification (login)
-await Passkeys.verify()
+await Passkeys.verify();
 ```
 
 ## Routes
@@ -72,14 +72,17 @@ await Passkeys.verify()
 The package automatically registers the following routes:
 
 ### Guest Routes (Login)
+
 - `GET /passkeys/login/options` - Get login options
 - `POST /passkeys/login` - Verify passkey and authenticate
 
 ### Authenticated Routes (Confirmation)
+
 - `GET /passkeys/confirm/options` - Get confirmation options
 - `POST /passkeys/confirm` - Confirm password via passkey
 
 ### Authenticated Routes (Management)
+
 - `GET /user/passkeys/options` - Get registration options
 - `POST /user/passkeys` - Store new passkey
 - `DELETE /user/passkeys/{passkey}` - Delete passkey
@@ -198,6 +201,7 @@ $this->app->bind(GenerateRegistrationOptions::class, CustomRegistrationOptions::
 ```
 
 Available actions:
+
 - `GenerateRegistrationOptions`
 - `GenerateVerificationOptions`
 - `StorePasskey`
@@ -224,6 +228,7 @@ $this->app->singleton(PasskeyLoginResponse::class, MyLoginResponse::class);
 ```
 
 Available response contracts:
+
 - `PasskeyLoginResponse` - After successful login
 - `PasskeyConfirmationResponse` - After successful confirmation
 - `PasskeyRegistrationResponse` - After successful registration

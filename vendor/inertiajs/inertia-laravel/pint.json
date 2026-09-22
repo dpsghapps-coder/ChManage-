@@ -1,5 +1,3 @@
 {
-	"notPath": [
-		"src/Inertia.php"
-	]
+    "notPath": ["src/Inertia.php"]
 }

@@ -1,4 +1,5 @@
 # Google2FA
+
 ## Google Two-Factor Authentication for PHP
 
 Google2FA is a PHP implementation of the Google Two-Factor Authentication Module, supporting the HMAC-Based One-time Password (HOTP) algorithm specified in [RFC 4226](https://tools.ietf.org/html/rfc4226) and the Time-based One-time Password (TOTP) algorithm specified in [RFC 6238](https://tools.ietf.org/html/rfc6238).
@@ -21,45 +22,45 @@ Google2FA is a PHP implementation of the Google Two-Factor Authentication Module
 
 ## Menu
 
-  - [Version Compatibility](#version-compatibility)
-  - [Version Support](#version-support)
-  - [⚠️ Version 9.0.0 Breaking Change](#️-version-900-breaking-change)
-  - [Google Two-Factor Authentication for PHP](#google-two-factor-authentication-for-php)
-  - [Laravel bridge](#laravel-bridge)
-  - [About QRCode generation](#about-qrcode-generation)
-  - [Demos, Example & Playground](#demos-example--playground)
-  - [Requirements](#requirements)
-  - [Installing](#installing)
-  - [Usage](#usage)
-  - [How To Generate And Use Two Factor Authentication](#how-to-generate-and-use-two-factor-authentication)
-  - [Generating QRCodes](#generating-qrcodes)
-  - [QR Code Packages](#qr-code-packages)
-  - [Examples of Usage](#examples-of-usage)
-  - [HMAC Algorithms](#hmac-algorithms)
-  - [Server Time](#server-time)
-  - [Validation Window](#validation-window)
-  - [Using a Bigger and Prefixing the Secret Key](#using-a-bigger-and-prefixing-the-secret-key)
-  - [Google Authenticator secret key compatibility](#google-authenticator-secret-key-compatibility)
-  - [Google Authenticator Apps](#google-authenticator-apps)
-  - [Deprecation Warning](#deprecation-warning)
-  - [Testing](#testing)
-  - [Authors](#authors)
-  - [License](#license)
-  - [Contributing](#contributing)
-  - [Sponsorships](#sponsorships)
+- [Version Compatibility](#version-compatibility)
+- [Version Support](#version-support)
+- [⚠️ Version 9.0.0 Breaking Change](#️-version-900-breaking-change)
+- [Google Two-Factor Authentication for PHP](#google-two-factor-authentication-for-php)
+- [Laravel bridge](#laravel-bridge)
+- [About QRCode generation](#about-qrcode-generation)
+- [Demos, Example & Playground](#demos-example--playground)
+- [Requirements](#requirements)
+- [Installing](#installing)
+- [Usage](#usage)
+- [How To Generate And Use Two Factor Authentication](#how-to-generate-and-use-two-factor-authentication)
+- [Generating QRCodes](#generating-qrcodes)
+- [QR Code Packages](#qr-code-packages)
+- [Examples of Usage](#examples-of-usage)
+- [HMAC Algorithms](#hmac-algorithms)
+- [Server Time](#server-time)
+- [Validation Window](#validation-window)
+- [Using a Bigger and Prefixing the Secret Key](#using-a-bigger-and-prefixing-the-secret-key)
+- [Google Authenticator secret key compatibility](#google-authenticator-secret-key-compatibility)
+- [Google Authenticator Apps](#google-authenticator-apps)
+- [Deprecation Warning](#deprecation-warning)
+- [Testing](#testing)
+- [Authors](#authors)
+- [License](#license)
+- [Contributing](#contributing)
+- [Sponsorships](#sponsorships)
 
 ## Version Compatibility
 
- PHP     | Google2FA
-:--------|:----------
- 7.4     | 8.x & 9.x
- 8.0     | 8.x & 9.x
- 8.1     | 8.x & 9.x
- 8.2     | 8.x & 9.x
- 8.3     | 8.x & 9.x
- 8.4     | 8.x & 9.x
- 8.5     | 8.x & 9.x
- 8.6 (beta) | CI-tested, not yet a supported target
+| PHP        | Google2FA                             |
+| :--------- | :------------------------------------ |
+| 7.4        | 8.x & 9.x                             |
+| 8.0        | 8.x & 9.x                             |
+| 8.1        | 8.x & 9.x                             |
+| 8.2        | 8.x & 9.x                             |
+| 8.3        | 8.x & 9.x                             |
+| 8.4        | 8.x & 9.x                             |
+| 8.5        | 8.x & 9.x                             |
+| 8.6 (beta) | CI-tested, not yet a supported target |
 
 ## Version Support
 
@@ -69,7 +70,7 @@ Google2FA is a PHP implementation of the Google Two-Factor Authentication Module
 | `8.x`           | **Maintenance** | Security fixes and low-risk maintenance only (CI bumps, doc fixes)     |
 | `7.x` and older | **Unsupported** | Please upgrade                                                         |
 
-When a new major is released, the previous major moves to *Maintenance*. The major before that becomes *Unsupported*. PHP version support roughly tracks [PHP's own support window](https://www.php.net/supported-versions.php).
+When a new major is released, the previous major moves to _Maintenance_. The major before that becomes _Unsupported_. PHP version support roughly tracks [PHP's own support window](https://www.php.net/supported-versions.php).
 
 This table lists released majors only. Unreleased development branches (if any) aren't part of the support policy until they ship.
 
@@ -82,6 +83,7 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md) — do **not** open
 **Version 9.0.0** introduces a **breaking change**: The default secret key length has been increased from **16 to 32 characters** for enhanced security.
 
 #### What Changed?
+
 - `generateSecretKey()` now generates 32-character secrets by default (previously 16)
 - This increases cryptographic entropy from 80 bits to 160 bits
 - Maintains full compatibility with Google Authenticator and other TOTP apps
@@ -89,6 +91,7 @@ For security vulnerabilities, see [SECURITY.md](SECURITY.md) — do **not** open
 #### Migration Guide
 
 **If you want to keep the previous behavior (16-character secrets):**
+
 ```php
 // Old default behavior (v8.x and below)
 $secret = $google2fa->generateSecretKey();
@@ -98,12 +101,14 @@ $secret = $google2fa->generateSecretKey(16);
 ```
 
 **If you want to use the new default (32-character secrets):**
+
 ```php
 // This now generates 32-character secrets by default
 $secret = $google2fa->generateSecretKey();
 ```
 
 #### Potential Impact Areas
+
 - **Database schemas**: Check if your `google2fa_secret` columns can handle 32 characters
 - **Validation rules**: Update any length validations that expect exactly 16 characters
 - **Tests**: Update test assertions expecting 16-character secrets
@@ -112,7 +117,9 @@ $secret = $google2fa->generateSecretKey();
 **Important**: Existing 16-character secrets remain fully functional. Database updates are only needed if you want to use the new 32-character default behavior.
 
 #### Why This Change?
+
 While 16-character secrets meet RFC 6238 minimum requirements, 32-character secrets provide significantly better security:
+
 - **16 chars**: 80 bits of entropy (adequate but minimal)
 - **32 chars**: 160 bits of entropy (much stronger against brute force)
 
@@ -310,7 +317,7 @@ And show it as an image:
 
 To comply with [RFC6238](https://tools.ietf.org/html/rfc6238), this package supports SHA1, SHA256 and SHA512. It defaults to SHA1, so to use a different algorithm you just have to use the method `setAlgorithm()`:
 
-``` php
+```php
 
 use PragmaRX\Google2FA\Support\Constants;
 
@@ -436,14 +443,14 @@ $google2fa->setEnforceGoogleAuthenticatorCompatibility(false);
 
 To use the two factor authentication, your user will have to install a Google Authenticator compatible app, those are some of the currently available:
 
-* [Authy for iOS, Android, Chrome, OS X](https://www.authy.com/)
-* [FreeOTP for iOS, Android and Pebble](https://apps.getpebble.com/en_US/application/52f1a4c3c4117252f9000bb8)
-* [Google Authenticator for iOS](https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8)
-* [Google Authenticator for Android](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2)
-* [Google Authenticator (port) on Windows Store](https://www.microsoft.com/en-us/store/p/google-authenticator/9wzdncrdnkrf)
-* [Microsoft Authenticator for Windows Phone](https://www.microsoft.com/en-us/store/apps/authenticator/9wzdncrfj3rj)
-* [LastPass Authenticator for iOS, Android, OS X, Windows](https://lastpass.com/auth/)
-* [1Password for iOS, Android, OS X, Windows](https://1password.com)
+- [Authy for iOS, Android, Chrome, OS X](https://www.authy.com/)
+- [FreeOTP for iOS, Android and Pebble](https://apps.getpebble.com/en_US/application/52f1a4c3c4117252f9000bb8)
+- [Google Authenticator for iOS](https://itunes.apple.com/us/app/google-authenticator/id388497605?mt=8)
+- [Google Authenticator for Android](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2)
+- [Google Authenticator (port) on Windows Store](https://www.microsoft.com/en-us/store/p/google-authenticator/9wzdncrdnkrf)
+- [Microsoft Authenticator for Windows Phone](https://www.microsoft.com/en-us/store/apps/authenticator/9wzdncrfj3rj)
+- [LastPass Authenticator for iOS, Android, OS X, Windows](https://lastpass.com/auth/)
+- [1Password for iOS, Android, OS X, Windows](https://1password.com)
 
 ## Deprecation Warning
 
@@ -455,15 +462,15 @@ The package tests were written with [PHPUnit](https://phpunit.de/). There are so
 
 PHPUnit:
 
-````
+```
 composer test
-````
+```
 
 Static analysis (PHPStan, then Psalm):
 
-````
+```
 composer analyse
-````
+```
 
 ## Authors
 

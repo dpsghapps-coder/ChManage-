@@ -23,11 +23,13 @@ composer require spomky-labs/cbor-php
 ```
 
 **Requirements:**
+
 - PHP 8.0 or higher
 - ext-mbstring
 - brick/math
 
 **Optional but recommended:**
+
 - ext-gmp or ext-bcmath for improved performance with large integers
 - ext-bcmath for Big Float and Decimal Fraction support
 
@@ -74,18 +76,19 @@ $data = $decoded->normalize();
 
 This library supports all CBOR major types defined in RFC 8949:
 
-| Major Type | Description | Classes |
-|------------|-------------|---------|
-| 0 | Unsigned Integer | `UnsignedIntegerObject` |
-| 1 | Negative Integer | `NegativeIntegerObject` |
-| 2 | Byte String | `ByteStringObject`, `IndefiniteLengthByteStringObject` |
-| 3 | Text String | `TextStringObject`, `IndefiniteLengthTextStringObject` |
-| 4 | Array | `ListObject`, `IndefiniteLengthListObject` |
-| 5 | Map | `MapObject`, `IndefiniteLengthMapObject` |
-| 6 | Tag | `Tag` and subclasses - [See Tags Reference](doc/tags.md) |
-| 7 | Other | `TrueObject`, `FalseObject`, `NullObject`, etc. |
+| Major Type | Description      | Classes                                                  |
+| ---------- | ---------------- | -------------------------------------------------------- |
+| 0          | Unsigned Integer | `UnsignedIntegerObject`                                  |
+| 1          | Negative Integer | `NegativeIntegerObject`                                  |
+| 2          | Byte String      | `ByteStringObject`, `IndefiniteLengthByteStringObject`   |
+| 3          | Text String      | `TextStringObject`, `IndefiniteLengthTextStringObject`   |
+| 4          | Array            | `ListObject`, `IndefiniteLengthListObject`               |
+| 5          | Map              | `MapObject`, `IndefiniteLengthMapObject`                 |
+| 6          | Tag              | `Tag` and subclasses - [See Tags Reference](doc/tags.md) |
+| 7          | Other            | `TrueObject`, `FalseObject`, `NullObject`, etc.          |
 
 **Common API:**
+
 - All objects have a static `create()` method for instantiation
 - All objects can be converted to binary: `(string) $object`
 - Many objects implement `Normalizable` to convert to native PHP types
@@ -138,6 +141,7 @@ echo $decimal->normalize(); // "3.14159"
 ```
 
 **Supported Tags:**
+
 - Date/Time (Tags 0, 1) and dates without a time (Tags 100, 1004)
 - Big Numbers (Tags 2, 3), Decimal/Binary Fractions (Tags 4, 5) and Rationals (Tag 30)
 - Encoding hints (Tags 21, 22, 23), embedded CBOR (Tags 24, 63)

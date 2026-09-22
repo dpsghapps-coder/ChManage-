@@ -422,7 +422,7 @@ constraint, see [#1266](https://github.com/mockery/mockery/issues/1266)
 - Some support for variadic parameters
 - Hamcrest is now a required dependency
 - Instance mocks now respect `shouldIgnoreMissing` call on control instance
-- This will be the *last version to support PHP 5.3*
+- This will be the _last version to support PHP 5.3_
 - Added `Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration` trait
 - Added `makePartial` to `Mockery\MockInterface` as it was missing
 

@@ -20,6 +20,7 @@ reference may be newer than the version Larastan supports.
 ## Where a change belongs
 
 ### For source code
+
 - Dynamic return types belong in `src/ReturnTypes/`.
 - Method and property discovery extensions belong in `src/Methods/` and
   `src/Properties/`; reusable PHPStan reflection implementations belong in
@@ -30,6 +31,7 @@ reference may be newer than the version Larastan supports.
 - PHPStan stubs belong in `stubs/`.
 
 ### For tests
+
 - Isolated behavior belongs in `tests/Unit/`, reflection extension behavior in
   `tests/Reflection/`, inline type inference in `tests/Type/`, rule diagnostics
   in `tests/Rules/`, and full-file analysis in `tests/Integration/`.

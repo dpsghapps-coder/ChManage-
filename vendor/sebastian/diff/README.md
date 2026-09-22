@@ -50,7 +50,7 @@ The `UnifiedDiffOutputBuilder` used in the example above generates output in "un
 format and is used by PHPUnit, for example.
 
 The `StrictUnifiedDiffOutputBuilder` generates output in "strict unified diff" format with
-hunks,  similar to `diff -u` and compatible with `patch` or `git apply`.
+hunks, similar to `diff -u` and compatible with `patch` or `git apply`.
 
 The `DiffOnlyOutputBuilder` generates output that only contains the lines that differ.
 

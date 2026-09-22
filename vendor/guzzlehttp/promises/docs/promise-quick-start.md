@@ -5,7 +5,7 @@ This guide covers the common promise operations needed when using
 promises, waiting synchronously, composing chains, and using generator-based
 flows. For the full public surface, see the [Promise API](promise-api.md).
 
-A *promise* represents the eventual result of an asynchronous operation. The
+A _promise_ represents the eventual result of an asynchronous operation. The
 primary way of interacting with a promise is through its `then` method, which
 registers callbacks to receive either the eventual value or the reason why the
 promise cannot be fulfilled.
@@ -36,8 +36,8 @@ $promise->then(
 );
 ```
 
-*Resolving* a promise means that you either fulfill a promise with a *value* or
-reject a promise with a *reason*. Callbacks registered with `then` are invoked
+_Resolving_ a promise means that you either fulfill a promise with a _value_ or
+reject a promise with a _reason_. Callbacks registered with `then` are invoked
 only once and in the order in which they were added when the queue is drained.
 
 ## Resolving a Promise
@@ -231,7 +231,7 @@ $promise->reject('foo');
 $promise->wait();
 ```
 
-> PHP Fatal error:  Uncaught exception 'GuzzleHttp\Promise\RejectionException' with message 'The promise was rejected with reason: foo'
+> PHP Fatal error: Uncaught exception 'GuzzleHttp\Promise\RejectionException' with message 'The promise was rejected with reason: foo'
 
 ## Unwrapping a Promise
 
@@ -240,7 +240,7 @@ promise into the current execution: the fulfilled value is returned, or the
 rejection reason is thrown. This is called "unwrapping" the promise. Waiting on
 a promise unwraps by default.
 
-You can force a promise to resolve and *not* unwrap its state by passing
+You can force a promise to resolve and _not_ unwrap its state by passing
 `false` to `wait()`:
 
 ```php

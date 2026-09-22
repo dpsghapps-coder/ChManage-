@@ -12,14 +12,14 @@ TypeResolver and FqsenResolver
 The specification on types in DocBlocks (PSR-5) describes various keywords and special constructs
 but also how to statically resolve the partial name of a Class into a Fully Qualified Class Name (FQCN).
 
-PSR-5 also introduces an additional way to describe deeper elements than Classes, Interfaces and Traits 
+PSR-5 also introduces an additional way to describe deeper elements than Classes, Interfaces and Traits
 called the Fully Qualified Structural Element Name (FQSEN). Using this it is possible to refer to methods,
 properties and class constants but also functions and global constants.
 
-This package provides two Resolvers that are capable of 
+This package provides two Resolvers that are capable of
 
-1. Returning a series of Value Object for given expression while resolving any partial class names, and 
-2. Returning an FQSEN object after resolving any partial Structural Element Names into Fully Qualified Structural 
+1. Returning a series of Value Object for given expression while resolving any partial class names, and
+2. Returning an FQSEN object after resolving any partial Structural Element Names into Fully Qualified Structural
    Element names.
 
 ## Installing
@@ -35,11 +35,11 @@ Ready to dive in and don't want to read through all that text below? Just consul
 ## On Types and Element Names
 
 This component can be used in one of two ways
- 
+
 1. To resolve a Type or
 2. To resolve a Fully Qualified Structural Element Name
- 
-The big difference between these two is in the number of things it can resolve. 
+
+The big difference between these two is in the number of things it can resolve.
 
 The TypeResolver can resolve:
 
@@ -47,11 +47,11 @@ The TypeResolver can resolve:
 - a composite such as an array of string (`@var string[]`).
 - a compound such as a string or integer (`@var string|integer`).
 - an array expression (`@var (string|TypeResolver)[]`)
-- an object or interface such as the TypeResolver class (`@var TypeResolver` 
+- an object or interface such as the TypeResolver class (`@var TypeResolver`
   or `@var \phpDocumentor\Reflection\TypeResolver`)
 
-  > please note that if you want to pass partial class names that additional steps are necessary, see the 
-  > chapter `Resolving partial classes and FQSENs` for more information.
+    > please note that if you want to pass partial class names that additional steps are necessary, see the
+    > chapter `Resolving partial classes and FQSENs` for more information.
 
 Where the FqsenResolver can resolve:
 
@@ -73,8 +73,8 @@ $typeResolver = new \phpDocumentor\Reflection\TypeResolver();
 $type = $typeResolver->resolve('string|integer');
 ```
 
-In this example you will receive a Value Object of class `\phpDocumentor\Reflection\Types\Compound` that has two 
-elements, one of type `\phpDocumentor\Reflection\Types\String_` and one of type 
+In this example you will receive a Value Object of class `\phpDocumentor\Reflection\Types\Compound` that has two
+elements, one of type `\phpDocumentor\Reflection\Types\String_` and one of type
 `\phpDocumentor\Reflection\Types\Integer`.
 
 The real power of this resolver is in its capability to expand partial class names into fully qualified class names; but in order to do that we need an additional `\phpDocumentor\Reflection\Types\Context` class that will inform the resolver in which namespace the given expression occurs and which namespace aliases (or imports) apply.
@@ -83,7 +83,7 @@ The real power of this resolver is in its capability to expand partial class nam
 
 Php 7.1 introduced nullable types e.g. `?string`. Type resolver will resolve the original type without the nullable notation `?`
 just like it would do without the `?`. After that the type is wrapped in a `\phpDocumentor\Reflection\Types\Nullable` object.
-The `Nullable` type has a method to fetch the actual type. 
+The `Nullable` type has a method to fetch the actual type.
 
 ## Resolving an FQSEN
 
@@ -116,7 +116,7 @@ class Classy
      * @see Classy::otherFunction()
      */
     public function __construct($context) {}
-    
+
     public function otherFunction(){}
 }
 ```
@@ -131,7 +131,7 @@ You can do this by manually creating a Context like this:
 
 ```php
 $context = new \phpDocumentor\Reflection\Types\Context(
-    '\My\Example', 
+    '\My\Example',
     [ 'Types' => '\phpDocumentor\Reflection\Types']
 );
 ```
@@ -164,7 +164,7 @@ $type = $typeResolver->resolve('Types\Context', $context);
 When you do this you will receive an object of class `\phpDocumentor\Reflection\Types\Object_` for which you can call the `getFqsen` method to receive a Value Object that represents the complete FQSEN. So that would be `phpDocumentor\Reflection\Types\Context`.
 
 > Why is the FQSEN wrapped in another object `Object_`?
-> 
+>
 > The resolve method of the TypeResolver only returns object with the interface `Type` and the FQSEN is a common type that does not represent a Type. Also: in some cases a type can represent an "Untyped Object", meaning that it is an object (signified by the `object` keyword) but does not refer to a specific element using an FQSEN.
 
 Another example is on how to resolve the FQSEN of a method as can be seen with the `@see` tag in the example above. To resolve that you can do the following:

@@ -58,14 +58,14 @@ possible real object behaviour in way that is stated as close as possible to a
 natural language description. Use the `Mockery::mock` method to create a test
 double.
 
-``` php
+```php
 $double = Mockery::mock();
 ```
 
 If you need Mockery to create a test double to satisfy a particular type hint,
 you can pass the type to the `mock` method.
 
-``` php
+```php
 class Book {}
 
 interface BookRepository {
@@ -88,7 +88,7 @@ to certain method calls. With stubs, you don't care how many times, if at all,
 the method is called. Stubs are used to provide indirect input to the system
 under test.
 
-``` php
+```php
 $double->allows()->find(123)->andReturns(new Book());
 
 $book = $double->find(123);
@@ -101,7 +101,7 @@ the trusty ol' `shouldReceive` is still here.
 
 For new users of Mockery, the above example can also be written as:
 
-``` php
+```php
 $double->shouldReceive('find')->with(123)->andReturn(new Book());
 $book = $double->find(123);
 ```
@@ -109,7 +109,7 @@ $book = $double->find(123);
 If your stub doesn't require specific arguments, you can also use this shortcut
 for setting up multiple calls at once:
 
-``` php
+```php
 $double->allows([
     "findAll" => [new Book(), new Book()],
 ]);
@@ -117,7 +117,7 @@ $double->allows([
 
 or
 
-``` php
+```php
 $double->shouldReceive('findAll')
     ->andReturn([new Book(), new Book()]);
 ```
@@ -125,7 +125,7 @@ $double->shouldReceive('findAll')
 You can also use this shortcut, which creates a double and sets up some stubs in
 one call:
 
-``` php
+```php
 $double = Mockery::mock(BookRepository::class, [
     "findAll" => [new Book(), new Book()],
 ]);
@@ -138,7 +138,7 @@ particular method has been called. You can specify the parameters and you can
 also specify how many times you expect it to be called. Method call expectations
 are used to verify indirect output of the system under test.
 
-``` php
+```php
 $book = new Book();
 
 $double = Mockery::mock(BookRepository::class);
@@ -151,7 +151,7 @@ tell Mockery to check that the method was called as expected, using the
 `Mockery::close` method. One way to do that is to add it to your `tearDown`
 method in PHPUnit.
 
-``` php
+```php
 
 public function tearDown()
 {
@@ -163,7 +163,7 @@ The `expects()` method automatically sets up an expectation that the method call
 (and matching parameters) is called **once and once only**. You can choose to change
 this if you are expecting more calls.
 
-``` php
+```php
 $double->expects()->add($book)->twice();
 ```
 
@@ -174,7 +174,7 @@ above &mdash; we created a method expectation using `expects`, instead of the "o
 
 For new users of Mockery, the above example can also be written as:
 
-``` php
+```php
 $double->shouldReceive('find')
     ->with(123)
     ->once()
@@ -203,7 +203,7 @@ to ignore any calls it has not been told to expect or allow. To do so, we can te
 test double `shouldIgnoreMissing`, or we can create the double using the `Mocker::spy`
 shortcut.
 
-``` php
+```php
 // $double = Mockery::mock()->shouldIgnoreMissing();
 $double = Mockery::spy();
 
@@ -216,7 +216,7 @@ and then verify the calls afterwards. For these purposes, we need our test
 double to act as a Spy. All mockery test doubles record the calls that are made
 to them for verification afterwards by default:
 
-``` php
+```php
 $double->baz(123);
 
 $double->shouldHaveReceived()->baz(123); // null
@@ -233,7 +233,7 @@ of the documentation to learn more about the spies.
 Mockery ships with a handful of global helper methods, you just need to ask
 Mockery to declare them.
 
-``` php
+```php
 Mockery::globalHelpers();
 
 $mock = mock(Some::class);
@@ -254,7 +254,7 @@ functionality allowing users to create objects on the fly that use particular
 traits. Any abstract methods defined by the trait will be created and can have
 expectations or stubs configured like normal Test Doubles.
 
-``` php
+```php
 trait Foo {
     function foo() {
         return $this->doFoo();
@@ -286,9 +286,11 @@ Mockery 1.3 was the last version to support HHVM 3 and PHP 5. There is no suppor
 at `padraic/mockery`, it is now at `mockery/mockery`. While your
 existing repositories will redirect transparently for any operations, take some
 time to transition to the new URL.
+
 ```sh
 $ git remote set-url upstream https://github.com/mockery/mockery.git
 ```
+
 Replace `upstream` with the name of the remote you use locally; `upstream` is commonly
 used but you may be using something else. Run `git remote -v` to see what you're actually
 using.

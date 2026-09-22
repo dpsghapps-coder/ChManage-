@@ -41,15 +41,15 @@ class Foo
 You can then pick one of the [implementations][implementation-url] of the interface to get a clock.
 
 If you want to implement the interface, you can require this package and
-implement `Psr\Clock\ClockInterface` in your code. 
+implement `Psr\Clock\ClockInterface` in your code.
 
 Don't forget to add `psr/clock-implementation` to your `composer.json`s `provides`-section like this:
 
 ```json
 {
-  "provides": {
-    "psr/clock-implementation": "1.0"
-  }
+    "provides": {
+        "psr/clock-implementation": "1.0"
+    }
 }
 ```
 

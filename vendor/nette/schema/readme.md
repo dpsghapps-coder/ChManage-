@@ -6,7 +6,6 @@
 [![Latest Stable Version](https://poser.pugx.org/nette/schema/v/stable)](https://github.com/nette/schema/releases)
 [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://github.com/nette/schema/blob/master/license.md)
 
-
 Introduction
 ============
 
@@ -22,7 +21,6 @@ composer require nette/schema
 
 It requires PHP version 8.1 and supports PHP up to 8.5.
 
-
 [Support Me](https://github.com/sponsors/dg)
 --------------------------------------------
 
@@ -31,7 +29,6 @@ Do you like Nette Schema? Are you looking forward to the new features?
 [![Buy me a coffee](https://files.nette.org/icons/donation-3.svg)](https://github.com/sponsors/dg)
 
 Thank you!
-
 
 Basic Usage
 -----------
@@ -51,7 +48,6 @@ try {
 ```
 
 Method `$e->getMessages()` returns array of all message strings and `$e->getMessageObjects()` return all messages as [Nette\Schema\Message](https://api.nette.org/schema/master/Nette/Schema/Message.html) objects.
-
 
 Defining Schema
 ---------------
@@ -111,7 +107,6 @@ is_bool($normalized->processRefund); // true
 
 Now you know the basics of how the schema is defined and how the individual elements of the structure behave. We will now show what all the other elements can be used in defining a schema.
 
-
 Data Types: type()
 ------------------
 
@@ -135,7 +130,6 @@ Expect::type('bool|string|array')
 ```
 
 The default value is always `null` except for `array` and `list`, where it is an empty array. (A list is an array indexed in ascending order of numeric keys from zero, that is, a non-associative array).
-
 
 Array of Values: arrayOf() listOf()
 -----------------------------------
@@ -178,7 +172,6 @@ Expect::arrayOf(Expect::bool())
 
 The default value is an empty array. If you specify a default value, it will be merged with the passed data. This can be disabled using `mergeDefaults(false)`.
 
-
 Enumeration: anyOf()
 --------------------
 
@@ -212,7 +205,6 @@ The default value is `null`. Use the `firstIsDefault()` method to make the first
 // default is 'hello'
 Expect::anyOf(Expect::string('hello'), true, null)->firstIsDefault();
 ```
-
 
 Structures
 ----------
@@ -285,7 +277,6 @@ $processor->process($schema, ['additional' => 1]); // OK
 $processor->process($schema, ['additional' => true]); // ERROR
 ```
 
-
 Deprecations
 ------------
 
@@ -299,7 +290,6 @@ $schema = Expect::structure([
 $processor->process($schema, ['old' => 1]); // OK
 $processor->getWarnings(); // ["The item 'old' is deprecated"]
 ```
-
 
 Ranges: min() max()
 -------------------
@@ -332,7 +322,6 @@ Of course, it is possible to mention only `min()`, or only `max()`:
 Expect::string()->max(20);
 ```
 
-
 Regular Expressions: pattern()
 ------------------------------
 
@@ -342,7 +331,6 @@ Using `pattern()`, you can specify a regular expression which the **whole** inpu
 // just 9 digits
 Expect::string()->pattern('\d{9}');
 ```
-
 
 Custom Assertions: assert()
 ---------------------------
@@ -377,7 +365,6 @@ $processor->process($schema, ['a', 'b', 'c']);
 
 The method can be called repeatedly to add multiple constraints. It can be intermixed with calls to `transform()` and `castTo()`.
 
-
 Transformation: transform()
 ---------------------------
 
@@ -410,7 +397,6 @@ Expect::string()
 		return strtoupper($s);
 	});
 ```
-
 
 Casting: castTo()
 -----------------
@@ -460,7 +446,6 @@ Expect::string()->castTo(DateTime::class);
 // creates new DateTime(...)
 ```
 
-
 Normalization: before()
 -----------------------
 
@@ -475,7 +460,6 @@ $schema = Expect::arrayOf('string')
 $normalized = $processor->process($schema, 'a b c');
 // OK, returns ['a', 'b', 'c']
 ```
-
 
 Mapping to Objects: from()
 --------------------------

@@ -51,8 +51,8 @@ echo $closure(); // james;
 
 ### Caveats
 
-* Serializing closures on REPL environments like Laravel Tinker is not supported.
-* Multiple closures defined on the same source line with identical signatures may not be distinguishable after serialization. Place each closure on its own line to avoid this.
+- Serializing closures on REPL environments like Laravel Tinker is not supported.
+- Multiple closures defined on the same source line with identical signatures may not be distinguishable after serialization. Place each closure on its own line to avoid this.
 
 ## Contributing
 

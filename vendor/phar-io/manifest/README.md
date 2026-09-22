@@ -15,6 +15,7 @@ If you only need this library during development, for instance to run your proje
 ## Usage Examples
 
 ### Read from `manifest.xml`
+
 ```php
 use PharIo\Manifest\ManifestLoader;
 use PharIo\Manifest\ManifestSerializer;
@@ -28,7 +29,7 @@ echo (new ManifestSerializer)->serializeToString($manifest);
 
 <details>
   <summary>Output</summary>
-    
+
 ```shell
 object(PharIo\Manifest\Manifest)#14 (6) {
   ["name":"PharIo\Manifest\Manifest":private]=>
@@ -127,9 +128,11 @@ object(PharIo\Manifest\Manifest)#14 (6) {
     </requires>
 </phar>
 ```
+
 </details>
 
 ### Create via API
+
 ```php
 $bundled = new \PharIo\Manifest\BundledComponentCollection();
 $bundled->add(
@@ -157,7 +160,7 @@ echo (new ManifestSerializer)->serializeToString($manifest);
 
 <details>
   <summary>Output</summary>
-    
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <phar xmlns="https://phar.io/xml/manifest/1.0">
@@ -173,6 +176,5 @@ echo (new ManifestSerializer)->serializeToString($manifest);
     </bundles>
 </phar>
 ```
-    
-</details>
 
+</details>

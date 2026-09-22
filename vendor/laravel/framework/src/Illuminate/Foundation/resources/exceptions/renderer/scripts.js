@@ -59,7 +59,7 @@ window.highlight = function (
     truncate = false,
     editor = false,
     startingLine = 1,
-    highlightedLine = null
+    highlightedLine = null,
 ) {
     return highlighter.codeToHtml(code, {
         lang: language,
@@ -70,7 +70,10 @@ window.highlight = function (
         transformers: [
             {
                 pre(node) {
-                    this.addClassToHast(node, ['bg-transparent!', truncate ? 'truncate' : 'w-fit min-w-full']);
+                    this.addClassToHast(node, [
+                        'bg-transparent!',
+                        truncate ? 'truncate' : 'w-fit min-w-full',
+                    ]);
                 },
                 line(node, line) {
                     if (!editor) {
@@ -89,7 +92,9 @@ window.highlight = function (
                                 highlight ? 'dark:text-white!' : '',
                             ],
                         },
-                        children: [{ type: 'text', value: lineNumber.toString() }],
+                        children: [
+                            { type: 'text', value: lineNumber.toString() },
+                        ],
                     };
 
                     node.children.unshift(lineNumberSpan);

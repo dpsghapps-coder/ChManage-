@@ -1,7 +1,7 @@
 const projectRoot = process.argv[2] || process.cwd();
 const configPath = process.argv[3];
 
-const prettier = require(require.resolve("prettier", { paths: [projectRoot] }));
+const prettier = require(require.resolve('prettier', { paths: [projectRoot] }));
 
 const bundledOptions = require(configPath);
 
@@ -11,7 +11,7 @@ function resolvePlugins(plugins) {
     }
 
     return plugins.map((plugin) =>
-        typeof plugin === "string"
+        typeof plugin === 'string'
             ? require.resolve(plugin, { paths: [projectRoot] })
             : plugin,
     );
@@ -35,21 +35,21 @@ function resolveOptionPlugins(options) {
     return options;
 }
 
-process.stdin.setEncoding("utf-8");
+process.stdin.setEncoding('utf-8');
 
-let buffer = "";
+let buffer = '';
 let queue = Promise.resolve();
 
-process.stdin.on("data", function (chunk) {
+process.stdin.on('data', function (chunk) {
     buffer += chunk;
 
     let newlineIndex;
 
-    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+    while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
         const line = buffer.slice(0, newlineIndex);
         buffer = buffer.slice(newlineIndex + 1);
 
-        if (line.trim() === "") {
+        if (line.trim() === '') {
             continue;
         }
 

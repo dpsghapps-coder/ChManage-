@@ -10,4 +10,3 @@ The installable [package][package-url] and [implementations][implementation-url]
 [psr-url]: https://www.php-fig.org/psr/psr-11/
 [package-url]: https://packagist.org/packages/psr/container
 [implementation-url]: https://packagist.org/providers/psr/container-implementation
-

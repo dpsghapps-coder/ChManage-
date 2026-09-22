@@ -251,29 +251,29 @@ use GuzzleHttp\Promise\Create;
 $promise = Create::promiseFor('value');
 ```
 
-| Original Function | Replacement Method |
-|-------------------|--------------------|
-| `queue` | `Utils::queue` |
-| `task` | `Utils::task` |
-| `promise_for` | `Create::promiseFor` |
-| `rejection_for` | `Create::rejectionFor` |
-| `exception_for` | `Create::exceptionFor` |
-| `iter_for` | `Create::iterFor` |
-| `inspect` | `Utils::inspect` |
-| `inspect_all` | `Utils::inspectAll` |
-| `unwrap` | `Utils::unwrap` |
-| `all` | `Utils::all` |
-| `some` | `Utils::some` |
-| `any` | `Utils::any` |
-| `settle` | `Utils::settle` |
-| `each` | `Each::of` |
-| `each_limit` | `Each::ofLimit` |
-| `each_limit_all` | `Each::ofLimitAll` |
-| `!is_fulfilled` | `Is::pending` |
-| `is_fulfilled` | `Is::fulfilled` |
-| `is_rejected` | `Is::rejected` |
-| `is_settled` | `Is::settled` |
-| `coroutine` | `Coroutine::of` |
+| Original Function | Replacement Method     |
+| ----------------- | ---------------------- |
+| `queue`           | `Utils::queue`         |
+| `task`            | `Utils::task`          |
+| `promise_for`     | `Create::promiseFor`   |
+| `rejection_for`   | `Create::rejectionFor` |
+| `exception_for`   | `Create::exceptionFor` |
+| `iter_for`        | `Create::iterFor`      |
+| `inspect`         | `Utils::inspect`       |
+| `inspect_all`     | `Utils::inspectAll`    |
+| `unwrap`          | `Utils::unwrap`        |
+| `all`             | `Utils::all`           |
+| `some`            | `Utils::some`          |
+| `any`             | `Utils::any`           |
+| `settle`          | `Utils::settle`        |
+| `each`            | `Each::of`             |
+| `each_limit`      | `Each::ofLimit`        |
+| `each_limit_all`  | `Each::ofLimitAll`     |
+| `!is_fulfilled`   | `Is::pending`          |
+| `is_fulfilled`    | `Is::fulfilled`        |
+| `is_rejected`     | `Is::rejected`         |
+| `is_settled`      | `Is::settled`          |
+| `coroutine`       | `Coroutine::of`        |
 
 For the full 2.0 diff, see
 https://github.com/guzzle/promises/compare/1.5.3...2.0.0.

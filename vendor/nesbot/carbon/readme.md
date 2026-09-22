@@ -9,7 +9,7 @@ An international PHP extension for DateTime. [Documentation](https://carbonphp.g
 
 > [!NOTE]  
 > We're migrating the repository from [briannesbitt/Carbon](https://github.com/briannesbitt/Carbon) to [CarbonPHP/carbon](https://github.com/CarbonPHP/carbon),
-> which means if you're looking specific issues/pull-requests, you may have to search both. No other impact as code on both will be kept up to date. 
+> which means if you're looking specific issues/pull-requests, you may have to search both. No other impact as code on both will be kept up to date.
 
 ```php
 <?php
@@ -114,7 +114,7 @@ Tidelift will coordinate the fix and disclosure.
 
 ### Contributors
 
-This project exists thanks to all the people who contribute. 
+This project exists thanks to all the people who contribute.
 
 <a href="https://github.com/CarbonPHP/carbon/graphs/contributors" target="_blank"><img src="https://opencollective.com/Carbon/contributors.svg?width=890&button=false" /></a>
 
@@ -234,4 +234,4 @@ Thank you to all our backers! 🙏
 
 Available as part of the Tidelift Subscription.
 
-The maintainers of ``Carbon`` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/packagist-nesbot-carbon?utm_source=packagist-nesbot-carbon&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
+The maintainers of `Carbon` and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/packagist-nesbot-carbon?utm_source=packagist-nesbot-carbon&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)

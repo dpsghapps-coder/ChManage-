@@ -5,7 +5,7 @@
 [![Stable Version](https://img.shields.io/packagist/v/phpdocumentor/reflection-docblock.svg?label=stable)](https://packagist.org/packages/phpdocumentor/reflection-docblock)
 [![Unstable Version](https://img.shields.io/packagist/v/phpdocumentor/reflection-docblock.svg?include_prereleases&label=unstable)](https://packagist.org/packages/phpdocumentor/reflection-docblock)
 
-ReflectionDocBlock 
+ReflectionDocBlock
 ==================
 
 Introduction

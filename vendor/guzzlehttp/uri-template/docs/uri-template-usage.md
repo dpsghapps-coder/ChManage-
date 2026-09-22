@@ -24,17 +24,17 @@ This package supports RFC 6570 levels 1 through 4 for the standard operators
 listed below, including prefix and explode modifiers. RFC 6570 reserved
 extension operators are not supported and are rejected.
 
-| Operator | Expansion | Status |
-|----------|-----------|--------|
-| none | Simple string expansion | Supported |
-| `+` | Reserved string expansion | Supported |
-| `#` | Fragment expansion | Supported |
-| `.` | Label expansion | Supported |
-| `/` | Path segment expansion | Supported |
-| `;` | Path-style parameter expansion | Supported |
-| `?` | Form-style query expansion | Supported |
-| `&` | Form-style query continuation | Supported |
-| `=`, `,`, `!`, `@`, `\|` | Reserved extension operators | Unsupported, rejected |
+| Operator                 | Expansion                      | Status                |
+| ------------------------ | ------------------------------ | --------------------- |
+| none                     | Simple string expansion        | Supported             |
+| `+`                      | Reserved string expansion      | Supported             |
+| `#`                      | Fragment expansion             | Supported             |
+| `.`                      | Label expansion                | Supported             |
+| `/`                      | Path segment expansion         | Supported             |
+| `;`                      | Path-style parameter expansion | Supported             |
+| `?`                      | Form-style query expansion     | Supported             |
+| `&`                      | Form-style query continuation  | Supported             |
+| `=`, `,`, `!`, `@`, `\|` | Reserved extension operators   | Unsupported, rejected |
 
 Simple expansion encodes reserved URI delimiters in variable values:
 

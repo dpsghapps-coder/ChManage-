@@ -51,7 +51,6 @@ Every PHPStan error has a unique identifier (e.g., `argument.type`, `deadCode.un
 
 ## Development
 
-
 ### CI Workflows
 
 Key workflows in `.github/workflows/`:

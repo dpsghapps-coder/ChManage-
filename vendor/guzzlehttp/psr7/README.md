@@ -17,11 +17,11 @@ composer require guzzlehttp/psr7
 
 ## Version Guidance
 
-| Version | Status       | PHP Version  |
-|---------|--------------|--------------|
-| 3.1     | Latest       | >=7.4,<8.7   |
-| 2.13    | Maintenance  | >=7.2.5,<8.7 |
-| 1.9     | End of Life  | >=5.4,<8.2   |
+| Version | Status      | PHP Version  |
+| ------- | ----------- | ------------ |
+| 3.1     | Latest      | >=7.4,<8.7   |
+| 2.13    | Maintenance | >=7.2.5,<8.7 |
+| 1.9     | End of Life | >=5.4,<8.2   |
 
 ## Quick Start
 

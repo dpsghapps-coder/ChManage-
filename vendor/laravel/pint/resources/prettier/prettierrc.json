@@ -9,8 +9,5 @@
     "bladeDirectiveArgSpacing": "none",
     "bladeEchoSpacing": "space",
     "bladeInlineIntentElements": ["svg", "svg:*"],
-    "plugins": [
-        "prettier-plugin-blade",
-        "prettier-plugin-tailwindcss"
-    ]
+    "plugins": ["prettier-plugin-blade", "prettier-plugin-tailwindcss"]
 }

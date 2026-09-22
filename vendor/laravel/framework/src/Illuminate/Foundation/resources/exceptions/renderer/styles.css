@@ -15,7 +15,7 @@ body {
 }
 
 .tippy-box[data-theme~='laravel'] {
-    @apply max-w-7xl! rounded-md border text-xs shadow-md backdrop-blur-md overflow-x-auto;
+    @apply max-w-7xl! overflow-x-auto rounded-md border text-xs shadow-md backdrop-blur-md;
     @apply border-neutral-800 bg-neutral-900 text-white;
     @apply dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100;
 }

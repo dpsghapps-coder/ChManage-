@@ -79,7 +79,7 @@ vendor/bin/rector process src/ --config vendor/fakerphp/faker/rector-migrate.php
 
 to run `rector/rector`.
 
-*Note:* do not forget to replace `src/` with the path to your source directory.
+_Note:_ do not forget to replace `src/` with the path to your source directory.
 
 Alternatively, import the configuration in your `rector.php` file:
 

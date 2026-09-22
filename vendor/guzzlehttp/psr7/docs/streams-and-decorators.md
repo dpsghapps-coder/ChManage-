@@ -86,7 +86,6 @@ $composed->addStream(Psr7\Utils::streamFor(' Above all listen to me'));
 echo $composed; // abc, 123. Above all listen to me.
 ```
 
-
 ## BufferStream
 
 `GuzzleHttp\Psr7\BufferStream`
@@ -105,7 +104,6 @@ use GuzzleHttp\Psr7;
 // writes. This is an indication that writers should slow down.
 $buffer = new Psr7\BufferStream(1024);
 ```
-
 
 ## CachingStream
 
@@ -138,7 +136,6 @@ seekable, report an accurate position and size, and store writes losslessly. Los
 or non-seekable streams such as `BufferStream` and `DroppingStream` are not valid
 targets.
 
-
 ## DroppingStream
 
 `GuzzleHttp\Psr7\DroppingStream`
@@ -158,7 +155,6 @@ $dropping = new Psr7\DroppingStream($stream, 10);
 $dropping->write('01234567890123456789');
 echo $stream; // 0123456789
 ```
-
 
 ## FnStream
 
@@ -186,7 +182,6 @@ $fnStream->rewind();
 // Outputs: About to rewind - rewound!
 ```
 
-
 ## InflateStream
 
 `GuzzleHttp\Psr7\InflateStream`
@@ -197,7 +192,6 @@ This stream decorator converts the provided stream to a PHP stream resource,
 appends the zlib.inflate filter, and wraps the filtered resource as a stream.
 
 Closing an `InflateStream` also closes the compressed source stream it decorates; `detach()` leaves the source stream open.
-
 
 ## LazyOpenStream
 
@@ -215,7 +209,6 @@ $stream = new Psr7\LazyOpenStream('/path/to/file', 'r');
 echo $stream->read(10);
 // The file is opened and read from only when needed.
 ```
-
 
 ## LimitStream
 
@@ -240,7 +233,6 @@ echo $stream->tell();
 // >>> 0
 ```
 
-
 ## MultipartStream
 
 `GuzzleHttp\Psr7\MultipartStream`
@@ -252,7 +244,6 @@ Each multipart element must contain a `name` and `contents` key. `contents` may
 be any non-array value accepted by `GuzzleHttp\Psr7\Utils::streamFor()`,
 including closures and invokable objects. Array contents are recursively
 expanded into nested form fields.
-
 
 ## NoSeekStream
 
@@ -279,7 +270,6 @@ try {
 }
 ```
 
-
 ## PumpStream
 
 `GuzzleHttp\Psr7\PumpStream`
@@ -297,7 +287,6 @@ because it cannot satisfy a positive-length read.
 
 Userland callables that declare no parameters are tolerated by PHP, but
 length-aware callables remain the recommended formal shape.
-
 
 ## Implementing Stream Decorators
 
@@ -361,7 +350,6 @@ $eofStream->seek(0);
 $eofStream->read(3);
 // echoes "EOF!"
 ```
-
 
 ## PHP StreamWrapper
 

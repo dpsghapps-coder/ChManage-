@@ -15,7 +15,7 @@ Such releases will be considered as "pre-releases".
 This matrix is the single source of truth for the branches under support; [SECURITY.md](SECURITY.md) refers to it.
 
 | Version | Supported                              |
-|---------|----------------------------------------|
+| ------- | -------------------------------------- |
 | 4.8.x   | :white_check_mark: (in development)    |
 | 4.7.x   | :white_check_mark:                     |
 | 4.6.x   | :white_check_mark: (security fix only) |
@@ -44,7 +44,7 @@ to be installable.
 **New: the RFC 9052 rules that sit above the CBOR shape.** These are what stays in this library after 5.0.0, and they
 work on the upstream message classes:
 
-- `Cose\Structure\CoseHeaders` reads the two header buckets of any COSE message. A label is an integer *or* a text
+- `Cose\Structure\CoseHeaders` reads the two header buckets of any COSE message. A label is an integer _or_ a text
   string (§1.5) and the two never answer for each other, even though cbor-php normalizes them to the same map offset;
   the zero-length protected header is accepted (§3) and trailing bytes inside the protected bucket are not; the
   protected value wins a combined lookup.

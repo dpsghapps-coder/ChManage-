@@ -17,11 +17,11 @@ composer require guzzlehttp/promises
 
 ## Version Guidance
 
-| Version | Status       | PHP Version  |
-|---------|--------------|--------------|
-| 3.0     | Latest       | >=7.4,<8.7   |
-| 2.5     | Maintenance  | >=7.2.5,<8.7 |
-| 1.5     | End of Life  | >=5.5,<8.3   |
+| Version | Status      | PHP Version  |
+| ------- | ----------- | ------------ |
+| 3.0     | Latest      | >=7.4,<8.7   |
+| 2.5     | Maintenance | >=7.2.5,<8.7 |
+| 1.5     | End of Life | >=5.5,<8.3   |
 
 ## Quick Start
 

@@ -78,8 +78,8 @@ BigDecimal::of('9.99999999999999999999999999999999999999999999');
 BigRational::of('2/3');
 ```
 
-Note that all `of()` methods accept all the representations above, *as long as it can be safely converted to
-the current type*:
+Note that all `of()` methods accept all the representations above, _as long as it can be safely converted to
+the current type_:
 
 ```php
 BigInteger::of('1.00'); // 1

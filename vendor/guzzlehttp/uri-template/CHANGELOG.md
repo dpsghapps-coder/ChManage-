@@ -158,4 +158,5 @@ Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) princip
 ## v0.1.0 - 2020-06-30
 
 ### Added
+
 - Moved the `UriTemplate` class in this package

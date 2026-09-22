@@ -23,10 +23,10 @@ such as fix tests, fix 2, fix 3, etc.
 Run test suite
 ------------
 
-* install Composer by following the [official installation instructions](https://getcomposer.org/download/), which
+- install Composer by following the [official installation instructions](https://getcomposer.org/download/), which
   verify the installer signature before running it. Never pipe the installer straight into `php`.
-* install dependencies: `composer install`
-* run tests: `vendor/bin/phpunit --configuration .ci-tools/phpunit.xml.dist`
+- install dependencies: `composer install`
+- run tests: `vendor/bin/phpunit --configuration .ci-tools/phpunit.xml.dist`
 
 Run the full CI suite locally
 ------------

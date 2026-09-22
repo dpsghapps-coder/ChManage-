@@ -29,17 +29,17 @@ The CBOR PHP Security Team's PGP key is available on the [PGP keyservers](https:
 
 Provide a descriptive subject line and in the body of the email include the following information:
 
--   Basic identity information, such as your name and your affiliation or company.
--   Detailed steps to reproduce the vulnerability (POC scripts, screenshots, and CBOR test vectors are all helpful to us).
--   Description of the effects of the vulnerability on CBOR PHP and the related hardware and software configurations, so that the CBOR PHP Security Team can reproduce it.
--   How the vulnerability affects CBOR PHP usage and an estimation of the attack surface, if there is one.
--   List other projects or dependencies that were used in conjunction with CBOR PHP to produce the vulnerability.
+- Basic identity information, such as your name and your affiliation or company.
+- Detailed steps to reproduce the vulnerability (POC scripts, screenshots, and CBOR test vectors are all helpful to us).
+- Description of the effects of the vulnerability on CBOR PHP and the related hardware and software configurations, so that the CBOR PHP Security Team can reproduce it.
+- How the vulnerability affects CBOR PHP usage and an estimation of the attack surface, if there is one.
+- List other projects or dependencies that were used in conjunction with CBOR PHP to produce the vulnerability.
 
 ## When to report a vulnerability
 
--   When you think CBOR PHP has a potential security vulnerability.
--   When you suspect a potential vulnerability, but you are unsure that it impacts CBOR PHP.
--   When you know of or suspect a potential vulnerability on another project that is used by CBOR PHP. For example CBOR PHP has a dependency on `brick/math` and on the `mbstring`, `gmp` and `bcmath` PHP extensions.
+- When you think CBOR PHP has a potential security vulnerability.
+- When you suspect a potential vulnerability, but you are unsure that it impacts CBOR PHP.
+- When you know of or suspect a potential vulnerability on another project that is used by CBOR PHP. For example CBOR PHP has a dependency on `brick/math` and on the `mbstring`, `gmp` and `bcmath` PHP extensions.
 
 ## Patch, Release, and Disclosure
 
@@ -61,7 +61,7 @@ The Security Team will also publish any mitigating steps users can take until th
 
 ## Mailing lists
 
--   Use security@spomky-labs.com to report security concerns to the CBOR PHP Security Team, who uses the list to privately discuss security issues and fixes prior to disclosure.
+- Use security@spomky-labs.com to report security concerns to the CBOR PHP Security Team, who uses the list to privately discuss security issues and fixes prior to disclosure.
 
 ## Early Disclosure to CBOR PHP Distributors List
 

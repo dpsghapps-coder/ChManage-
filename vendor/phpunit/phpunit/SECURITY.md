@@ -7,7 +7,7 @@ Versions in the Life Support phase only receive changes required for compatibili
 Versions that have reached End-of-Life do not receive any changes.
 
 | Version    | Phase          | End of Bugfix Support |
-|------------|----------------|-----------------------|
+| ---------- | -------------- | --------------------- |
 | PHPUnit 13 | Bugfix Support | February 4, 2028      |
 | PHPUnit 12 | Bugfix Support | February 5, 2027      |
 | PHPUnit 11 | Life Support   | February 6, 2026      |
@@ -32,13 +32,13 @@ Use my [PGP key](https://sebastian-bergmann.de/gpg.asc) for encrypted email, for
 
 Please include as much of the information listed below as you can to help me better understand and resolve the issue:
 
-* The type of issue
-* Full paths of source file(s) related to the manifestation of the issue
-* The location of the affected source code (tag/branch/commit or direct URL)
-* Any special configuration required to reproduce the issue
-* Step-by-step instructions to reproduce the issue
-* Proof-of-concept or exploit code (if possible)
-* Impact of the issue, including how an attacker might exploit the issue
+- The type of issue
+- Full paths of source file(s) related to the manifestation of the issue
+- The location of the affected source code (tag/branch/commit or direct URL)
+- Any special configuration required to reproduce the issue
+- Step-by-step instructions to reproduce the issue
+- Proof-of-concept or exploit code (if possible)
+- Impact of the issue, including how an attacker might exploit the issue
 
 This information will help me triage your report more quickly.
 
@@ -72,9 +72,9 @@ PHPUnit is developed with a focus on development environments and the command-li
 
 I treat a bug as a security issue when a documented, intended use of PHPUnit, or a reasonable extrapolation of it, causes PHPUnit itself to compromise the confidentiality, integrity, or availability of the environment it runs in. Examples:
 
-* PHPUnit's console output, logfiles, and reports in any format contain a vulnerability that allows an attacker to extract secrets from or otherwise compromise the environment in which the output is viewed or processed.
-* A regular test run, against trusted test code, trusted production code, and a trusted configuration, causes PHPUnit to transmit data from the environment to a third party.
-* A regular test run, against trusted test code, trusted production code, and a trusted configuration, causes PHPUnit to write secrets from the environment to its own output, log files, or reports.
+- PHPUnit's console output, logfiles, and reports in any format contain a vulnerability that allows an attacker to extract secrets from or otherwise compromise the environment in which the output is viewed or processed.
+- A regular test run, against trusted test code, trusted production code, and a trusted configuration, causes PHPUnit to transmit data from the environment to a third party.
+- A regular test run, against trusted test code, trusted production code, and a trusted configuration, causes PHPUnit to write secrets from the environment to its own output, log files, or reports.
 
 ### Not in scope
 

@@ -40,6 +40,8 @@ export type MemberDetail = {
     marital_status: string | null;
     marriage_type: string | null;
     maiden_name: string | null;
+    marriage_date: string | null;
+    marriage_church: string | null;
     spouse_name: string | null;
     spouse_member: {
         id: number;
@@ -47,7 +49,9 @@ export type MemberDetail = {
         full_name: string;
     } | null;
     father_name: string | null;
+    father_member: LinkedMember;
     mother_name: string | null;
+    mother_member: LinkedMember;
     joined_on: string | null;
     generational_group: string | null;
     is_communicant: boolean | null;
@@ -62,6 +66,25 @@ type LinkedMember = {
     member_number: string;
     full_name: string;
 } | null;
+
+/** A relative's name, linked to their own record when they are a member. */
+function linkedName(linked: LinkedMember, name: string | null) {
+    if (!linked) {
+        return name;
+    }
+
+    return (
+        <Link
+            href={showMember(linked.id)}
+            className="underline-offset-4 hover:underline"
+        >
+            {linked.full_name}{' '}
+            <span className="text-xs text-muted-foreground">
+                ({linked.member_number})
+            </span>
+        </Link>
+    );
+}
 
 /** The records that hang off a member. Children are not stored on the member: they come from the Children Service / Junior Youth register. */
 export type RelatedData = {
@@ -82,7 +105,14 @@ export type RelatedData = {
     };
     sacraments: Record<
         'baptism' | 'confirmation',
-        { date: string; place: string; minister: string }
+        {
+            date: string;
+            presbytery: string;
+            district: string;
+            /** The congregation. */
+            place: string;
+            minister: string;
+        }
     >;
     groups: { id: number; name: string; short_name: string | null }[];
     service_records: {
@@ -92,6 +122,14 @@ export type RelatedData = {
         position: string;
         started_on: string;
         ended_on: string;
+    }[];
+    /** Adult members who name this member as their father or mother. */
+    adult_children: {
+        id: number;
+        name: string;
+        member_number: string;
+        relationship: string;
+        photo_url: string | null;
     }[];
     children: {
         id: number;
@@ -258,8 +296,20 @@ export function MemberSection({
                             value: member.place_of_birth,
                         },
                         { label: 'Home Town', value: member.hometown },
-                        { label: "Father's Name", value: member.father_name },
-                        { label: "Mother's Name", value: member.mother_name },
+                        {
+                            label: "Father's Name",
+                            value: linkedName(
+                                member.father_member,
+                                member.father_name,
+                            ),
+                        },
+                        {
+                            label: "Mother's Name",
+                            value: linkedName(
+                                member.mother_member,
+                                member.mother_name,
+                            ),
+                        },
                     ]}
                 />
                 {hasContact ? (
@@ -407,41 +457,73 @@ export function MemberSection({
                                 ? statusLabel(member.marital_status)
                                 : null,
                         },
-                        {
-                            label: 'Marriage Type',
-                            value: member.marriage_type
-                                ? statusLabel(member.marriage_type)
-                                : null,
-                        },
-                        { label: 'Maiden Name', value: member.maiden_name },
-                        {
-                            label: 'Spouse',
-                            value: member.spouse_member ? (
-                                <Link
-                                    href={showMember(member.spouse_member.id)}
-                                    className="underline-offset-4 hover:underline"
-                                >
-                                    {member.spouse_member.full_name}{' '}
-                                    <span className="text-xs text-muted-foreground">
-                                        ({member.spouse_member.member_number})
-                                    </span>
-                                </Link>
-                            ) : (
-                                member.spouse_name
-                            ),
-                        },
+                        // Marriage details are shown for married members only.
+                        ...(member.marital_status !== 'married'
+                            ? []
+                            : [
+                                  {
+                                      label: 'Marriage Type',
+                                      value: member.marriage_type
+                                          ? statusLabel(member.marriage_type)
+                                          : null,
+                                  },
+                                  {
+                                      label: 'Date of Marriage',
+                                      value: member.marriage_date,
+                                  },
+                                  {
+                                      label: 'Church of Marriage',
+                                      value: member.marriage_church,
+                                  },
+                                  {
+                                      label: 'Maiden Name',
+                                      value: member.maiden_name,
+                                  },
+                                  {
+                                      label: 'Spouse',
+                                      value: linkedName(
+                                          member.spouse_member,
+                                          member.spouse_name,
+                                      ),
+                                  },
+                              ]),
                     ]}
                 />
                 <div className="space-y-2">
                     <div className="text-xs text-muted-foreground">
                         Children
                     </div>
-                    {related.children.length === 0 ? (
+                    {related.children.length === 0 &&
+                    related.adult_children.length === 0 ? (
                         empty(
-                            'No children on the Children Service or Junior Youth register list this member as a guardian.',
+                            'No member names this member as a parent, and no children on the Children Service or Junior Youth register list them as a guardian.',
                         )
                     ) : (
                         <div className="space-y-2">
+                            {related.adult_children.map((child) => (
+                                <div
+                                    key={`adult-${child.id}`}
+                                    className="flex items-center gap-3 rounded-lg border p-3"
+                                >
+                                    <PersonAvatar
+                                        name={child.name}
+                                        photoUrl={child.photo_url}
+                                        className="size-10"
+                                    />
+                                    <div className="text-sm">
+                                        <Link
+                                            href={showMember(child.id)}
+                                            className="font-medium underline-offset-4 hover:underline"
+                                        >
+                                            {child.name}
+                                        </Link>
+                                        <div className="text-xs text-muted-foreground">
+                                            {child.member_number} ·{' '}
+                                            {child.relationship}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                             {related.children.map((child) => (
                                 <div
                                     key={child.id}
@@ -578,6 +660,8 @@ export function MemberSection({
                         const sacrament = related.sacraments[kind];
                         const recorded =
                             sacrament.date ||
+                            sacrament.presbytery ||
+                            sacrament.district ||
                             sacrament.place ||
                             sacrament.minister;
 
@@ -597,8 +681,16 @@ export function MemberSection({
                                                 value: sacrament.date,
                                             },
                                             {
-                                                label: 'Place',
+                                                label: 'Congregation',
                                                 value: sacrament.place,
+                                            },
+                                            {
+                                                label: 'District',
+                                                value: sacrament.district,
+                                            },
+                                            {
+                                                label: 'Presbytery',
+                                                value: sacrament.presbytery,
                                             },
                                             {
                                                 label: 'Minister',

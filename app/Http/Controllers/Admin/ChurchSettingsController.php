@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChurchSetting;
+use App\Models\City;
 use App\Support\Audit;
+use App\Support\Presbyteries;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,7 +17,13 @@ class ChurchSettingsController extends Controller
 {
     public function edit(): Response
     {
-        return Inertia::render('admin/church/edit', ['settings' => $this->current()]);
+        return Inertia::render('admin/church/edit', [
+            'settings' => $this->current(),
+            // Suggestions only: a presbytery or district missing from the list can still be typed in.
+            'presbyteries' => Presbyteries::options(),
+            // Cities with a neighbourhood list come first among the City suggestions.
+            'cities' => City::orderBy('name')->pluck('name'),
+        ]);
     }
 
     public function update(Request $request): RedirectResponse
@@ -25,13 +33,15 @@ class ChurchSettingsController extends Controller
             'presbytery' => ['required', 'string', 'max:150'],
             'district' => ['required', 'string', 'max:150'],
             'congregation' => ['required', 'string', 'max:150'],
+            // Optional: without it, Residence suggests towns from anywhere in Ghana.
+            'city' => ['nullable', 'string', 'max:150'],
         ]);
 
         $before = $this->current();
         $changed = [];
 
         foreach (ChurchSetting::IDENTITY as $field => $key) {
-            $value = trim($data[$field]);
+            $value = trim((string) ($data[$field] ?? ''));
 
             if ($value !== ($before[$field] ?? '')) {
                 $changed[$field] = ['from' => $before[$field] ?? '', 'to' => $value];

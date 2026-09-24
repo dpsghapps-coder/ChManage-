@@ -7,6 +7,7 @@ use App\Models\Position;
 use App\Models\Staff;
 use App\Rules\PhoneNumber;
 use App\Support\Audit;
+use App\Support\Presbyteries;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -201,6 +202,8 @@ class StaffController extends Controller
             'departments' => Department::orderBy('name')->get(['id', 'name']),
             'positions' => Position::orderBy('name')->get(['id', 'name']),
             'statuses' => Staff::STATUSES,
+            // Suggestions for Station / congregation: stations already recorded, then every PCG district.
+            'stations' => Presbyteries::placeSuggestions(Staff::distinct()->pluck('location')),
         ];
     }
 }

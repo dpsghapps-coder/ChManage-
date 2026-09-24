@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Search } from 'lucide-react';
+import { ChevronRight, MapPin, Plus, Search } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { PageHeader } from '@/components/page-header';
@@ -101,7 +101,7 @@ export default function StaffIndex({
                 />
 
                 <form onSubmit={submit} className="flex flex-wrap gap-2">
-                    <div className="relative min-w-56 flex-1">
+                    <div className="relative w-full sm:w-auto sm:min-w-56 sm:flex-1">
                         <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
                         <Input
                             value={q}
@@ -117,7 +117,7 @@ export default function StaffIndex({
                             setDepartmentId(e.target.value);
                             apply({ department_id: e.target.value });
                         }}
-                        className="w-48"
+                        className="w-full sm:w-48"
                         aria-label="Filter by department"
                     >
                         <option value="">All departments</option>
@@ -133,7 +133,7 @@ export default function StaffIndex({
                             setPositionId(e.target.value);
                             apply({ position_id: e.target.value });
                         }}
-                        className="w-44"
+                        className="w-full sm:w-44"
                         aria-label="Filter by position"
                     >
                         <option value="">All positions</option>
@@ -149,7 +149,7 @@ export default function StaffIndex({
                             setStatus(e.target.value);
                             apply({ status: e.target.value });
                         }}
-                        className="w-40"
+                        className="w-full sm:w-40"
                         aria-label="Filter by status"
                     >
                         <option value="">Any status</option>
@@ -164,7 +164,71 @@ export default function StaffIndex({
                     </Button>
                 </form>
 
-                <div className="rounded-lg border">
+                {/* Phones: one card per person. */}
+                <div className="grid gap-3 md:hidden">
+                    {staff.data.length === 0 && (
+                        <p className="rounded-lg border py-10 text-center text-sm text-muted-foreground">
+                            No staff match those filters.
+                        </p>
+                    )}
+                    {staff.data.map((person) => (
+                        <Link
+                            key={person.id}
+                            href={show(person.id)}
+                            className="flex items-start gap-3 rounded-lg border p-4 transition-colors active:bg-muted/60"
+                        >
+                            <div className="min-w-0 flex-1 space-y-1.5">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <p className="truncate font-medium">
+                                            {person.title
+                                                ? `${person.title} `
+                                                : ''}
+                                            {person.full_name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {person.staff_number}
+                                            {person.telephone
+                                                ? ` · ${person.telephone}`
+                                                : ''}
+                                        </p>
+                                    </div>
+                                    <StatusBadge status={person.status} />
+                                </div>
+                                {(person.position || person.department) && (
+                                    <p className="text-sm">
+                                        {[person.position, person.department]
+                                            .filter(Boolean)
+                                            .join(' · ')}
+                                    </p>
+                                )}
+                                {person.location && (
+                                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                                        <MapPin className="size-3.5 shrink-0" />
+                                        <span className="truncate">
+                                            {person.location}
+                                        </span>
+                                    </p>
+                                )}
+                                {person.user && (
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            person.user.is_active
+                                                ? ''
+                                                : 'opacity-60'
+                                        }
+                                    >
+                                        @{person.user.username}
+                                    </Badge>
+                                )}
+                            </div>
+                            <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                        </Link>
+                    ))}
+                </div>
+
+                <div className="hidden rounded-lg border md:block">
                     <Table>
                         <TableHeader>
                             <TableRow>

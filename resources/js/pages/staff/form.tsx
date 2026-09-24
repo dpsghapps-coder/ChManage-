@@ -54,6 +54,7 @@ type Props = {
     departments: Lookup[];
     positions: Lookup[];
     statuses: string[];
+    stations: string[];
 };
 
 /** "+ Add" next to a dropdown: creates the department/position without leaving the form. */
@@ -137,6 +138,7 @@ export default function StaffForm({
     departments,
     positions,
     statuses,
+    stations,
 }: Props) {
     const editing = staff !== null;
 
@@ -354,7 +356,14 @@ export default function StaffForm({
                     {text('location', 'Station / congregation', {
                         disabled: editing,
                         placeholder: 'Where they currently serve',
+                        list: 'stations',
+                        autoComplete: 'off',
                     })}
+                    <datalist id="stations">
+                        {stations.map((place) => (
+                            <option key={place} value={place} />
+                        ))}
+                    </datalist>
 
                     <div className="grid gap-2">
                         <Label htmlFor="status">Status</Label>

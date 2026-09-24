@@ -21,13 +21,15 @@ class ChurchSetting extends Model
 
     /**
      * The church's identity, as shown on the Church Settings page. Form field => setting key.
-     * `church_name` and `congregation_name` came with the old system; presbytery and district are new.
+     * `church_name` and `congregation_name` came with the old system; presbytery, district and city are new.
+     * The city decides which neighbourhoods the member form suggests for Residence.
      */
     public const IDENTITY = [
         'church_name' => 'church_name',
         'presbytery' => 'presbytery_name',
         'district' => 'district_name',
         'congregation' => 'congregation_name',
+        'city' => 'city_name',
     ];
 
     /** @param  list<string>  $keys  @return array<string, ?string> */

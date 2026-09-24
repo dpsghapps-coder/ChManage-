@@ -133,7 +133,7 @@ export function GpsCapture({
                 )}
             </div>
             {value && value.accuracy !== null && value.accuracy > 100 && (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-amber-600 dark:text-amber-400">
                     The fix is rough (over 100 m). Step outside or wait a moment
                     and update it, or adjust the pin on the map.
                 </p>

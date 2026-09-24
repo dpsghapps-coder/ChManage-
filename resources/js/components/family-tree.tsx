@@ -63,10 +63,9 @@ function Row({ nodes }: { nodes: Node[] }) {
 const Connector = () => <div className="h-5 w-px bg-border" aria-hidden />;
 
 /**
- * A simple family-tree diagram built from whatever links exist for this member: parents (plain
- * text — they are not linkable to a member record), emergency contact and next of kin (linked to
- * their own member record when they are one), and children from the Children Service / Junior
- * Youth register. Sections with nothing recorded are left out; the whole tree hides if there is
+ * A simple family-tree diagram built from whatever links exist for this member: parents, emergency
+ * contact and next of kin (each linked to their own member record when they are one), and children:
+ * adult members who name this member as a parent, and the Children Service / Junior Youth register. Sections with nothing recorded are left out; the whole tree hides if there is
  * no family information at all.
  */
 export function FamilyTree({
@@ -78,10 +77,22 @@ export function FamilyTree({
 }) {
     const parents: Node[] = [
         ...(member.father_name
-            ? [{ label: 'Father', name: member.father_name }]
+            ? [
+                  {
+                      label: 'Father',
+                      name: member.father_name,
+                      linkedMemberId: member.father_member?.id ?? null,
+                  },
+              ]
             : []),
         ...(member.mother_name
-            ? [{ label: 'Mother', name: member.mother_name }]
+            ? [
+                  {
+                      label: 'Mother',
+                      name: member.mother_name,
+                      linkedMemberId: member.mother_member?.id ?? null,
+                  },
+              ]
             : []),
     ];
 
@@ -112,12 +123,20 @@ export function FamilyTree({
             : []),
     ];
 
-    const children: Node[] = related.children.map((child) => ({
-        label: child.relationship || 'Child',
-        name: child.name,
-        photoUrl: child.photo_url,
-        linkedYoungId: child.id,
-    }));
+    const children: Node[] = [
+        ...related.adult_children.map((child) => ({
+            label: child.relationship,
+            name: child.name,
+            photoUrl: child.photo_url,
+            linkedMemberId: child.id,
+        })),
+        ...related.children.map((child) => ({
+            label: child.relationship || 'Child',
+            name: child.name,
+            photoUrl: child.photo_url,
+            linkedYoungId: child.id,
+        })),
+    ];
 
     if (parents.length + contacts.length + children.length === 0) {
         return null;

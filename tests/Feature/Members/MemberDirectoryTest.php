@@ -692,6 +692,90 @@ class MemberDirectoryTest extends TestCase
         $this->assertNull($member->non_communicant_reason, 'the reason is cleared once the member is a communicant');
     }
 
+    public function test_parents_can_be_linked_to_their_member_records_and_list_the_member_as_a_child(): void
+    {
+        $father = $this->member('M1', 'Mensah Joseph', 'active', 'male', 60);
+        $user = $this->userWith(['members.create', 'members.view', 'members.edit']);
+
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration([
+            'father_member_id' => $father->id, 'father_name' => 'ignored', 'mother_name' => 'AKOSUA mensah',
+        ]))->assertSessionHasNoErrors();
+
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+        $this->assertSame($father->id, $member->father_member_id);
+        $this->assertSame('Mensah Joseph', $member->father_name, "the name is read from the father's own record");
+        $this->assertNull($member->mother_member_id);
+        $this->assertSame('Akosua Mensah', $member->mother_name);
+
+        $this->actingAs($user)->get(route('members.show', $member))->assertInertia(fn (Assert $page) => $page
+            ->where('member.father_member.member_number', 'M1')->where('member.mother_member', null));
+
+        // The father's record lists the member among his children.
+        $this->actingAs($user)->get(route('members.show', $father))->assertInertia(fn (Assert $page) => $page
+            ->where('related.adult_children.0.id', $member->id)->where('related.adult_children.0.relationship', 'Daughter'));
+
+        // A member cannot be their own parent, and father and mother must be different people.
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration([
+            'father_member_id' => $member->id, 'mother_member_id' => $member->id,
+        ]))->assertSessionHasErrors(['father_member_id', 'mother_member_id']);
+    }
+
+    public function test_marriage_date_and_church_are_saved_and_cleared_for_single_members(): void
+    {
+        $spouse = $this->member('M1', 'Boateng Kofi', 'active', 'male', 45);
+        $user = $this->userWith(['members.create', 'members.edit']);
+        $married = [
+            'marital_status' => 'married', 'marriage_type' => 'ordinance', 'marriage_date' => '2015-04-18',
+            'marriage_church' => 'Ebenezer Congregation, Kaneshie', 'maiden_name' => 'Owusu', 'spouse_member_id' => $spouse->id,
+        ];
+
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration($married))->assertSessionHasNoErrors();
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+        $this->assertSame('2015-04-18', $member->marriage_date->toDateString());
+        $this->assertSame('Ebenezer Congregation, Kaneshie', $member->marriage_church);
+
+        // A marriage cannot be dated in the future or before the member was born.
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration([...$married, 'marriage_date' => today()->addDay()->toDateString()]))
+            ->assertSessionHasErrors('marriage_date');
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration([...$married, 'marriage_date' => today()->subYears(31)->toDateString()]))
+            ->assertSessionHasErrors('marriage_date');
+
+        // Marked single, the member keeps no marriage details.
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration([...$married, 'marital_status' => 'single']))
+            ->assertSessionHasNoErrors();
+        $member->refresh();
+        $this->assertSame('single', $member->marital_status);
+        $this->assertNull($member->marriage_type);
+        $this->assertNull($member->marriage_date);
+        $this->assertNull($member->marriage_church);
+        $this->assertNull($member->maiden_name);
+        $this->assertNull($member->spouse_member_id);
+        $this->assertNull($member->spouse_name);
+    }
+
+    public function test_a_sacrament_records_the_presbytery_district_and_congregation(): void
+    {
+        $user = $this->userWith(['members.create', 'members.view']);
+
+        $this->actingAs($user)->get(route('members.adult.create'))->assertInertia(fn (Assert $page) => $page
+            ->has('presbyteries', 21)->where('presbyteries.0.name', 'Ga')->has('congregations')->has('church.congregation'));
+
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration([
+            'sacraments' => [
+                'baptism' => ['date' => '1996-02-11', 'presbytery' => ' Ga West ', 'district' => 'Kaneshie', 'place' => 'Ebenezer Congregation', 'minister' => 'rev. ayeh'],
+                'confirmation' => ['date' => '', 'presbytery' => '', 'district' => '', 'place' => '', 'minister' => ''],
+            ],
+        ]))->assertSessionHasNoErrors();
+
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+        $baptism = $member->sacraments()->where('kind', 'baptism')->firstOrFail();
+        $this->assertSame(['Ga West', 'Kaneshie', 'Ebenezer Congregation'], [$baptism->presbytery, $baptism->district, $baptism->place]);
+        $this->assertSame(1, $member->sacraments()->count());
+
+        $this->actingAs($user)->get(route('members.show', $member))->assertInertia(fn (Assert $page) => $page
+            ->where('related.sacraments.baptism.presbytery', 'Ga West')->where('related.sacraments.baptism.district', 'Kaneshie'));
+    }
+
     public function test_service_records_are_saved_replaced_and_validated(): void
     {
         $user = $this->userWith(['members.create', 'members.edit']);

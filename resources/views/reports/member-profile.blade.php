@@ -58,7 +58,7 @@
                     <p>{{ $report['church']['congregation'] }}</p>
                 @endif
                 @if ($report['church']['presbytery'] || $report['church']['district'])
-                    <p>{{ collect([$report['church']['presbytery'] ? $report['church']['presbytery'].' Presbytery' : null, $report['church']['district'] ? $report['church']['district'].' District' : null])->filter()->implode('  |  ') }}</p>
+                    <p>{{ collect([$report['church']['presbytery'] ? \App\Support\Presbyteries::presbyteryTitle($report['church']['presbytery']) : null, $report['church']['district'] ? \App\Support\Presbyteries::districtTitle($report['church']['district']) : null])->filter()->implode('  |  ') }}</p>
                 @endif
             </td>
             @if ($report['logo'])

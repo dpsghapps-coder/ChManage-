@@ -125,7 +125,10 @@ export function MemberSearchBox({
     const showList = open && typed.length >= 2;
 
     return (
-        <div ref={wrapper} className="relative min-w-56 flex-1">
+        <div
+            ref={wrapper}
+            className="relative w-full sm:w-auto sm:min-w-56 sm:flex-1"
+        >
             <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
             <Input
                 value={value}

@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Eye, MapPin, Pencil, Plus, Trash2, Undo2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { ClassBadge } from '@/components/class-badge';
 import { mapUrl } from '@/components/gps-capture';
 import { MemberSearchBox } from '@/components/member-search-box';
@@ -306,7 +306,7 @@ export default function MembersIndex({
                 <div
                     role="tablist"
                     aria-label="Member category"
-                    className="flex gap-1 border-b"
+                    className="-mx-4 flex gap-1 overflow-x-auto border-b px-4 sm:mx-0 sm:px-0"
                 >
                     {categories.map((tab) => (
                         <button
@@ -316,7 +316,7 @@ export default function MembersIndex({
                             aria-selected={category === tab.key}
                             title={tab.hint}
                             onClick={() => apply({ category: tab.key })}
-                            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${category === tab.key ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                            className={`-mb-px shrink-0 border-b-2 px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${category === tab.key ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                         >
                             {tab.label}
                             <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums">
@@ -349,7 +349,7 @@ export default function MembersIndex({
                             setStatus(e.target.value);
                             apply({ status: e.target.value });
                         }}
-                        className="w-44"
+                        className="w-full sm:w-44"
                         aria-label="Filter by status"
                     >
                         <option value="">Any status</option>
@@ -366,7 +366,7 @@ export default function MembersIndex({
                                 setSex(e.target.value);
                                 apply({ sex: e.target.value });
                             }}
-                            className="w-36"
+                            className="w-full sm:w-36"
                             aria-label="Filter by sex"
                         >
                             <option value="">Any sex</option>
@@ -379,7 +379,22 @@ export default function MembersIndex({
                     </Button>
                 </form>
 
-                <div className="rounded-lg border">
+                {/* Phones: cards. */}
+                <div className="grid gap-3 md:hidden">
+                    {young ? (
+                        <YoungCards
+                            rows={members.data as YoungRow[]}
+                            actions={actions}
+                        />
+                    ) : (
+                        <AdultCards
+                            rows={members.data as AdultRow[]}
+                            actions={actions}
+                        />
+                    )}
+                </div>
+
+                <div className="hidden rounded-lg border md:block">
                     {young ? (
                         <YoungTable
                             rows={members.data as YoungRow[]}
@@ -737,6 +752,165 @@ function YoungTable({ rows, actions }: { rows: YoungRow[]; actions: Actions }) {
                 ))}
             </TableBody>
         </Table>
+    );
+}
+
+/** Phone layout for adults: one card per member. Tapping the card opens the View window. */
+function AdultCards({ rows, actions }: { rows: AdultRow[]; actions: Actions }) {
+    if (rows.length === 0) {
+        return <EmptyCard />;
+    }
+
+    return rows.map((member) => {
+        const subject = adultSubject(member);
+        const facts = [
+            member.sex ? statusLabel(member.sex) : null,
+            member.age !== null ? `${member.age} yrs` : null,
+            member.is_communicant ? 'Communicant' : null,
+        ].filter(Boolean);
+
+        return (
+            <MemberCard
+                key={member.id}
+                name={`${member.title ? `${member.title} ` : ''}${member.full_name}`}
+                number={member.member_number}
+                photoUrl={member.photo_url}
+                status={member.status}
+                onOpen={() => actions.onView(subject)}
+                footer={
+                    <>
+                        <MapLink
+                            latitude={member.latitude}
+                            longitude={member.longitude}
+                        />
+                        <RowActions
+                            name={member.full_name}
+                            status={member.status}
+                            links={adultLinks(member.id)}
+                            actions={actions}
+                            subject={subject}
+                        />
+                    </>
+                }
+            >
+                {facts.length > 0 && <p>{facts.join(' · ')}</p>}
+                {member.mobile && (
+                    <p className="text-muted-foreground">{member.mobile}</p>
+                )}
+            </MemberCard>
+        );
+    });
+}
+
+/** Phone layout for Junior Youth and Children Service. */
+function YoungCards({ rows, actions }: { rows: YoungRow[]; actions: Actions }) {
+    if (rows.length === 0) {
+        return <EmptyCard />;
+    }
+
+    return rows.map((child) => {
+        const subject = youngSubject(child);
+        const primary =
+            child.guardians.find((g) => g.is_primary) ?? child.guardians[0];
+
+        return (
+            <MemberCard
+                key={child.id}
+                name={youngName(child)}
+                number={child.member_number}
+                photoUrl={child.photo_url}
+                status={child.status}
+                onOpen={() => actions.onView(subject)}
+                footer={
+                    <>
+                        <MapLink
+                            latitude={child.latitude}
+                            longitude={child.longitude}
+                        />
+                        <RowActions
+                            name={youngName(child)}
+                            status={child.status}
+                            links={youngLinks(child.id)}
+                            actions={actions}
+                            subject={subject}
+                        />
+                    </>
+                }
+            >
+                <div className="flex flex-wrap items-center gap-2">
+                    {child.class && <ClassBadge value={child.class} />}
+                    {child.date_of_birth && (
+                        <span className="text-muted-foreground">
+                            Born {child.date_of_birth}
+                        </span>
+                    )}
+                </div>
+                {primary && (
+                    <p className="text-muted-foreground">
+                        {primary.relationship}: {primary.name}
+                        {primary.phones[0] ? ` · ${primary.phones[0]}` : ''}
+                        {child.guardians.length > 1
+                            ? ` (+${child.guardians.length - 1})`
+                            : ''}
+                    </p>
+                )}
+            </MemberCard>
+        );
+    });
+}
+
+function MemberCard({
+    name,
+    number,
+    photoUrl,
+    status,
+    onOpen,
+    footer,
+    children,
+}: {
+    name: string;
+    number: string;
+    photoUrl: string | null;
+    status: string;
+    onOpen: () => void;
+    footer: ReactNode;
+    children?: ReactNode;
+}) {
+    return (
+        <div className="rounded-lg border">
+            <button
+                type="button"
+                onClick={onOpen}
+                className="flex w-full items-start gap-3 p-4 text-left transition-colors active:bg-muted/60"
+            >
+                <PersonAvatar name={name} photoUrl={photoUrl} />
+                <div className="min-w-0 flex-1 space-y-1 text-sm">
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                            <p className="truncate font-medium">
+                                {name || '—'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {number}
+                            </p>
+                        </div>
+                        <StatusBadge status={status} />
+                    </div>
+                    {children}
+                </div>
+            </button>
+            <div className="flex items-center justify-between gap-2 border-t py-1 pr-2 pl-4">
+                {footer}
+            </div>
+        </div>
+    );
+}
+
+function EmptyCard() {
+    return (
+        <p className="rounded-lg border py-10 text-center text-sm text-muted-foreground">
+            No members match those filters.
+        </p>
     );
 }
 

@@ -83,6 +83,7 @@ type Props = {
     };
     departments: Lookup[];
     positions: Lookup[];
+    stations: string[];
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -101,7 +102,8 @@ function TransferDialog({
     staff,
     departments,
     positions,
-}: Pick<Props, 'staff' | 'departments' | 'positions'>) {
+    stations,
+}: Pick<Props, 'staff' | 'departments' | 'positions' | 'stations'>) {
     const [open, setOpen] = useState(false);
     const form = useForm({
         to_department_id: '',
@@ -198,12 +200,19 @@ function TransferDialog({
                             onChange={(e) =>
                                 form.setData('to_location', e.target.value)
                             }
+                            list="transfer-stations"
+                            autoComplete="off"
                             placeholder={
                                 staff.location
                                     ? `Keep current (${staff.location})`
                                     : 'Where they will serve'
                             }
                         />
+                        <datalist id="transfer-stations">
+                            {stations.map((place) => (
+                                <option key={place} value={place} />
+                            ))}
+                        </datalist>
                         <InputError message={form.errors.to_location} />
                     </div>
 
@@ -268,7 +277,12 @@ function Change({ from, to }: { from: string | null; to: string | null }) {
     );
 }
 
-export default function StaffShow({ staff, departments, positions }: Props) {
+export default function StaffShow({
+    staff,
+    departments,
+    positions,
+    stations,
+}: Props) {
     const { can } = usePermission();
     const errors = usePage().props.errors as Record<string, string> | undefined;
 
@@ -288,6 +302,7 @@ export default function StaffShow({ staff, departments, positions }: Props) {
                                     staff={staff}
                                     departments={departments}
                                     positions={positions}
+                                    stations={stations}
                                 />
                             )}
                             {can('staff.edit') && (

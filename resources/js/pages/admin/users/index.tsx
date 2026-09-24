@@ -99,7 +99,7 @@ export default function UsersIndex({ users, roles, filters }: Props) {
                 />
 
                 <form onSubmit={submit} className="flex flex-wrap gap-2">
-                    <div className="relative min-w-56 flex-1">
+                    <div className="relative w-full sm:w-auto sm:min-w-56 sm:flex-1">
                         <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
                         <Input
                             value={q}
@@ -115,7 +115,7 @@ export default function UsersIndex({ users, roles, filters }: Props) {
                             setRoleId(e.target.value);
                             apply({ role_id: e.target.value });
                         }}
-                        className="w-48"
+                        className="w-full sm:w-48"
                         aria-label="Filter by role"
                     >
                         <option value="">All roles</option>
@@ -131,7 +131,7 @@ export default function UsersIndex({ users, roles, filters }: Props) {
                             setStatus(e.target.value);
                             apply({ status: e.target.value });
                         }}
-                        className="w-40"
+                        className="w-full sm:w-40"
                         aria-label="Filter by status"
                     >
                         <option value="">Any status</option>
@@ -143,7 +143,89 @@ export default function UsersIndex({ users, roles, filters }: Props) {
                     </Button>
                 </form>
 
-                <div className="rounded-lg border">
+                {/* Phones: one card per account. */}
+                <div className="grid gap-3 md:hidden">
+                    {users.data.length === 0 && (
+                        <p className="rounded-lg border py-10 text-center text-sm text-muted-foreground">
+                            No users match those filters.
+                        </p>
+                    )}
+                    {users.data.map((user) => (
+                        <div
+                            key={user.id}
+                            className="space-y-3 rounded-lg border p-4"
+                        >
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="truncate font-medium">
+                                        {user.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        @{user.username}
+                                    </p>
+                                </div>
+                                {accountState(user)}
+                            </div>
+                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <div>
+                                    <dt className="text-xs text-muted-foreground">
+                                        Role
+                                    </dt>
+                                    <dd>{user.role?.name ?? 'None'}</dd>
+                                </div>
+                                <div className="min-w-0">
+                                    <dt className="text-xs text-muted-foreground">
+                                        Staff record
+                                    </dt>
+                                    <dd className="truncate">
+                                        {user.staff ? (
+                                            can('staff.view') ? (
+                                                <Link
+                                                    href={staffShow(
+                                                        user.staff.id,
+                                                    )}
+                                                    className="underline underline-offset-4"
+                                                >
+                                                    {user.staff.full_name}
+                                                </Link>
+                                            ) : (
+                                                user.staff.full_name
+                                            )
+                                        ) : (
+                                            <span className="text-muted-foreground">
+                                                Not linked
+                                            </span>
+                                        )}
+                                    </dd>
+                                </div>
+                                <div className="col-span-2">
+                                    <dt className="text-xs text-muted-foreground">
+                                        Last sign-in
+                                    </dt>
+                                    <dd>
+                                        {user.last_login_at
+                                            ? new Date(
+                                                  user.last_login_at,
+                                              ).toLocaleString()
+                                            : 'Never'}
+                                    </dd>
+                                </div>
+                            </dl>
+                            {can('users.edit') && (
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                >
+                                    <Link href={edit(user.id)}>Edit user</Link>
+                                </Button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="hidden rounded-lg border md:block">
                     <Table>
                         <TableHeader>
                             <TableRow>

@@ -1,0 +1,864 @@
+[
+  {
+    "region": "Greater Accra Region",
+    "cities": [
+      {
+        "city": "Tema",
+        "type": "Metropolitan & Industrial Port City",
+        "neighbourhoods": [
+          "Community 1",
+          "Community 2",
+          "Community 4",
+          "Community 5",
+          "Community 6",
+          "Community 7",
+          "Community 8",
+          "Community 9",
+          "Community 10",
+          "Community 11",
+          "Community 12",
+          "Community 25",
+          "Tema Newtown (Manhean)",
+          "Sakumono Estates",
+          "Klagon",
+          "Bethlehem",
+          "Kakasunanka",
+          "Michelle Camp"
+        ]
+      },
+      {
+        "city": "Ashaiman",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Official Town",
+          "Lebanon",
+          "Zenu",
+          "Jericho",
+          "Middle East",
+          "Newtown",
+          "Valco Flat",
+          "Christian Village",
+          "Tulaku"
+        ]
+      },
+      {
+        "city": "Prampram",
+        "type": "District Capital & Coastal Town",
+        "neighbourhoods": [
+          "Lower Prampram",
+          "Upper Prampram",
+          "New Prampram",
+          "Dawhenya",
+          "Afienya",
+          "Mobole"
+        ]
+      },
+      {
+        "city": "Ada Foah",
+        "type": "District Capital & Tourism Town",
+        "neighbourhoods": [
+          "Big Ada",
+          "Ada Foah Seaside",
+          "Azizanya",
+          "Totope",
+          "Anyakope"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Ashanti Region",
+    "cities": [
+      {
+        "city": "Kumasi",
+        "type": "Regional Capital & Metropolis",
+        "neighbourhoods": [
+          "Adum",
+          "Kejetia",
+          "Asafo",
+          "Roman Hill",
+          "Alabar",
+          "Nhyiaeso",
+          "Danyame",
+          "Ahodwo",
+          "Ridge",
+          "Asokwa",
+          "Bantama",
+          "Suame",
+          "Suame Magazine",
+          "Tafo",
+          "Pankrono",
+          "Breman",
+          "Bremang",
+          "Kronum",
+          "Bohyen",
+          "Abrepo",
+          "Kwadaso",
+          "Tanoso",
+          "Abuakwa",
+          "Patasi",
+          "Santasi",
+          "Fankyenebra",
+          "KNUST Campus",
+          "Ayigya",
+          "Kentinkrono",
+          "Bomso",
+          "Ayeduase",
+          "Kotei",
+          "Boadi",
+          "Emena",
+          "Appiadu",
+          "Dichemso",
+          "Manhyia",
+          "Krofrom",
+          "Asawase",
+          "Aboabo",
+          "Sawaba",
+          "Buokrom",
+          "Ahinsan",
+          "Kaase",
+          "Atonsu",
+          "Chirapatre",
+          "Gyinyase"
+        ]
+      },
+      {
+        "city": "Obuasi",
+        "type": "Mining Municipal",
+        "neighbourhoods": [
+          "Tutuka",
+          "Wawasi",
+          "Anyinam",
+          "Kunka",
+          "Brahabebome",
+          "Gausu",
+          "Bidieso",
+          "Sanso",
+          "Koffikrom",
+          "Bediem",
+          "Estate"
+        ]
+      },
+      {
+        "city": "Mampong",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Daaho",
+          "Tunsuom",
+          "Bosofour",
+          "Zongo",
+          "New Town",
+          "Kofiase Road"
+        ]
+      },
+      {
+        "city": "Ejura",
+        "type": "Commercial Agricultural Town",
+        "neighbourhoods": [
+          "Zongo",
+          "Saboline",
+          "Baba Longo",
+          "Nkwanta",
+          "Miminaso"
+        ]
+      },
+      {
+        "city": "Konongo-Odumase",
+        "type": "Mining & Commercial Municipality",
+        "neighbourhoods": [
+          "Konongo Central",
+          "Odumase",
+          "Zongo",
+          "Fante Town",
+          "Ahenfie",
+          "Low Cost"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Western Region",
+    "cities": [
+      {
+        "city": "Sekondi-Takoradi",
+        "type": "Regional Capital & Metropolis",
+        "neighbourhoods": [
+          "Market Circle",
+          "Beach Road",
+          "Chapel Hill",
+          "Airport Ridge",
+          "Anaji",
+          "Kansaworondo",
+          "Effiakuma",
+          "Effia",
+          "Kwesimintsim",
+          "Tanokrom",
+          "New Takoradi",
+          "Apollo",
+          "Windy Ridge",
+          "Westline",
+          "Essikado",
+          "Ketan",
+          "Fijai",
+          "Bakado",
+          "Ekuasi",
+          "Poasi",
+          "Ngyiresia"
+        ]
+      },
+      {
+        "city": "Tarkwa",
+        "type": "Mining Capital & Municipality",
+        "neighbourhoods": [
+          "Cyanide",
+          "Tamso",
+          "Akoon",
+          "Brahabebome",
+          "Low Cost",
+          "Bankyim",
+          "Aboso Junction"
+        ]
+      },
+      {
+        "city": "Axim",
+        "type": "Historic Coastal Town",
+        "neighbourhoods": [
+          "Upper Axim",
+          "Lower Axim",
+          "Brawire",
+          "Apewosika"
+        ]
+      },
+      {
+        "city": "Elubo",
+        "type": "Border Commercial Town",
+        "neighbourhoods": [
+          "Border Enclave",
+          "Old Town",
+          "New Town",
+          "Zongo"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Central Region",
+    "cities": [
+      {
+        "city": "Cape Coast",
+        "type": "Regional Capital & Historic City",
+        "neighbourhoods": [
+          "Kotokuraba",
+          "Ola",
+          "Pedu",
+          "Abura",
+          "Bakano",
+          "Kingsway",
+          "Siwdo",
+          "UCC Campus",
+          "Apewosika",
+          "Kakumdo",
+          "Efutu",
+          "Amamoma",
+          "Akotokyir",
+          "Ntsin",
+          "Idan"
+        ]
+      },
+      {
+        "city": "Kasoa",
+        "type": "Metropolitan Municipality",
+        "neighbourhoods": [
+          "Galilea",
+          "CP",
+          "Iron City",
+          "Amanfrom",
+          "Opeikuma",
+          "Nyanyano",
+          "Walantu",
+          "Millennium City",
+          "Brigade",
+          "Akweley"
+        ]
+      },
+      {
+        "city": "Winneba",
+        "type": "Municipality & University Town",
+        "neighbourhoods": [
+          "Low Cost",
+          "Sankor",
+          "Eyipey",
+          "North Campus",
+          "South Campus",
+          "Kojo Bedu",
+          "Abasraba",
+          "Winneba Junction"
+        ]
+      },
+      {
+        "city": "Agona Swedru",
+        "type": "Commercial Municipality",
+        "neighbourhoods": [
+          "Swedru Central",
+          "Pipe Tank",
+          "Dwenho",
+          "Wawase",
+          "Mangoase",
+          "Chapel Square",
+          "Mahodwe"
+        ]
+      },
+      {
+        "city": "Saltpond",
+        "type": "Historic Coastal Town",
+        "neighbourhoods": [
+          "Lower Town",
+          "Upper Town",
+          "Ahensan",
+          "Kormantse",
+          "Anomabo"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Eastern Region",
+    "cities": [
+      {
+        "city": "Koforidua",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Adweso",
+          "Anlo Town",
+          "Srodae",
+          "Betom",
+          "Oguaa",
+          "Asokore",
+          "Effiduase",
+          "Mile 50",
+          "Zongo",
+          "Magazine",
+          "Old Estate",
+          "New Estate",
+          "Nyamekrom",
+          "Pipeline"
+        ]
+      },
+      {
+        "city": "Nkawkaw",
+        "type": "Commercial Municipality",
+        "neighbourhoods": [
+          "Domeabra",
+          "Adoagyiri",
+          "Zongo",
+          "Asuboni Road",
+          "Trado"
+        ]
+      },
+      {
+        "city": "Akim Oda",
+        "type": "Commercial & Timber Municipality",
+        "neighbourhoods": [
+          "Old Town",
+          "New Town",
+          "Community 6",
+          "Towobotom",
+          "Nkwantanang"
+        ]
+      },
+      {
+        "city": "Nsawam",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Adoagyiri",
+          "Djankrom",
+          "Zongo",
+          "Oboadaka",
+          "Ahodwo"
+        ]
+      },
+      {
+        "city": "Akosombo",
+        "type": "Township & Hydro Enclave",
+        "neighbourhoods": [
+          "Community 1",
+          "Community 2",
+          "Atimpoku",
+          "Marine",
+          "Akwamu Field"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Volta Region",
+    "cities": [
+      {
+        "city": "Ho",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Bankoe",
+          "Heve",
+          "Ahoe",
+          "Dome",
+          "Kpodzi",
+          "Anlokordzi",
+          "Sokode",
+          "Barracks",
+          "Housing",
+          "Dave",
+          "Klefe",
+          "Fiave",
+          "Agbogame"
+        ]
+      },
+      {
+        "city": "Hohoe",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Bla",
+          "Ahado",
+          "Gbi-Kpeme",
+          "Zongo",
+          "Kitikpa",
+          "Abansi"
+        ]
+      },
+      {
+        "city": "Keta & Anloga",
+        "type": "Coastal & Historic Towns",
+        "neighbourhoods": [
+          "Dzelukope",
+          "Vui",
+          "Tegbi",
+          "Woe",
+          "Anloga Central",
+          "Agbedrafor"
+        ]
+      },
+      {
+        "city": "Aflao",
+        "type": "Cross-Border Commercial Municipality",
+        "neighbourhoods": [
+          "Border Area",
+          "Denu",
+          "Tokor",
+          "Beat 9",
+          "Low Cost"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Northern Region",
+    "cities": [
+      {
+        "city": "Tamale",
+        "type": "Regional Capital & Metropolis",
+        "neighbourhoods": [
+          "Lamashegu",
+          "Aboabo",
+          "Vittin",
+          "Gumani",
+          "Choggu",
+          "Kanvili",
+          "Nyohini",
+          "Sakasaka",
+          "Changli",
+          "Teshigu",
+          "Kalpohin",
+          "Zogbeli",
+          "Banvim",
+          "Bilpela",
+          "Datoyili",
+          "Fuo",
+          "Kukuo",
+          "Dungu (UDS Campus)",
+          "Ward K",
+          "Katariga"
+        ]
+      },
+      {
+        "city": "Yendi",
+        "type": "Historic Kingdom Capital & Municipality",
+        "neighbourhoods": [
+          "Nayilifong",
+          "Gagbini",
+          "Zongo",
+          "Kumfong",
+          "Balogu"
+        ]
+      },
+      {
+        "city": "Savelugu",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Diare",
+          "Pong-Tamale",
+          "Zongo",
+          "Nayilifong"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Upper East Region",
+    "cities": [
+      {
+        "city": "Bolgatanga",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Commercial Area",
+          "Tindonsobligo",
+          "Atulbabisi",
+          "Tanzui",
+          "Zaare",
+          "Sumbrungu",
+          "Bukere",
+          "Soe",
+          "Daporetindongo",
+          "Zongo"
+        ]
+      },
+      {
+        "city": "Bawku",
+        "type": "Commercial Border Municipality",
+        "neighbourhoods": [
+          "Sabongari",
+          "Possum",
+          "Gingande",
+          "Daduri",
+          "Zongo",
+          "South Natinga"
+        ]
+      },
+      {
+        "city": "Navrongo",
+        "type": "Municipality & University Town",
+        "neighbourhoods": [
+          "Pungu",
+          "Namolo",
+          "Nogsenia",
+          "Doba",
+          "Nayagnia"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Upper West Region",
+    "cities": [
+      {
+        "city": "Wa",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Dondoli",
+          "Kperisi",
+          "Kambali",
+          "Bamahu (UDS Campus)",
+          "Limanyiri",
+          "Nayiri",
+          "Konta",
+          "Kpaguri",
+          "Sombo",
+          "Tagrayiri",
+          "Zongo"
+        ]
+      },
+      {
+        "city": "Tumu",
+        "type": "District Capital",
+        "neighbourhoods": [
+          "Zongo",
+          "Bepopaw",
+          "Low Cost",
+          "Sakai"
+        ]
+      },
+      {
+        "city": "Jirapa",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Ullo",
+          "Hain",
+          "Zongo",
+          "Central"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Bono Region",
+    "cities": [
+      {
+        "city": "Sunyani",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Airport Residential Area",
+          "Fiapre",
+          "Berlin Top",
+          "Penkwase",
+          "New Dormaa",
+          "Abesim",
+          "Baakoniaba",
+          "Magazine",
+          "Asufufu",
+          "Kotokrom",
+          "Mayfair"
+        ]
+      },
+      {
+        "city": "Berekum",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Kato",
+          "Senase",
+          "Mpatapo",
+          "Zongo",
+          "Biadan"
+        ]
+      },
+      {
+        "city": "Dormaa Ahenkro",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Suromani",
+          "Aboabo",
+          "Zongo",
+          "Ntwetwene"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Bono East Region",
+    "cities": [
+      {
+        "city": "Techiman",
+        "type": "Regional Capital & Major Market Hub",
+        "neighbourhoods": [
+          "Kenten",
+          "Hansua",
+          "Twimia",
+          "Sansama",
+          "Takofiano",
+          "Zongo",
+          "Ahenfie",
+          "Fante New Town"
+        ]
+      },
+      {
+        "city": "Kintampo",
+        "type": "Municipality & Transit Hub",
+        "neighbourhoods": [
+          "Kyeremankoma",
+          "Mo Line",
+          "Zongo",
+          "Dungu",
+          "Kunsu"
+        ]
+      },
+      {
+        "city": "Nkoranza",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Sessiman",
+          "Kissiman",
+          "Zongo",
+          "Kassadjan"
+        ]
+      },
+      {
+        "city": "Atebubu",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Mem",
+          "Zongo",
+          "Ahenfie",
+          "New Town"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Ahafo Region",
+    "cities": [
+      {
+        "city": "Goaso",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Low Cost",
+          "Zongo",
+          "Mim Road",
+          "New Town",
+          "Ahenfie"
+        ]
+      },
+      {
+        "city": "Mim",
+        "type": "Timber & Agricultural Hub",
+        "neighbourhoods": [
+          "Kasapin",
+          "Camp",
+          "Central",
+          "New Town"
+        ]
+      },
+      {
+        "city": "Kenyasi",
+        "type": "District Capital & Mining Town",
+        "neighbourhoods": [
+          "Kenyasi No. 1",
+          "Kenyasi No. 2",
+          "Ntotroso",
+          "Mining Enclave"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Western North Region",
+    "cities": [
+      {
+        "city": "Sefwi Wiawso",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Dwinase",
+          "Bosomoiso",
+          "Boako",
+          "Datano",
+          "Ahwiaa"
+        ]
+      },
+      {
+        "city": "Bibiani",
+        "type": "Mining Municipality",
+        "neighbourhoods": [
+          "Old Town",
+          "Lineso",
+          "Hwenampori",
+          "Degede",
+          "Zongo"
+        ]
+      },
+      {
+        "city": "Sefwi Bekwai",
+        "type": "Township",
+        "neighbourhoods": [
+          "Humjibre",
+          "Zongo",
+          "New Town"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Oti Region",
+    "cities": [
+      {
+        "city": "Dambai",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Lakeside",
+          "Banka",
+          "Zongo",
+          "Central",
+          "Kete Krachi Junction"
+        ]
+      },
+      {
+        "city": "Nkwanta",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Brewaniase Road",
+          "New Town",
+          "Abrewankor",
+          "Zongo"
+        ]
+      },
+      {
+        "city": "Kete Krachi",
+        "type": "District Capital & Port Town",
+        "neighbourhoods": [
+          "Kantankufre",
+          "Zongo",
+          "Lakeside",
+          "Osramani"
+        ]
+      },
+      {
+        "city": "Jasikan",
+        "type": "District Capital",
+        "neighbourhoods": [
+          "Bodada",
+          "Zongo",
+          "Ahenfie",
+          "New Town"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "Savannah Region",
+    "cities": [
+      {
+        "city": "Damongo",
+        "type": "Regional Capital & Municipality",
+        "neighbourhoods": [
+          "Canteen",
+          "Yagbon",
+          "Zongo",
+          "Hangaline",
+          "Kurabaso",
+          "Langbonto"
+        ]
+      },
+      {
+        "city": "Salaga",
+        "type": "Historic Commercial Municipality",
+        "neighbourhoods": [
+          "Kpembe",
+          "Masaka",
+          "Zongo",
+          "Central"
+        ]
+      },
+      {
+        "city": "Bole",
+        "type": "District Capital",
+        "neighbourhoods": [
+          "Mandari",
+          "Zongo",
+          "Mempeasem",
+          "Mankuma"
+        ]
+      }
+    ]
+  },
+  {
+    "region": "North East Region",
+    "cities": [
+      {
+        "city": "Nalerigu & Gambaga",
+        "type": "Regional Capital & Twin Town",
+        "neighbourhoods": [
+          "Nayiri Palace Enclave",
+          "Langbinsi Road",
+          "Zongo",
+          "Gambaga Town",
+          "Dindo"
+        ]
+      },
+      {
+        "city": "Walewale",
+        "type": "Municipality",
+        "neighbourhoods": [
+          "Loagri",
+          "Kparigu Road",
+          "Zongo",
+          "Nayilifong"
+        ]
+      }
+    ]
+  }
+]

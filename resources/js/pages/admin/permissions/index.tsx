@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { Check } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
+import { Badge } from '@/components/ui/badge';
 import {
     Table,
     TableBody,
@@ -40,7 +41,61 @@ export default function PermissionsIndex({ groups, roles }: Props) {
                     description="Every action the system can allow or deny, and which roles currently hold it. Permissions are defined by the system; build roles from them on the Roles page."
                 />
 
-                <div className="overflow-x-auto rounded-lg border">
+                {/* Phones: one card per area; each permission lists the roles that hold it. */}
+                <div className="grid gap-3 md:hidden">
+                    {groups.map((group) => (
+                        <section
+                            key={group.module}
+                            className="rounded-lg border"
+                        >
+                            <h2 className="border-b bg-muted/40 px-4 py-2 text-sm font-medium">
+                                {group.label}
+                            </h2>
+                            <ul className="divide-y">
+                                {group.permissions.map((permission) => {
+                                    const holders = roles.filter((role) =>
+                                        permission.role_ids.includes(role.id),
+                                    );
+
+                                    return (
+                                        <li
+                                            key={permission.id}
+                                            className="space-y-1.5 px-4 py-3"
+                                        >
+                                            <p className="font-mono text-xs">
+                                                {permission.name}
+                                            </p>
+                                            {permission.description && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {permission.description}
+                                                </p>
+                                            )}
+                                            <div className="flex flex-wrap gap-1">
+                                                {holders.length === 0 ? (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        No role holds this yet.
+                                                    </span>
+                                                ) : (
+                                                    holders.map((role) => (
+                                                        <Badge
+                                                            key={role.id}
+                                                            variant="outline"
+                                                            className="font-normal"
+                                                        >
+                                                            {role.name}
+                                                        </Badge>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </section>
+                    ))}
+                </div>
+
+                <div className="hidden overflow-x-auto rounded-lg border md:block">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -116,7 +171,7 @@ function GroupRows({
                         <TableCell key={role.id} className="text-center">
                             {permission.role_ids.includes(role.id) ? (
                                 <Check
-                                    className="mx-auto size-4 text-emerald-600"
+                                    className="mx-auto size-4 text-emerald-600 dark:text-emerald-400"
                                     aria-label={`${role.name} has ${permission.name}`}
                                 />
                             ) : (

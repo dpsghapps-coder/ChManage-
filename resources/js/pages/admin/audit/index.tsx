@@ -76,7 +76,7 @@ export default function AuditIndex({ logs, filters, groups }: Props) {
                 />
 
                 <form onSubmit={submit} className="flex flex-wrap gap-2">
-                    <div className="relative min-w-56 flex-1">
+                    <div className="relative w-full sm:w-auto sm:min-w-56 sm:flex-1">
                         <Search className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
                         <Input
                             value={q}
@@ -92,7 +92,7 @@ export default function AuditIndex({ logs, filters, groups }: Props) {
                             setGroup(e.target.value);
                             apply({ group: e.target.value });
                         }}
-                        className="w-44"
+                        className="w-full sm:w-44"
                         aria-label="Filter by area"
                     >
                         <option value="">All areas</option>
@@ -107,7 +107,64 @@ export default function AuditIndex({ logs, filters, groups }: Props) {
                     </Button>
                 </form>
 
-                <div className="rounded-lg border">
+                {/* Phones: one card per entry. */}
+                <div className="grid gap-3 md:hidden">
+                    {logs.data.length === 0 && (
+                        <p className="rounded-lg border py-10 text-center text-sm text-muted-foreground">
+                            Nothing recorded yet.
+                        </p>
+                    )}
+                    {logs.data.map((log) => (
+                        <div
+                            key={log.id}
+                            className="space-y-2 rounded-lg border p-4"
+                        >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <Badge
+                                    variant={tone(log.event)}
+                                    className="font-mono text-[11px] font-normal"
+                                >
+                                    {log.event}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                    {log.created_at
+                                        ? new Date(
+                                              log.created_at,
+                                          ).toLocaleString()
+                                        : ''}
+                                </span>
+                            </div>
+                            <p className="text-sm break-words">
+                                {log.description}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {log.user ? log.user.username : 'Anonymous'}
+                                {log.ip_address && (
+                                    <span className="font-mono">
+                                        {' · '}
+                                        {log.ip_address}
+                                    </span>
+                                )}
+                            </p>
+                            {log.properties && (
+                                <details className="text-xs text-muted-foreground">
+                                    <summary className="cursor-pointer">
+                                        Details
+                                    </summary>
+                                    <pre className="mt-1 overflow-x-auto rounded bg-muted p-2 whitespace-pre-wrap">
+                                        {JSON.stringify(
+                                            log.properties,
+                                            null,
+                                            2,
+                                        )}
+                                    </pre>
+                                </details>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="hidden rounded-lg border md:block">
                     <Table>
                         <TableHeader>
                             <TableRow>

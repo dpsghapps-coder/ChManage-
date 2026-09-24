@@ -10,4 +10,13 @@ return [
 
     // Photos taken at registration of Junior Youth / Children Service members (file names are stored in young_members.photo_path).
     'young_member_photos' => env('YOUNG_MEMBER_PHOTOS_PATH', storage_path('app/private/young-member-photos')),
+
+    // The PCG presbyteries and their districts (see App\Support\Presbyteries). Edit the file to correct or extend the list.
+    'presbyteries' => env('PRESBYTERIES_PATH', resource_path('data/pcg-presbyteries.md')),
+
+    // Ghana towns suggested for Place of Birth, Home Town and Residence. Rebuild with `php artisan locations:import`.
+    'ghana_towns' => env('GHANA_TOWNS_PATH', resource_path('data/ghana-towns.json')),
+
+    // Seeds the cities and neighbourhoods tables once (Accra); after that they are edited on the Neighbourhoods page.
+    'neighbourhoods' => env('NEIGHBOURHOODS_PATH', resource_path('data/ghana-neighbourhoods.json')),
 ];

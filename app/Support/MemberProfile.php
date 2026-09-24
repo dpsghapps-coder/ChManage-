@@ -16,7 +16,8 @@ class MemberProfile
     /** The member's own fields. @return array<string, mixed> */
     public static function adult(Member $m): array
     {
-        $m->loadMissing(['photo', 'spouse']);
+        $m->loadMissing(['photo', 'spouse', 'father', 'mother']);
+        $linked = fn (?Member $other) => $other ? ['id' => $other->id, 'member_number' => $other->member_number, 'full_name' => $other->full_name] : null;
 
         return [
             'id' => $m->id,
@@ -47,11 +48,15 @@ class MemberProfile
             'marital_status' => $m->marital_status,
             'marriage_type' => $m->marriage_type,
             'maiden_name' => $m->maiden_name,
+            'marriage_date' => $m->marriage_date?->toDateString(),
+            'marriage_church' => $m->marriage_church,
             'spouse_name' => $m->spouse?->full_name ?? $m->spouse_name,
             'spouse_member' => $m->spouse ? ['id' => $m->spouse->id, 'member_number' => $m->spouse->member_number, 'full_name' => $m->spouse->full_name] : null,
             // Family
-            'father_name' => $m->father_name,
-            'mother_name' => $m->mother_name,
+            'father_name' => $m->father?->full_name ?? $m->father_name,
+            'father_member' => $linked($m->father),
+            'mother_name' => $m->mother?->full_name ?? $m->mother_name,
+            'mother_member' => $linked($m->mother),
             // Church
             'joined_on' => $m->joined_on?->toDateString(),
             'generational_group' => $m->generational_group,
@@ -99,6 +104,8 @@ class MemberProfile
 
                 return [
                     'date' => $s?->sacrament_date?->toDateString() ?? '',
+                    'presbytery' => $s?->presbytery ?? '',
+                    'district' => $s?->district ?? '',
                     'place' => $s?->place ?? '',
                     'minister' => $s?->minister ?? '',
                 ];
@@ -113,6 +120,24 @@ class MemberProfile
                 'started_on' => $r->started_on?->toDateString() ?? '',
                 'ended_on' => $r->ended_on?->toDateString() ?? '',
             ])->values()->all(),
+            // Adult members who name this member as their father or mother.
+            'adult_children' => Member::query()
+                ->where(fn ($q) => $q->where('father_member_id', $m->id)->orWhere('mother_member_id', $m->id))
+                ->where('status', '!=', 'deleted')
+                ->with('photo')
+                ->orderBy('date_of_birth')
+                ->get()
+                ->map(fn (Member $child) => [
+                    'id' => $child->id,
+                    'name' => $child->full_name,
+                    'member_number' => $child->member_number,
+                    'relationship' => match (true) {
+                        $child->sex === 'male' => 'Son',
+                        $child->sex === 'female' => 'Daughter',
+                        default => 'Child',
+                    },
+                    'photo_url' => $child->photoUrl(),
+                ])->values()->all(),
             'children' => YoungMember::query()
                 ->whereHas('guardians', fn ($q) => $q->where('member_id', $m->id))
                 ->where('status', '!=', 'deleted')

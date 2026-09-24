@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Check, Plus, Trash2, X } from 'lucide-react';
+import { Check, Church, Plus, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { GpsCapture } from '@/components/gps-capture';
@@ -9,6 +9,7 @@ import type { MemberHit } from '@/components/member-picker';
 import { PageHeader } from '@/components/page-header';
 import { PhotoPicker } from '@/components/photo-picker';
 import { statusLabel } from '@/components/staff-status';
+import { TownSuggestions } from '@/components/town-suggestions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +19,26 @@ import { digitsOnly, phoneInputProps } from '@/lib/phone';
 import { index, update } from '@/routes/members';
 import { store } from '@/routes/members/adult';
 
-type Sacrament = { date: string; place: string; minister: string };
+type Sacrament = {
+    date: string;
+    presbytery: string;
+    district: string;
+    /** The congregation. */
+    place: string;
+    minister: string;
+};
+
+type LinkedMember = {
+    id: number;
+    member_number: string;
+    full_name: string;
+} | null;
+
+type Presbytery = {
+    name: string;
+    headquarters: string | null;
+    districts: string[];
+};
 
 type ServiceRecord = {
     type: string;
@@ -52,6 +72,8 @@ type Member = {
     marital_status: string | null;
     marriage_type: string | null;
     maiden_name: string | null;
+    marriage_date: string | null;
+    marriage_church: string | null;
     spouse_name: string | null;
     spouse_member: {
         id: number;
@@ -59,7 +81,9 @@ type Member = {
         full_name: string;
     } | null;
     father_name: string | null;
+    father_member: LinkedMember;
     mother_name: string | null;
+    mother_member: LinkedMember;
     joined_on: string | null;
     generational_group: string | null;
     non_communicant: boolean;
@@ -93,6 +117,16 @@ type Props = {
     serviceTypes: { value: string; label: string }[];
     groups: { id: number; name: string; short_name: string | null }[];
     residences: string[];
+    /** The church's city (Church Settings): its neighbourhoods and region narrow the Residence suggestions. */
+    residenceArea: {
+        city: string | null;
+        region: string | null;
+        neighbourhoods: string[];
+    };
+    /** For the sacraments' presbytery → district → congregation pickers. */
+    presbyteries: Presbytery[];
+    congregations: string[];
+    church: { presbytery: string; district: string; congregation: string };
 };
 
 /** The sections of the record, in the same order as the member details. */
@@ -116,8 +150,6 @@ const STEP_OF_FIELD: Record<string, number> = {
     place_of_birth: 0,
     hometown: 0,
     photo: 0,
-    father_name: 0,
-    mother_name: 0,
     next_of_kin: 0,
     emergency_contact: 0,
     mobile: 1,
@@ -134,8 +166,14 @@ const STEP_OF_FIELD: Record<string, number> = {
     marital_status: 2,
     marriage_type: 2,
     maiden_name: 2,
+    marriage_date: 2,
+    marriage_church: 2,
     spouse_name: 2,
     spouse_member_id: 2,
+    father_name: 2,
+    father_member_id: 2,
+    mother_name: 2,
+    mother_member_id: 2,
     joined_on: 3,
     generational_group: 3,
     group_ids: 3,
@@ -147,7 +185,20 @@ const STEP_OF_FIELD: Record<string, number> = {
 
 const stepOfError = (key: string) => STEP_OF_FIELD[key.split('.')[0]] ?? 0;
 
-const blankSacrament: Sacrament = { date: '', place: '', minister: '' };
+const blankSacrament: Sacrament = {
+    date: '',
+    presbytery: '',
+    district: '',
+    place: '',
+    minister: '',
+};
+
+// "Ga", "ga" and "Ga Presbytery" all name the same presbytery.
+const normalise = (name: string) =>
+    name
+        .trim()
+        .toLowerCase()
+        .replace(/\s+presbytery$/, '');
 
 type TextField =
     | 'title'
@@ -166,6 +217,8 @@ type TextField =
     | 'tiktok_id'
     | 'residence'
     | 'maiden_name'
+    | 'marriage_date'
+    | 'marriage_church'
     | 'spouse_name'
     | 'father_name'
     | 'mother_name'
@@ -179,6 +232,10 @@ export default function AdultMemberForm({
     serviceTypes,
     groups,
     residences,
+    residenceArea,
+    presbyteries,
+    congregations,
+    church,
     member,
 }: Props) {
     const editing = member !== null;
@@ -187,6 +244,13 @@ export default function AdultMemberForm({
     const [spouse, setSpouse] = useState<Member['spouse_member']>(
         member?.spouse_member ?? null,
     );
+    const [parents, setParents] = useState<{
+        father: LinkedMember;
+        mother: LinkedMember;
+    }>({
+        father: member?.father_member ?? null,
+        mother: member?.mother_member ?? null,
+    });
     const [kinMember, setKinMember] = useState<Member['next_of_kin']['member']>(
         member?.next_of_kin?.member ?? null,
     );
@@ -220,10 +284,14 @@ export default function AdultMemberForm({
         marital_status: member?.marital_status ?? '',
         marriage_type: member?.marriage_type ?? '',
         maiden_name: member?.maiden_name ?? '',
+        marriage_date: member?.marriage_date ?? '',
+        marriage_church: member?.marriage_church ?? '',
         spouse_name: member?.spouse_member ? '' : (member?.spouse_name ?? ''),
         spouse_member_id: (member?.spouse_member?.id ?? null) as number | null,
-        father_name: member?.father_name ?? '',
-        mother_name: member?.mother_name ?? '',
+        father_name: member?.father_member ? '' : (member?.father_name ?? ''),
+        father_member_id: (member?.father_member?.id ?? null) as number | null,
+        mother_name: member?.mother_member ? '' : (member?.mother_name ?? ''),
+        mother_member_id: (member?.mother_member?.id ?? null) as number | null,
         joined_on: member?.joined_on ?? '',
         generational_group: member?.generational_group ?? '',
         non_communicant: member?.non_communicant ?? false,
@@ -255,9 +323,12 @@ export default function AdultMemberForm({
                 | number
                 | null,
         },
-        sacraments: member?.sacraments ?? {
-            baptism: blankSacrament,
-            confirmation: blankSacrament,
+        sacraments: {
+            baptism: { ...blankSacrament, ...member?.sacraments.baptism },
+            confirmation: {
+                ...blankSacrament,
+                ...member?.sacraments.confirmation,
+            },
         },
         group_ids: member?.group_ids ?? ([] as number[]),
         service_records: member?.service_records ?? ([] as ServiceRecord[]),
@@ -438,6 +509,70 @@ export default function AdultMemberForm({
         );
     };
 
+    /** Father or mother: a typed name, or a link to their own member record. */
+    const parentField = (which: 'father' | 'mother', label: string) => {
+        const linked = parents[which];
+        const idField = `${which}_member_id` as const;
+        const nameField = `${which}_name` as const;
+
+        return (
+            <div className="grid content-start gap-2">
+                {linked ? (
+                    <>
+                        <Label>{label}</Label>
+                        <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3">
+                            <div className="text-sm">
+                                <div className="font-medium">
+                                    {linked.full_name}
+                                </div>
+                                <div className="text-muted-foreground">
+                                    {linked.member_number} · a member
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setParents({ ...parents, [which]: null });
+                                    form.setData(idField, null);
+                                }}
+                            >
+                                <X /> Remove
+                            </Button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        {text(nameField, `${label}'s name`)}
+                        <Label className="text-xs font-normal text-muted-foreground">
+                            Or find the {which} if they are a member
+                        </Label>
+                        <MemberPicker
+                            invalid={Boolean(errors[idField])}
+                            onPick={(hit: MemberHit) => {
+                                setParents({
+                                    ...parents,
+                                    [which]: {
+                                        id: hit.id,
+                                        member_number: hit.member_number,
+                                        full_name: hit.full_name,
+                                    },
+                                });
+                                form.setData((data) => ({
+                                    ...data,
+                                    [idField]: hit.id,
+                                    [nameField]: '',
+                                }));
+                            }}
+                        />
+                    </>
+                )}
+                <InputError message={errors[idField]} />
+            </div>
+        );
+    };
+
     const sacramentFields = (
         kind: 'baptism' | 'confirmation',
         title: string,
@@ -449,9 +584,84 @@ export default function AdultMemberForm({
                 [kind]: { ...value, [field]: v },
             });
 
+        const chosen = presbyteries.find(
+            (p) => normalise(p.name) === normalise(value.presbytery),
+        );
+        const districts = chosen
+            ? chosen.districts
+            : [...new Set(presbyteries.flatMap((p) => p.districts))].sort();
+        const churchKnown = Boolean(
+            church.presbytery || church.district || church.congregation,
+        );
+        const field = (
+            name: 'presbytery' | 'district' | 'place',
+            label: string,
+            list: string,
+            placeholder: string,
+        ) => (
+            <div className="grid gap-2">
+                <Label htmlFor={`${kind}-${name}`}>{label}</Label>
+                <Input
+                    id={`${kind}-${name}`}
+                    value={value[name]}
+                    onChange={(e) => set(name, e.target.value)}
+                    list={list}
+                    autoComplete="off"
+                    placeholder={placeholder}
+                    maxLength={150}
+                />
+                <InputError message={errors[`sacraments.${kind}.${name}`]} />
+            </div>
+        );
+
         return (
             <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-3">
-                <h2 className="font-medium sm:col-span-3">{title}</h2>
+                <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-3">
+                    <h2 className="font-medium">{title}</h2>
+                    {churchKnown && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                                form.setData('sacraments', {
+                                    ...form.data.sacraments,
+                                    [kind]: {
+                                        ...value,
+                                        presbytery: church.presbytery,
+                                        district: church.district,
+                                        place: church.congregation,
+                                    },
+                                })
+                            }
+                        >
+                            <Church /> This congregation
+                        </Button>
+                    )}
+                </div>
+                {field(
+                    'presbytery',
+                    'Presbytery',
+                    'sacrament-presbyteries',
+                    'e.g. Ga West',
+                )}
+                {field(
+                    'district',
+                    'District',
+                    `${kind}-districts`,
+                    chosen ? `A ${chosen.name} district` : 'e.g. Kaneshie',
+                )}
+                <datalist id={`${kind}-districts`}>
+                    {districts.map((d) => (
+                        <option key={d} value={d} />
+                    ))}
+                </datalist>
+                {field(
+                    'place',
+                    'Congregation',
+                    'sacrament-congregations',
+                    'e.g. Ebenezer Congregation',
+                )}
                 <div className="grid gap-2">
                     <Label htmlFor={`${kind}-date`}>Date</Label>
                     <Input
@@ -461,15 +671,6 @@ export default function AdultMemberForm({
                         onChange={(e) => set('date', e.target.value)}
                     />
                     <InputError message={errors[`sacraments.${kind}.date`]} />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor={`${kind}-place`}>Place</Label>
-                    <Input
-                        id={`${kind}-place`}
-                        value={value.place}
-                        onChange={(e) => set('place', e.target.value)}
-                    />
-                    <InputError message={errors[`sacraments.${kind}.place`]} />
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor={`${kind}-minister`}>Minister</Label>
@@ -630,16 +831,17 @@ export default function AdultMemberForm({
                                 type: 'date',
                                 required: true,
                             })}
-                            {text('place_of_birth', 'Place of birth')}
-                            {text('hometown', 'Home town')}
-                        </section>
-
-                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
-                            <h2 className="font-medium sm:col-span-2">
-                                Parents
-                            </h2>
-                            {text('father_name', "Father's name")}
-                            {text('mother_name', "Mother's name")}
+                            {text('place_of_birth', 'Place of birth', {
+                                list: 'ghana-towns',
+                                autoComplete: 'off',
+                                placeholder: 'Town',
+                            })}
+                            {text('hometown', 'Home town', {
+                                list: 'ghana-towns',
+                                autoComplete: 'off',
+                                placeholder: 'Town',
+                            })}
+                            <TownSuggestions id="ghana-towns" />
                         </section>
 
                         <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
@@ -798,13 +1000,20 @@ export default function AdultMemberForm({
                             {text('email', 'Email', { type: 'email' })}
                             {text('residence', 'Residence', {
                                 list: 'residences',
-                                placeholder: 'Neighbourhood',
+                                autoComplete: 'off',
+                                placeholder: residenceArea.city
+                                    ? `Neighbourhood in ${residenceArea.city}`
+                                    : 'Neighbourhood or town',
                             })}
-                            <datalist id="residences">
-                                {residences.map((place) => (
-                                    <option key={place} value={place} />
-                                ))}
-                            </datalist>
+                            {/* Places already recorded, then the church city's neighbourhoods, then the towns of its region. */}
+                            <TownSuggestions
+                                id="residences"
+                                extra={[
+                                    ...residences,
+                                    ...residenceArea.neighbourhoods,
+                                ]}
+                                region={residenceArea.region}
+                            />
                         </section>
 
                         <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
@@ -863,84 +1072,137 @@ export default function AdultMemberForm({
                 {/* 3. Family */}
                 {panel(
                     2,
-                    <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
-                        <h2 className="font-medium sm:col-span-2">Marital</h2>
-                        {select(
-                            'marital_status',
-                            'Marital status',
-                            maritalStatuses.map((value) => ({
-                                value,
-                                label: statusLabel(value),
-                            })),
-                        )}
-                        {select(
-                            'marriage_type',
-                            'Marriage type',
-                            marriageTypes.map((value) => ({
-                                value,
-                                label: statusLabel(value),
-                            })),
-                        )}
-                        {text('maiden_name', 'Maiden name')}
+                    <>
+                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
+                            <div className="sm:col-span-2">
+                                <h2 className="font-medium">Parents</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Type a name, or find the parent if they are
+                                    a member so the records are linked.
+                                </p>
+                            </div>
+                            {parentField('father', 'Father')}
+                            {parentField('mother', 'Mother')}
+                        </section>
 
-                        <div className="grid gap-2">
-                            {spouse ? (
+                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
+                            <h2 className="font-medium sm:col-span-2">
+                                Marital
+                            </h2>
+                            {select(
+                                'marital_status',
+                                'Marital status',
+                                maritalStatuses.map((value) => ({
+                                    value,
+                                    label: statusLabel(value),
+                                })),
+                            )}
+                            {/* Marriage details are recorded for married members only. */}
+                            {form.data.marital_status === 'married' ? (
                                 <>
-                                    <Label>Spouse</Label>
-                                    <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3">
-                                        <div className="text-sm">
-                                            <div className="font-medium">
-                                                {spouse.full_name}
-                                            </div>
-                                            <div className="text-muted-foreground">
-                                                {spouse.member_number} · a
-                                                member
-                                            </div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setSpouse(null);
-                                                form.setData(
-                                                    'spouse_member_id',
-                                                    null,
-                                                );
-                                            }}
-                                        >
-                                            <X /> Remove
-                                        </Button>
+                                    {select(
+                                        'marriage_type',
+                                        'Marriage type',
+                                        marriageTypes.map((value) => ({
+                                            value,
+                                            label: statusLabel(value),
+                                        })),
+                                    )}
+                                    {text('marriage_date', 'Date of marriage', {
+                                        type: 'date',
+                                        max: new Date()
+                                            .toISOString()
+                                            .slice(0, 10),
+                                    })}
+                                    {text(
+                                        'marriage_church',
+                                        'Church of marriage',
+                                        {
+                                            list: 'sacrament-congregations',
+                                            autoComplete: 'off',
+                                            placeholder:
+                                                'Where the marriage took place',
+                                            maxLength: 150,
+                                        },
+                                    )}
+                                    {text('maiden_name', 'Maiden name')}
+
+                                    <div className="grid gap-2">
+                                        {spouse ? (
+                                            <>
+                                                <Label>Spouse</Label>
+                                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3">
+                                                    <div className="text-sm">
+                                                        <div className="font-medium">
+                                                            {spouse.full_name}
+                                                        </div>
+                                                        <div className="text-muted-foreground">
+                                                            {
+                                                                spouse.member_number
+                                                            }{' '}
+                                                            · a member
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setSpouse(null);
+                                                            form.setData(
+                                                                'spouse_member_id',
+                                                                null,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <X /> Remove
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {text(
+                                                    'spouse_name',
+                                                    'Spouse name',
+                                                )}
+                                                <Label className="text-xs font-normal text-muted-foreground">
+                                                    Or find the spouse if they
+                                                    are a member
+                                                </Label>
+                                                <MemberPicker
+                                                    invalid={Boolean(
+                                                        errors.spouse_member_id,
+                                                    )}
+                                                    onPick={(
+                                                        hit: MemberHit,
+                                                    ) => {
+                                                        setSpouse({
+                                                            id: hit.id,
+                                                            member_number:
+                                                                hit.member_number,
+                                                            full_name:
+                                                                hit.full_name,
+                                                        });
+                                                        form.setData(
+                                                            'spouse_member_id',
+                                                            hit.id,
+                                                        );
+                                                    }}
+                                                />
+                                            </>
+                                        )}
+                                        <InputError
+                                            message={errors.spouse_member_id}
+                                        />
                                     </div>
                                 </>
                             ) : (
-                                <>
-                                    {text('spouse_name', 'Spouse name')}
-                                    <Label className="text-xs font-normal text-muted-foreground">
-                                        Or find the spouse if they are a member
-                                    </Label>
-                                    <MemberPicker
-                                        invalid={Boolean(
-                                            errors.spouse_member_id,
-                                        )}
-                                        onPick={(hit: MemberHit) => {
-                                            setSpouse({
-                                                id: hit.id,
-                                                member_number:
-                                                    hit.member_number,
-                                                full_name: hit.full_name,
-                                            });
-                                            form.setData(
-                                                'spouse_member_id',
-                                                hit.id,
-                                            );
-                                        }}
-                                    />
-                                </>
+                                <p className="self-end pb-2 text-sm text-muted-foreground">
+                                    Choose Married to record marriage details.
+                                </p>
                             )}
-                            <InputError message={errors.spouse_member_id} />
-                        </div>
-                    </section>,
+                        </section>
+                    </>,
                 )}
 
                 {/* 4. Church */}
@@ -1215,6 +1477,23 @@ export default function AdultMemberForm({
                     <>
                         {sacramentFields('baptism', 'Baptism')}
                         {sacramentFields('confirmation', 'Confirmation')}
+                        <datalist id="sacrament-presbyteries">
+                            {presbyteries.map((p) => (
+                                <option key={p.name} value={p.name} />
+                            ))}
+                        </datalist>
+                        <datalist id="sacrament-congregations">
+                            {[
+                                ...new Set(
+                                    [
+                                        church.congregation,
+                                        ...congregations,
+                                    ].filter(Boolean),
+                                ),
+                            ].map((c) => (
+                                <option key={c} value={c} />
+                            ))}
+                        </datalist>
                         <section className="grid gap-5 rounded-lg border p-5">
                             <h2 className="font-medium">Communion</h2>
                             <div className="grid gap-2 sm:max-w-xs">

@@ -37,8 +37,8 @@ class MemberReport
                     'Date of Birth' => self::dateWithAge($m['date_of_birth'], $m['age']),
                     'Place of Birth' => $m['place_of_birth'],
                     'Home Town' => $m['hometown'],
-                    "Father's Name" => $m['father_name'],
-                    "Mother's Name" => $m['mother_name'],
+                    "Father's Name" => $m['father_name'].($m['father_member'] ? " ({$m['father_member']['member_number']})" : ''),
+                    "Mother's Name" => $m['mother_name'].($m['mother_member'] ? " ({$m['mother_member']['member_number']})" : ''),
                     'Emergency Contact' => self::withMemberNo($r['emergency_contact']['name'], $r['emergency_contact']['member']),
                     'Emergency Contact Phone' => $r['emergency_contact']['phone'],
                     'Emergency Contact Relationship' => $r['emergency_contact']['relationship'],
@@ -60,9 +60,14 @@ class MemberReport
                 ]),
                 self::rows('Marital', [
                     'Marital Status' => self::label($m['marital_status']),
-                    'Marriage Type' => self::label($m['marriage_type']),
-                    'Maiden Name' => $m['maiden_name'],
-                    'Spouse' => $m['spouse_name'].($m['spouse_member'] ? " ({$m['spouse_member']['member_number']})" : ''),
+                    // Marriage details are printed for married members only.
+                    ...($m['marital_status'] !== 'married' ? [] : [
+                        'Marriage Type' => self::label($m['marriage_type']),
+                        'Date of Marriage' => self::date($m['marriage_date']),
+                        'Church of Marriage' => $m['marriage_church'],
+                        'Maiden Name' => $m['maiden_name'],
+                        'Spouse' => $m['spouse_name'].($m['spouse_member'] ? " ({$m['spouse_member']['member_number']})" : ''),
+                    ]),
                 ]),
                 self::rows('Church', [
                     'Date Joined' => self::date($m['joined_on']),
@@ -211,11 +216,18 @@ class MemberReport
 
     private static function sacrament(array $s): ?string
     {
-        if (! $s['date'] && ! $s['place'] && ! $s['minister']) {
+        // "Ebenezer Congregation, Osu District, Ga Presbytery"
+        $church = collect([
+            $s['place'] ?: null,
+            ($s['district'] ?? '') !== '' ? Presbyteries::districtTitle($s['district']) : null,
+            ($s['presbytery'] ?? '') !== '' ? Presbyteries::presbyteryTitle($s['presbytery']) : null,
+        ])->filter()->implode(', ');
+
+        if (! $s['date'] && ! $church && ! $s['minister']) {
             return null;
         }
 
-        return trim(self::date($s['date']).($s['place'] ? " at {$s['place']}" : '').($s['minister'] ? " ({$s['minister']})" : ''));
+        return trim(self::date($s['date']).($church ? " at {$church}" : '').($s['minister'] ? " ({$s['minister']})" : ''));
     }
 
     private static function date(?string $date): ?string

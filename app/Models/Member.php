@@ -19,6 +19,7 @@ class Member extends Model
         return [
             'date_of_birth' => 'date',
             'joined_on' => 'date',
+            'marriage_date' => 'date',
             'is_communicant' => 'boolean',
             'is_child' => 'boolean',
             'is_verified' => 'boolean',
@@ -47,6 +48,16 @@ class Member extends Model
     public function spouse(): BelongsTo
     {
         return $this->belongsTo(self::class, 'spouse_member_id');
+    }
+
+    public function father(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'father_member_id');
+    }
+
+    public function mother(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'mother_member_id');
     }
 
     public function serviceRecords(): HasMany

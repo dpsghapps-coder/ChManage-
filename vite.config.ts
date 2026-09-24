@@ -5,7 +5,27 @@ import tailwindcss from '@tailwindcss/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
-import { defineConfig, lazyPlugins } from 'vite-plus';
+import { defineConfig, lazyPlugins, loadEnv } from 'vite-plus';
+
+// Set DEV_SERVER_HOST in .env (e.g. 192.168.1.71) to reach `npm run dev` from phones and other PCs on the
+// network. Left unset, the dev server stays on this machine only.
+const devHost = loadEnv('development', process.cwd(), '').DEV_SERVER_HOST;
+const escaped = (host: string) => host.replace(/[.[\]]/g, '\\$&');
+const networkServer = devHost
+    ? {
+          host: '0.0.0.0',
+          port: 5173,
+          strictPort: true,
+          origin: `http://${devHost}:5173`,
+          hmr: { host: devHost },
+          // Pages served from the LAN address or from this machine may load the dev scripts.
+          cors: {
+              origin: new RegExp(
+                  `^https?://(${[devHost, 'localhost', '127.0.0.1', '[::1]'].map(escaped).join('|')})(:\\d+)?$`,
+              ),
+          },
+      }
+    : {};
 
 export default defineConfig({
     plugins: lazyPlugins(() => [
@@ -29,6 +49,7 @@ export default defineConfig({
         }),
     ]),
     server: {
+        ...networkServer,
         watch: {
             ignored: [
                 '**/.agents/**',

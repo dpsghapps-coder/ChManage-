@@ -2,12 +2,16 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ChurchSettingsController;
+use App\Http\Controllers\Admin\NeighbourhoodController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\TownController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MemberReportController;
+use App\Http\Controllers\PresbyteryController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StaffLookupController;
 use App\Http\Controllers\StaffTransferController;
@@ -54,6 +58,17 @@ Route::middleware('auth')->group(function () {
     Route::post('members/{member}/restore', [MemberController::class, 'restore'])->middleware('permission:members.delete')->name('members.restore');
     Route::get('members/{member}/photo', [MemberController::class, 'photo'])->middleware('permission:members.view,members.create,members.edit')->name('members.photo');
 
+    // PCG presbyteries and districts: a reference open to everyone signed in, edited by those who manage settings.
+    Route::get('presbyteries', [PresbyteryController::class, 'index'])->name('presbyteries.index');
+    Route::middleware('permission:settings.manage')->prefix('presbyteries')->name('presbyteries.')->group(function () {
+        Route::post('/', [PresbyteryController::class, 'store'])->name('store');
+        Route::put('{presbytery}', [PresbyteryController::class, 'update'])->name('update');
+        Route::post('{presbytery}/districts', [PresbyteryController::class, 'storeDistrict'])->name('districts.store');
+        Route::put('{presbytery}/districts/{district}', [PresbyteryController::class, 'updateDistrict'])->name('districts.update');
+        Route::delete('{presbytery}/districts/{district}', [PresbyteryController::class, 'destroyDistrict'])->name('districts.destroy');
+    });
+    Route::get('locations/towns', [LocationController::class, 'towns'])->name('locations.towns');
+
     Route::prefix('staff')->name('staff.')->group(function () {
         Route::get('/', [StaffController::class, 'index'])->middleware('permission:staff.view')->name('index');
         Route::get('create', [StaffController::class, 'create'])->middleware('permission:staff.create')->name('create');
@@ -90,6 +105,19 @@ Route::middleware('auth')->group(function () {
 
         Route::get('church', [ChurchSettingsController::class, 'edit'])->middleware('permission:settings.manage')->name('church.edit');
         Route::put('church', [ChurchSettingsController::class, 'update'])->middleware('permission:settings.manage')->name('church.update');
+
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::get('neighbourhoods', [NeighbourhoodController::class, 'index'])->name('neighbourhoods.index');
+            Route::post('cities', [NeighbourhoodController::class, 'storeCity'])->name('cities.store');
+            Route::put('cities/{city}', [NeighbourhoodController::class, 'updateCity'])->name('cities.update');
+            Route::delete('cities/{city}', [NeighbourhoodController::class, 'destroyCity'])->name('cities.destroy');
+            Route::post('cities/{city}/neighbourhoods', [NeighbourhoodController::class, 'storeNeighbourhoods'])->name('cities.neighbourhoods.store');
+            Route::put('cities/{city}/neighbourhoods/{neighbourhood}', [NeighbourhoodController::class, 'updateNeighbourhood'])->name('cities.neighbourhoods.update');
+            Route::delete('cities/{city}/neighbourhoods/{neighbourhood}', [NeighbourhoodController::class, 'destroyNeighbourhood'])->name('cities.neighbourhoods.destroy');
+        });
+
+        Route::get('towns', [TownController::class, 'index'])->middleware('permission:settings.manage')->name('towns.index');
+        Route::post('towns/refresh', [TownController::class, 'refresh'])->middleware('permission:settings.manage')->name('towns.refresh');
     });
 });
 

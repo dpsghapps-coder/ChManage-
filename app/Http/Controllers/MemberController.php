@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChurchSetting;
 use App\Models\MediaFile;
 use App\Models\Member;
 use App\Models\MemberGroup;
@@ -13,6 +14,8 @@ use App\Rules\PhoneNumber;
 use App\Support\Audit;
 use App\Support\MemberProfile;
 use App\Support\NameFormatter;
+use App\Support\Neighbourhoods;
+use App\Support\Presbyteries;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -308,6 +311,12 @@ class MemberController extends Controller
             'groups' => $this->groupOptions(),
             // Suggestions for the Residence box: places already recorded.
             'residences' => Member::whereNotNull('residence')->where('residence', '!=', '')->distinct()->orderBy('residence')->pluck('residence')->all(),
+            // The church's city (Church Settings) narrows Residence to its neighbourhoods and the towns of its region.
+            'residenceArea' => Neighbourhoods::forCity(ChurchSetting::values(['city_name'])['city_name'] ?? null),
+            // The church where a baptism or confirmation took place: presbytery → district → congregation.
+            'presbyteries' => Presbyteries::options(),
+            'congregations' => MemberSacrament::whereNotNull('place')->where('place', '!=', '')->distinct()->orderBy('place')->pluck('place')->all(),
+            'church' => Presbyteries::church(),
         ];
     }
 
@@ -322,6 +331,9 @@ class MemberController extends Controller
     {
         $sacrament = fn (string $kind) => [
             "sacraments.{$kind}.date" => ['nullable', 'date', 'before_or_equal:today'],
+            "sacraments.{$kind}.presbytery" => ['nullable', 'string', 'max:150'],
+            "sacraments.{$kind}.district" => ['nullable', 'string', 'max:150'],
+            // The congregation (the column predates the presbytery and district).
             "sacraments.{$kind}.place" => ['nullable', 'string', 'max:150'],
             "sacraments.{$kind}.minister" => ['nullable', 'string', 'max:150'],
         ];
@@ -396,7 +408,9 @@ class MemberController extends Controller
                 $given = $data['sacraments'][$kind] ?? [];
                 $fields = [
                     'sacrament_date' => $given['date'] ?? null,
-                    'place' => $given['place'] ?? null,
+                    'presbytery' => filled($given['presbytery'] ?? null) ? trim($given['presbytery']) : null,
+                    'district' => filled($given['district'] ?? null) ? trim($given['district']) : null,
+                    'place' => filled($given['place'] ?? null) ? trim($given['place']) : null,
                     'minister' => NameFormatter::titleCase($given['minister'] ?? null),
                 ];
 
@@ -447,10 +461,14 @@ class MemberController extends Controller
             'residence' => ['nullable', 'string', 'max:150'],
             'marriage_type' => ['nullable', Rule::in(self::MARRIAGE_TYPES)],
             'maiden_name' => ['nullable', 'string', 'max:100'],
+            'marriage_date' => ['nullable', 'date', 'before_or_equal:today', 'after_or_equal:date_of_birth'],
+            'marriage_church' => ['nullable', 'string', 'max:150'],
             'spouse_name' => ['nullable', 'string', 'max:150'],
             'spouse_member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), Rule::notIn([$member?->id ?? 0])],
             'father_name' => ['nullable', 'string', 'max:150'],
+            'father_member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), Rule::notIn([$member?->id ?? 0])],
             'mother_name' => ['nullable', 'string', 'max:150'],
+            'mother_member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), Rule::notIn([$member?->id ?? 0]), 'different:father_member_id'],
             'generational_group' => ['nullable', Rule::in(self::GENERATIONAL_GROUPS)],
             'non_communicant' => ['boolean'],
             'non_communicant_reason' => ['nullable', 'string', 'max:500'],
@@ -477,8 +495,11 @@ class MemberController extends Controller
             $data[$field] = NameFormatter::titleCase($data[$field] ?? null);
         }
 
-        // A spouse who is a member is read from their own record, so the name can never drift out of step.
-        $spouse = filled($data['spouse_member_id'] ?? null) ? Member::find($data['spouse_member_id']) : null;
+        // A spouse or parent who is a member is read from their own record, so the name can never drift out of step.
+        $linked = fn (string $field) => filled($data[$field] ?? null) ? Member::find($data[$field]) : null;
+        $spouse = $linked('spouse_member_id');
+        $father = $linked('father_member_id');
+        $mother = $linked('mother_member_id');
 
         $attributes = [
             'title' => $data['title'] ?? null,
@@ -503,14 +524,26 @@ class MemberController extends Controller
             'residence' => $data['residence'] ?? null,
             'marriage_type' => $data['marriage_type'] ?? null,
             'maiden_name' => $data['maiden_name'] ?? null,
+            'marriage_date' => $data['marriage_date'] ?? null,
+            'marriage_church' => filled($data['marriage_church'] ?? null) ? trim($data['marriage_church']) : null,
             'spouse_member_id' => $spouse?->id,
             'spouse_name' => $spouse?->full_name ?? NameFormatter::titleCase($data['spouse_name'] ?? null),
-            'father_name' => $data['father_name'] ?? null,
-            'mother_name' => $data['mother_name'] ?? null,
+            'father_member_id' => $father?->id,
+            'father_name' => $father?->full_name ?? ($data['father_name'] ?? null),
+            'mother_member_id' => $mother?->id,
+            'mother_name' => $mother?->full_name ?? ($data['mother_name'] ?? null),
             'latitude' => $data['latitude'] ?? null,
             'longitude' => $data['longitude'] ?? null,
             'location_accuracy' => isset($data['location_accuracy']) ? (int) round($data['location_accuracy']) : null,
         ];
+
+        // A single member has no marriage to record: the form hides those fields and anything left from before is cleared.
+        // (With no status stated they are kept, so older records are not emptied by an edit.)
+        if ($attributes['marital_status'] === 'single') {
+            foreach (['marriage_type', 'marriage_date', 'marriage_church', 'maiden_name', 'spouse_member_id', 'spouse_name'] as $field) {
+                $attributes[$field] = null;
+            }
+        }
 
         // Communicant status is only touched when the form sent it. Someone who is a communicant has no reason to record.
         if (array_key_exists('non_communicant', $data)) {

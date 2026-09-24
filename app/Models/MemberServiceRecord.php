@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 /** A committee, executive or leadership post a member has held (or still holds). */
 class MemberServiceRecord extends Model
 {
-    public const TYPES = ['committee' => 'Committee', 'executive' => 'Executive', 'leadership' => 'Leadership'];
+    /** Stored type => label. "leadership" holds Session posts (Presbyter, Session Clerk, ...). */
+    public const TYPES = ['committee' => 'Committee', 'executive' => 'Executive', 'leadership' => 'Session'];
 
     protected $table = 'member_service_records';
 

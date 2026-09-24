@@ -203,7 +203,12 @@ export default function NeighbourhoodsIndex({
                                             <button
                                                 type="button"
                                                 onClick={() => setEditing(n)}
-                                                title={`Edit ${n.name}`}
+                                                title={[
+                                                    `Neighbourhood: ${n.name}`,
+                                                    `City: ${city.name}`,
+                                                    `Region: ${city.region ? `${city.region} Region` : 'not set'}`,
+                                                    'Tap to rename or remove',
+                                                ].join(' · ')}
                                                 className="rounded-md border bg-muted/40 px-2 py-0.5 text-xs hover:border-primary/60"
                                             >
                                                 {n.name}

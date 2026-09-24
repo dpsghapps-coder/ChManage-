@@ -92,6 +92,7 @@ type Member = {
     full_name: string;
     next_of_kin: {
         name: string;
+        relationship: string;
         phone: string;
         residential_address: string;
         postal_address: string;
@@ -120,8 +121,14 @@ type Props = {
     serviceTypes: { value: string; label: string }[];
     groups: { id: number; name: string; short_name: string | null }[];
     residences: string[];
-    /** Choices for the emergency contact's relationship; the last is "Other". */
-    emergencyRelationships: string[];
+    /** Choices for the next of kin's and emergency contact's relationship; the last is "Other". */
+    relationships: string[];
+    /** Positions offered for each type of service (committee, executive, leadership = Session). */
+    positions: Record<string, string[]>;
+    /** Service groups and fellowships an executive can serve in. */
+    executiveGroups: string[];
+    /** The church's committees, for a committee service record. */
+    committees: string[];
     /** The church's city (Church Settings): its neighbourhoods and region narrow the Residence suggestions. */
     residenceArea: {
         city: string | null;
@@ -268,6 +275,65 @@ type TextField =
     | 'joined_on'
     | 'non_communicant_reason';
 
+/**
+ * A dropdown of listed values with "Other…" for anything else, which is then typed in. The typed or picked text is
+ * the value; a saved value that is not on the list opens as "Other…" with its text.
+ */
+function ChoiceOrOther({
+    id,
+    value,
+    options,
+    onChange,
+    placeholder,
+    required,
+}: {
+    id: string;
+    value: string;
+    options: string[];
+    onChange: (value: string) => void;
+    placeholder: string;
+    required?: boolean;
+}) {
+    const [typing, setTyping] = useState(
+        () => value !== '' && !options.includes(value),
+    );
+    const other = typing || (value !== '' && !options.includes(value));
+
+    return (
+        <>
+            <NativeSelect
+                id={id}
+                value={other ? '__other' : value}
+                onChange={(e) => {
+                    const picked = e.target.value;
+                    setTyping(picked === '__other');
+                    onChange(picked === '__other' ? '' : picked);
+                }}
+                required={required && !other}
+            >
+                <option value="">Select…</option>
+                {options.map((option) => (
+                    <option key={option} value={option}>
+                        {option}
+                    </option>
+                ))}
+                <option value="__other">Other…</option>
+            </NativeSelect>
+            {other && (
+                <Input
+                    aria-label={`${placeholder}, in words`}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    maxLength={150}
+                    required={required}
+                    autoFocus={typing}
+                />
+            )}
+        </>
+    );
+}
+
 export default function AdultMemberForm({
     maritalStatuses,
     marriageTypes,
@@ -275,7 +341,10 @@ export default function AdultMemberForm({
     serviceTypes,
     groups,
     residences,
-    emergencyRelationships,
+    relationships,
+    positions,
+    executiveGroups,
+    committees,
     residenceArea,
     presbyteries,
     congregations,
@@ -347,6 +416,7 @@ export default function AdultMemberForm({
             name: member?.next_of_kin?.member
                 ? ''
                 : (member?.next_of_kin?.name ?? ''),
+            relationship: member?.next_of_kin?.relationship ?? '',
             phone: member?.next_of_kin?.member
                 ? ''
                 : (member?.next_of_kin?.phone ?? ''),
@@ -562,32 +632,37 @@ export default function AdultMemberForm({
         );
     };
 
-    /** The emergency contact's relationship: a listed one, or "Other" with the relationship typed in. */
-    const otherRelationship =
-        emergencyRelationships[emergencyRelationships.length - 1];
-    const [relationshipChoice, setRelationshipChoice] = useState(() => {
-        const saved = member?.emergency_contact?.relationship ?? '';
-
-        return !saved || emergencyRelationships.includes(saved)
-            ? saved
+    /**
+     * Relationship of the next of kin or the emergency contact: a listed one, or "Other" with the relationship typed
+     * in. A saved relationship that is not on the list opens as "Other" with its text.
+     */
+    const otherRelationship = relationships[relationships.length - 1];
+    const choiceFor = (saved: string | undefined) =>
+        !saved || relationships.includes(saved)
+            ? (saved ?? '')
             : otherRelationship;
+    const [relationshipChoice, setRelationshipChoice] = useState({
+        next_of_kin: choiceFor(member?.next_of_kin?.relationship),
+        emergency_contact: choiceFor(member?.emergency_contact?.relationship),
     });
 
-    const relationshipField = () => {
+    const relationshipField = (target: 'next_of_kin' | 'emergency_contact') => {
+        const choice = relationshipChoice[target];
+        const id = `${target}-relationship`;
         const setRelationship = (relationship: string) =>
-            form.setData('emergency_contact', {
-                ...form.data.emergency_contact,
-                relationship,
-            });
+            form.setData(target, { ...form.data[target], relationship });
 
         return (
             <div className="grid gap-2">
-                <Label htmlFor="contact-relationship">Relationship</Label>
+                <Label htmlFor={id}>Relationship</Label>
                 <NativeSelect
-                    id="contact-relationship"
-                    value={relationshipChoice}
+                    id={id}
+                    value={choice}
                     onChange={(e) => {
-                        setRelationshipChoice(e.target.value);
+                        setRelationshipChoice({
+                            ...relationshipChoice,
+                            [target]: e.target.value,
+                        });
                         // "Other" is not stored; the typed relationship is.
                         setRelationship(
                             e.target.value === otherRelationship
@@ -597,25 +672,23 @@ export default function AdultMemberForm({
                     }}
                 >
                     <option value="">Not stated</option>
-                    {emergencyRelationships.map((r) => (
+                    {relationships.map((r) => (
                         <option key={r} value={r}>
                             {r}
                         </option>
                     ))}
                 </NativeSelect>
-                {relationshipChoice === otherRelationship && (
+                {choice === otherRelationship && (
                     <Input
                         aria-label="Relationship, in words"
-                        value={form.data.emergency_contact.relationship}
+                        value={form.data[target].relationship}
                         onChange={(e) => setRelationship(e.target.value)}
                         placeholder="e.g. Pastor, Neighbour"
                         maxLength={100}
                         autoFocus
                     />
                 )}
-                <InputError
-                    message={errors['emergency_contact.relationship']}
-                />
+                <InputError message={errors[`${target}.relationship`]} />
             </div>
         );
     };
@@ -1106,7 +1179,7 @@ export default function AdultMemberForm({
                                     </div>
                                 </>
                             )}
-                            {relationshipField()}
+                            {relationshipField('emergency_contact')}
                         </section>
                     </>,
                 )}
@@ -1306,6 +1379,7 @@ export default function AdultMemberForm({
                                     </div>
                                 </>
                             )}
+                            {relationshipField('next_of_kin')}
                             {kin(
                                 'residential_address',
                                 'Residential address',
@@ -1410,8 +1484,7 @@ export default function AdultMemberForm({
                             <div>
                                 <h2 className="font-medium">Service</h2>
                                 <p className="mt-1 text-sm text-muted-foreground">
-                                    Committees, executives and leadership posts
-                                    held.
+                                    Executive, Session and committee posts held.
                                 </p>
                             </div>
                             <Button
@@ -1478,8 +1551,10 @@ export default function AdultMemberForm({
                                         id={`service-type-${i}`}
                                         value={record.type}
                                         onChange={(e) =>
+                                            // The positions differ by type, so the old one is cleared.
                                             changeService(i, {
                                                 type: e.target.value,
+                                                position: '',
                                             })
                                         }
                                     >
@@ -1500,18 +1575,45 @@ export default function AdultMemberForm({
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor={`service-name-${i}`}>
-                                        Name of committee or body
+                                        {record.type === 'executive'
+                                            ? 'Group'
+                                            : record.type === 'committee'
+                                              ? 'Name of committee'
+                                              : 'Name of body'}
                                     </Label>
-                                    <Input
-                                        id={`service-name-${i}`}
-                                        value={record.name}
-                                        onChange={(e) =>
-                                            changeService(i, {
-                                                name: e.target.value,
-                                            })
-                                        }
-                                        required
-                                    />
+                                    {record.type === 'leadership' ? (
+                                        <Input
+                                            id={`service-name-${i}`}
+                                            value={record.name}
+                                            onChange={(e) =>
+                                                changeService(i, {
+                                                    name: e.target.value,
+                                                })
+                                            }
+                                            placeholder="e.g. Session"
+                                            required
+                                        />
+                                    ) : (
+                                        <ChoiceOrOther
+                                            key={`name-${i}-${record.type}`}
+                                            id={`service-name-${i}`}
+                                            value={record.name}
+                                            options={
+                                                record.type === 'executive'
+                                                    ? executiveGroups
+                                                    : committees
+                                            }
+                                            onChange={(name) =>
+                                                changeService(i, { name })
+                                            }
+                                            placeholder={
+                                                record.type === 'executive'
+                                                    ? 'The group served'
+                                                    : 'The committee'
+                                            }
+                                            required
+                                        />
+                                    )}
                                     <InputError
                                         message={
                                             errors[`service_records.${i}.name`]
@@ -1522,14 +1624,15 @@ export default function AdultMemberForm({
                                     <Label htmlFor={`service-position-${i}`}>
                                         Position
                                     </Label>
-                                    <Input
+                                    <ChoiceOrOther
+                                        key={`position-${i}-${record.type}`}
                                         id={`service-position-${i}`}
                                         value={record.position}
-                                        onChange={(e) =>
-                                            changeService(i, {
-                                                position: e.target.value,
-                                            })
+                                        options={positions[record.type] ?? []}
+                                        onChange={(position) =>
+                                            changeService(i, { position })
                                         }
+                                        placeholder="The position held"
                                         required
                                     />
                                     <InputError

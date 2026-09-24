@@ -7,6 +7,9 @@ import {
     LayoutGrid,
     MapPinned,
     Signpost,
+    Tags,
+    BadgeCheck,
+    Users2,
     ShieldCheck,
     UserPlus,
     Users,
@@ -18,6 +21,9 @@ import { edit as churchEdit } from '@/routes/admin/church';
 import { index as permissionsIndex } from '@/routes/admin/permissions';
 import { index as rolesIndex } from '@/routes/admin/roles';
 import { index as neighbourhoodsIndex } from '@/routes/admin/neighbourhoods';
+import { index as committeesIndex } from '@/routes/admin/committees';
+import { index as serviceGroupsIndex } from '@/routes/admin/service-groups';
+import { index as servicePositionsIndex } from '@/routes/admin/service-positions';
 import { index as townsIndex } from '@/routes/admin/towns';
 import { index as usersIndex } from '@/routes/admin/users';
 import { index as membersIndex } from '@/routes/members';
@@ -88,6 +94,24 @@ export const administrationItems: GatedNavItem[] = [
         title: 'PCG Presbyteries',
         href: presbyteriesIndex(),
         icon: Landmark,
+        permission: 'settings.manage',
+    },
+    {
+        title: 'Service Groups',
+        href: serviceGroupsIndex(),
+        icon: Tags,
+        permission: 'settings.manage',
+    },
+    {
+        title: 'Committees',
+        href: committeesIndex(),
+        icon: Users2,
+        permission: 'settings.manage',
+    },
+    {
+        title: 'Service Positions',
+        href: servicePositionsIndex(),
+        icon: BadgeCheck,
         permission: 'settings.manage',
     },
     {

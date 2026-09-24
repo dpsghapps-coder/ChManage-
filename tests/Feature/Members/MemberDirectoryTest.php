@@ -87,7 +87,7 @@ class MemberDirectoryTest extends TestCase
     private function registration(array $overrides = []): array
     {
         return [
-            'first_name' => 'Nana', 'last_name' => 'Mensah', 'other_names' => 'Kofi',
+            'first_name' => 'Nana', 'last_name' => 'Mensah', 'other_names' => 'Kofi', 'sex' => 'male',
             'date_of_birth' => today()->subYears(8)->toDateString(), 'joined_on' => today()->toDateString(),
             'mobile' => '0244000000', 'telephone' => '0201000000',
             'guardians' => [['relationship' => 'aunt', 'is_member' => false, 'name' => 'Auntie Ama', 'phone' => '0277000000', 'is_primary' => true]],
@@ -479,8 +479,8 @@ class MemberDirectoryTest extends TestCase
 
     public function test_next_of_kin_sacraments_and_groups_are_saved_replaced_and_cleared_with_the_member(): void
     {
-        $choir = MemberGroup::create(['name' => 'Church Choir', 'short_name' => 'C. Choir']);
-        $brigade = MemberGroup::create(['name' => 'Brigade']);
+        $choir = MemberGroup::where('name', 'Church Choir')->firstOrFail();
+        $brigade = MemberGroup::where('name', 'Brigade')->firstOrFail();
         $user = $this->userWith(['members.view', 'members.create', 'members.edit']);
 
         $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration([
@@ -544,13 +544,13 @@ class MemberDirectoryTest extends TestCase
 
     public function test_the_member_tabs_show_related_records_and_children_come_from_the_young_register(): void
     {
-        $choir = MemberGroup::create(['name' => 'Church Choir']);
+        $choir = MemberGroup::where('name', 'Church Choir')->firstOrFail();
         $mother = $this->member('M1', 'Mensah Efua', age: 40);
         $mother->groups()->attach($choir->id);
         MemberNextOfKin::create(['member_id' => $mother->id, 'name' => 'Kofi Mensah', 'phone' => '0244111222']);
         MemberSacrament::create(['member_id' => $mother->id, 'kind' => 'baptism', 'sacrament_date' => '1990-05-01', 'place' => 'Mamprobi']);
 
-        $son = $this->young('a', 'Kojo', 9);
+        $son = $this->young('a', 'Kojo', 9, ['sex' => 'male']);
         $son->guardians()->create(['relationship' => 'mother', 'member_id' => $mother->id, 'name' => 'Mensah Efua', 'is_primary' => true]);
         $gone = $this->young('b', 'Deleted', 5, ['status' => 'deleted']);
         $gone->guardians()->create(['relationship' => 'mother', 'member_id' => $mother->id, 'name' => 'Mensah Efua', 'is_primary' => true]);
@@ -561,7 +561,7 @@ class MemberDirectoryTest extends TestCase
         $expect = fn (Assert $page) => $page
             ->where('next_of_kin.name', 'Kofi Mensah')->where('sacraments.baptism.place', 'Mamprobi')->where('sacraments.confirmation.place', '')
             ->has('groups', 1)->where('groups.0.name', 'Church Choir')
-            ->has('children', 1)->where('children.0.name', 'Kojo Mensah')->where('children.0.relationship', 'Mother')
+            ->has('children', 1)->where('children.0.name', 'Kojo Mensah')->where('children.0.relationship', 'Son')
             ->where('children.0.class', 'CS Class 3 (Ages 9–11)')->etc();
 
         $this->actingAs($viewer)->get(route('members.show', $mother))->assertInertia(fn (Assert $page) => $page->component('members/show')->has('related', $expect));
@@ -570,7 +570,7 @@ class MemberDirectoryTest extends TestCase
 
         // The edit form gets the same data plus the list of groups to pick from.
         $this->actingAs($this->userWith(['members.view', 'members.edit']))->get(route('members.edit', $mother))->assertInertia(fn (Assert $page) => $page
-            ->component('members/adult-form')->where('member.group_ids', [$choir->id])->where('member.next_of_kin.name', 'Kofi Mensah')->has('groups', 1));
+            ->component('members/adult-form')->where('member.group_ids', [$choir->id])->where('member.next_of_kin.name', 'Kofi Mensah')->has('groups', 11));
 
         $this->actingAs($this->userWith([]))->getJson(route('members.related', $mother))->assertForbidden();
     }
@@ -798,8 +798,8 @@ class MemberDirectoryTest extends TestCase
     {
         $user = $this->userWith(['members.create', 'members.edit']);
 
-        $this->actingAs($user)->get(route('members.adult.create'))->assertInertia(fn (Assert $page) => $page->where('emergencyRelationships', [
-            'Mother', 'Father', 'Aunt', 'Uncle', 'Grandmother', 'Grandfather', 'Sibling', 'Friend', 'Other',
+        $this->actingAs($user)->get(route('members.adult.create'))->assertInertia(fn (Assert $page) => $page->where('relationships', [
+            'Mother', 'Father', 'Aunt', 'Uncle', 'Grandmother', 'Grandfather', 'Sibling', 'Brother', 'Sister', 'Friend', 'Other',
         ]));
 
         $contact = ['name' => 'Yaw Boateng', 'phone' => '0200000000', 'member_id' => null];
@@ -814,6 +814,42 @@ class MemberDirectoryTest extends TestCase
             'emergency_contact' => [...$contact, 'relationship' => 'Pastor'],
         ]))->assertSessionHasNoErrors();
         $this->assertSame('Pastor', $member->fresh()->nextOfKin->emergency_contact_relationship);
+    }
+
+    public function test_the_next_of_kin_relationship_is_saved_and_shown(): void
+    {
+        $user = $this->userWith(['members.create', 'members.view']);
+
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration([
+            'next_of_kin' => ['name' => 'Kwesi Mensah', 'relationship' => 'Brother', 'phone' => '0244000111', 'member_id' => null],
+        ]))->assertSessionHasNoErrors();
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+
+        $this->assertSame('Brother', $member->nextOfKin->relationship);
+        $this->actingAs($user)->get(route('members.show', $member))->assertInertia(fn (Assert $page) => $page
+            ->where('related.next_of_kin.relationship', 'Brother'));
+    }
+
+    public function test_a_young_member_needs_a_sex_and_is_listed_as_son_or_daughter_on_the_guardians_record(): void
+    {
+        $user = $this->userWith(['members.create', 'members.view']);
+        $mother = $this->member('PCG/ECM/2016/000011', 'Mensah Efua', age: 42);
+        $guardian = ['relationship' => 'mother', 'is_member' => true, 'member_id' => $mother->id, 'is_primary' => true];
+
+        $this->actingAs($user)->post(route('members.store'), $this->registration(['sex' => '', 'guardians' => [$guardian]]))
+            ->assertSessionHasErrors('sex');
+
+        $this->actingAs($user)->post(route('members.store'), $this->registration(['sex' => 'female', 'first_name' => 'Abena', 'guardians' => [$guardian]]))
+            ->assertSessionHasNoErrors();
+        $this->actingAs($user)->post(route('members.store'), $this->registration(['sex' => 'male', 'first_name' => 'Kofi', 'guardians' => [$guardian]]))
+            ->assertSessionHasNoErrors();
+
+        // On the mother's record they are her daughter and son, not "Mother".
+        $this->actingAs($user)->get(route('members.show', $mother))->assertInertia(fn (Assert $page) => $page
+            ->where('related.children', fn ($children) => collect($children)->pluck('relationship', 'name')->sortKeys()->all() === ['Abena Mensah' => 'Daughter', 'Kofi Mensah' => 'Son']));
+
+        // Without a recorded sex the child is simply "Child".
+        $this->assertSame('Child', (new YoungMember(['sex' => null]))->childRelationship());
     }
 
     public function test_the_printed_profile_puts_emergency_contact_under_contact_and_next_of_kin_under_family(): void

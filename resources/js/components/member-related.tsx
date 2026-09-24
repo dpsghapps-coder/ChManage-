@@ -90,6 +90,7 @@ function linkedName(linked: LinkedMember, name: string | null) {
 export type RelatedData = {
     next_of_kin: {
         name: string;
+        relationship: string;
         phone: string;
         residential_address: string;
         postal_address: string;
@@ -538,6 +539,10 @@ export function MemberSection({
                                             member={kin.member}
                                         />
                                     ),
+                                },
+                                {
+                                    label: 'Relationship',
+                                    value: kin.relationship,
                                 },
                                 { label: 'Phone', value: kin.phone },
                                 {

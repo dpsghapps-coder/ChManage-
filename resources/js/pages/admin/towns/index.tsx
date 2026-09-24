@@ -72,6 +72,14 @@ export default function TownsIndex({ updatedAt, sources }: Props) {
     // Any change of filter starts again from the top of the list.
     useEffect(() => setShown(PAGE), [query, region, district]);
 
+    // Hover text: every level of the place at once.
+    const tooltip = (t: Town) =>
+        [
+            `Town: ${t.name}`,
+            `District: ${t.district ?? 'not recorded'}`,
+            `Region: ${t.region} Region`,
+        ].join(' · ');
+
     const place = (t: Town) =>
         [t.district, `${t.region} Region`].filter(Boolean).join(', ');
 
@@ -212,6 +220,7 @@ export default function TownsIndex({ updatedAt, sources }: Props) {
                                 <li
                                     key={`${t.name}|${t.region}`}
                                     className="flex items-start gap-3 rounded-lg border p-3"
+                                    title={tooltip(t)}
                                 >
                                     <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
                                     <div className="min-w-0">
@@ -235,7 +244,10 @@ export default function TownsIndex({ updatedAt, sources }: Props) {
                                 </TableHeader>
                                 <TableBody>
                                     {matches.slice(0, shown).map((t) => (
-                                        <TableRow key={`${t.name}|${t.region}`}>
+                                        <TableRow
+                                            key={`${t.name}|${t.region}`}
+                                            title={tooltip(t)}
+                                        >
                                             <TableCell className="font-medium">
                                                 {t.name}
                                             </TableCell>

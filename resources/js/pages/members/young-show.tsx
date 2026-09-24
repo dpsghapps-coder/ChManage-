@@ -5,7 +5,7 @@ import { DetailList } from '@/components/detail-list';
 import { mapUrl } from '@/components/gps-capture';
 import { PageHeader } from '@/components/page-header';
 import { PersonAvatar } from '@/components/person-avatar';
-import { StatusBadge } from '@/components/staff-status';
+import { StatusBadge, statusLabel } from '@/components/staff-status';
 import { Button } from '@/components/ui/button';
 import { usePermission } from '@/hooks/use-permission';
 import { index } from '@/routes/members';
@@ -17,6 +17,7 @@ type Child = {
     first_name: string | null;
     last_name: string | null;
     other_names: string | null;
+    sex: 'male' | 'female' | null;
     date_of_birth: string | null;
     age: number | null;
     class: string | null;
@@ -97,6 +98,12 @@ export default function ShowYoungMember({ child }: { child: Child }) {
                         items={[
                             { label: 'First Name', value: child.first_name },
                             { label: 'Surname', value: child.last_name },
+                            {
+                                label: 'Sex',
+                                value: child.sex
+                                    ? statusLabel(child.sex)
+                                    : null,
+                            },
                             { label: 'Other Names', value: child.other_names },
                             {
                                 label: 'Date of Birth',

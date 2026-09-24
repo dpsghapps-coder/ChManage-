@@ -18,17 +18,21 @@ class MemberNextOfKin extends Model
 
     protected $guarded = [];
 
+    /** Relationships that make someone family, for the family tree (Friend and typed-in ones do not). */
+    public const FAMILY_RELATIONSHIPS = ['Mother', 'Father', 'Aunt', 'Uncle', 'Grandmother', 'Grandfather', 'Sibling', 'Brother', 'Sister'];
+
     /**
-     * The choices for the emergency contact's relationship: the guardian types plus Friend, with Other last (the
-     * form then asks for the relationship in words). The label itself is stored, so any other text is kept as typed.
+     * The choices for the next of kin's and the emergency contact's relationship: the guardian types, Brother and
+     * Sister, and Friend, with Other last (the form then asks for the relationship in words). The label itself is
+     * stored, so any other text is kept as typed.
      *
      * @return list<string>
      */
-    public static function emergencyRelationships(): array
+    public static function relationships(): array
     {
         $guardians = collect(YoungMember::RELATIONSHIPS)->except('other')->values();
 
-        return [...$guardians, 'Friend', YoungMember::RELATIONSHIPS['other']];
+        return [...$guardians, 'Brother', 'Sister', 'Friend', YoungMember::RELATIONSHIPS['other']];
     }
 
     /** The next of kin's own member record, when they are also a member. */

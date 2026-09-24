@@ -91,6 +91,16 @@ class YoungMember extends Model
     }
 
     /** The class this child belongs to, from their age today. */
+    /** How the child is listed on a parent's or guardian's record: Son, Daughter, or Child when sex is not recorded. */
+    public function childRelationship(): string
+    {
+        return match ($this->sex) {
+            'male' => 'Son',
+            'female' => 'Daughter',
+            default => 'Child',
+        };
+    }
+
     public function ageClass(): ?string
     {
         if (! $this->date_of_birth) {

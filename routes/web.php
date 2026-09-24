@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ChurchSettingsController;
+use App\Http\Controllers\Admin\CommitteeController;
 use App\Http\Controllers\Admin\NeighbourhoodController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceGroupController;
+use App\Http\Controllers\Admin\ServicePositionController;
 use App\Http\Controllers\Admin\TownController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
@@ -108,6 +111,22 @@ Route::middleware('auth')->group(function () {
 
         Route::middleware('permission:settings.manage')->group(function () {
             Route::get('neighbourhoods', [NeighbourhoodController::class, 'index'])->name('neighbourhoods.index');
+
+            Route::get('service-groups', [ServiceGroupController::class, 'index'])->name('service-groups.index');
+            Route::post('service-groups', [ServiceGroupController::class, 'store'])->name('service-groups.store');
+            Route::put('service-groups/{group}', [ServiceGroupController::class, 'update'])->name('service-groups.update');
+            Route::delete('service-groups/{group}', [ServiceGroupController::class, 'destroy'])->name('service-groups.destroy');
+
+            Route::get('committees', [CommitteeController::class, 'index'])->name('committees.index');
+            Route::post('committees', [CommitteeController::class, 'store'])->name('committees.store');
+            Route::put('committees/{committee}', [CommitteeController::class, 'update'])->name('committees.update');
+            Route::delete('committees/{committee}', [CommitteeController::class, 'destroy'])->name('committees.destroy');
+
+            Route::get('service-positions', [ServicePositionController::class, 'index'])->name('service-positions.index');
+            Route::post('service-positions', [ServicePositionController::class, 'store'])->name('service-positions.store');
+            Route::put('service-positions/{position}', [ServicePositionController::class, 'update'])->name('service-positions.update');
+            Route::delete('service-positions/{position}', [ServicePositionController::class, 'destroy'])->name('service-positions.destroy');
+
             Route::post('cities', [NeighbourhoodController::class, 'storeCity'])->name('cities.store');
             Route::put('cities/{city}', [NeighbourhoodController::class, 'updateCity'])->name('cities.update');
             Route::delete('cities/{city}', [NeighbourhoodController::class, 'destroyCity'])->name('cities.destroy');

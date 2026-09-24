@@ -43,6 +43,7 @@ type Child = {
     first_name: string | null;
     last_name: string | null;
     other_names: string | null;
+    sex: 'male' | 'female' | null;
     date_of_birth: string | null;
     joined_on: string | null;
     mobile: string | null;
@@ -85,6 +86,7 @@ export default function MemberForm({ relationships, child }: Props) {
         first_name: child?.first_name ?? '',
         last_name: child?.last_name ?? '',
         other_names: child?.other_names ?? '',
+        sex: child?.sex ?? '',
         date_of_birth: child?.date_of_birth ?? '',
         joined_on: child?.joined_on ?? '',
         mobile: child?.mobile ?? '',
@@ -240,6 +242,22 @@ export default function MemberForm({ relationships, child }: Props) {
                     {text('first_name', 'First name', { required: true })}
                     {text('last_name', 'Surname', { required: true })}
                     {text('other_names', 'Other names')}
+                    <div className="grid gap-2">
+                        <Label htmlFor="sex">Sex</Label>
+                        <NativeSelect
+                            id="sex"
+                            value={form.data.sex}
+                            onChange={(e) =>
+                                form.setData('sex', e.target.value)
+                            }
+                            required
+                        >
+                            <option value="">Select…</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </NativeSelect>
+                        <InputError message={form.errors.sex} />
+                    </div>
                     {text('date_of_birth', 'Date of birth', {
                         type: 'date',
                         required: true,

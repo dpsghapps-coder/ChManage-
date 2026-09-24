@@ -78,6 +78,7 @@ type YoungRow = {
     first_name: string | null;
     last_name: string | null;
     other_names: string | null;
+    sex: 'male' | 'female' | null;
     date_of_birth: string | null;
     joined_on: string | null;
     class: string | null;
@@ -196,6 +197,7 @@ const youngSubject = (c: YoungRow): ViewSubject => ({
     details: [
         { label: 'First Name', value: c.first_name },
         { label: 'Surname', value: c.last_name },
+        { label: 'Sex', value: c.sex ? statusLabel(c.sex) : null },
         { label: 'Other Names', value: c.other_names },
         { label: 'Date of Birth', value: c.date_of_birth },
         { label: 'Date Joined', value: c.joined_on },

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChurchSetting;
+use App\Models\Committee;
 use App\Models\MediaFile;
 use App\Models\Member;
 use App\Models\MemberGroup;
 use App\Models\MemberNextOfKin;
 use App\Models\MemberSacrament;
 use App\Models\MemberServiceRecord;
+use App\Models\ServicePosition;
 use App\Models\YoungMember;
 use App\Rules\PhoneNumber;
 use App\Support\Audit;
@@ -81,6 +83,7 @@ class MemberController extends Controller
                     'first_name' => $y->first_name,
                     'last_name' => $y->last_name,
                     'other_names' => $y->other_names,
+                    'sex' => $y->sex,
                     'date_of_birth' => $y->date_of_birth?->toDateString(),
                     'joined_on' => $y->joined_on?->toDateString(),
                     'class' => $y->ageClass(),
@@ -325,7 +328,14 @@ class MemberController extends Controller
             'groups' => $this->groupOptions(),
             // Suggestions for the Residence box: places already recorded.
             'residences' => Member::whereNotNull('residence')->where('residence', '!=', '')->distinct()->orderBy('residence')->pluck('residence')->all(),
-            'emergencyRelationships' => MemberNextOfKin::emergencyRelationships(),
+            'relationships' => MemberNextOfKin::relationships(),
+            // The Service step: positions for each type of service, and the groups an executive can serve.
+            'positions' => ServicePosition::byType(),
+            'committees' => Committee::orderBy('sort_order')->orderBy('name')->pluck('name'),
+            'executiveGroups' => [
+                ...MemberGroup::where('name', '!=', 'Other')->orderBy('name')->pluck('name'),
+                ...array_values(Member::GENERATIONAL_GROUPS),
+            ],
             // The church's city (Church Settings) narrows Residence to its neighbourhoods and the towns of its region.
             'residenceArea' => Neighbourhoods::forCity(ChurchSetting::values(['city_name'])['city_name'] ?? null),
             // The church where a baptism or confirmation took place: presbytery → district → congregation.
@@ -359,6 +369,7 @@ class MemberController extends Controller
             // The form always sends this, so an empty list of groups can be told apart from "not sent".
             'has_related' => ['boolean'],
             'next_of_kin.name' => ['nullable', 'string', 'max:150'],
+            'next_of_kin.relationship' => ['nullable', 'string', 'max:100'],
             'next_of_kin.phone' => ['nullable', new PhoneNumber],
             'next_of_kin.residential_address' => ['nullable', 'string', 'max:200'],
             'next_of_kin.postal_address' => ['nullable', 'string', 'max:200'],
@@ -395,7 +406,7 @@ class MemberController extends Controller
 
             $kin = array_map(
                 fn ($value) => filled($value) ? trim($value) : null,
-                Arr::only($data['next_of_kin'] ?? [], ['name', 'phone', 'residential_address', 'postal_address']),
+                Arr::only($data['next_of_kin'] ?? [], ['name', 'relationship', 'phone', 'residential_address', 'postal_address']),
             );
             $kin['related_member_id'] = $kinMember?->id;
             $kin['name'] = $kinMember?->full_name ?? NameFormatter::titleCase($kin['name'] ?? null);

@@ -87,6 +87,7 @@ class MemberProfile
         return [
             'next_of_kin' => [
                 'name' => $kin?->name ?? '',
+                'relationship' => $kin?->relationship ?? '',
                 'phone' => $kin?->phone ?? '',
                 'residential_address' => $kin?->residential_address ?? '',
                 'postal_address' => $kin?->postal_address ?? '',
@@ -151,7 +152,8 @@ class MemberProfile
                     'member_number' => $y->member_number,
                     'class' => $y->ageClass(),
                     'status' => $y->status,
-                    'relationship' => $y->guardians->first()?->relationshipLabel() ?? '',
+                    // The child as seen from this member: Son or Daughter (not the member's own role as guardian).
+                    'relationship' => $y->childRelationship(),
                     'photo_url' => $y->photoUrl(),
                 ])->values()->all(),
         ];

@@ -40,9 +40,6 @@ class MemberController extends Controller
 
     private const MARRIAGE_TYPES = ['customary', 'ordinance', 'islamic', 'traditional'];
 
-    /** Fellowships an adult can belong to. Children Service and Junior Youth are their own registers. */
-    private const GENERATIONAL_GROUPS = ['YPG', 'YAF', "Women's Fellowship", "Men's Fellowship"];
-
     public function index(Request $request): Response
     {
         $category = in_array($request->string('category')->value(), self::CATEGORIES, true) ? $request->string('category')->value() : 'adults';
@@ -227,7 +224,7 @@ class MemberController extends Controller
         Audit::record('member.created', "Registered {$member->full_name} ({$member->member_number})", $member);
         Inertia::flash('toast', ['type' => 'success', 'message' => "{$member->full_name} registered as {$member->member_number}."]);
 
-        return to_route('members.index', ['category' => 'adults']);
+        return $this->continueEditing($request, $member) ?? to_route('members.index', ['category' => 'adults']);
     }
 
     public function showAdult(Member $member): Response
@@ -238,11 +235,13 @@ class MemberController extends Controller
         ]);
     }
 
-    public function editAdult(Member $member): Response
+    public function editAdult(Request $request, Member $member): Response
     {
         return Inertia::render('members/adult-form', [
             ...$this->formOptions(),
             'member' => [...MemberProfile::adult($member), ...MemberProfile::related($member)],
+            // The step to open on, after "Save" on a step (see continueEditing).
+            'initialStep' => $request->integer('step'),
         ]);
     }
 
@@ -270,7 +269,21 @@ class MemberController extends Controller
         Audit::record('member.updated', "Updated {$member->full_name} ({$member->member_number})", $member);
         Inertia::flash('toast', ['type' => 'success', 'message' => "{$member->full_name} updated."]);
 
-        return to_route('members.show', $member);
+        return $this->continueEditing($request, $member) ?? to_route('members.show', $member);
+    }
+
+    /**
+     * "Save" on a step of the form saves and stays: back to the member's edit page, on the same step. A new member
+     * becomes an edit of the saved record, so saving again updates it rather than registering them twice.
+     * Someone who may register but not edit members is sent on as after a normal save.
+     */
+    private function continueEditing(Request $request, Member $member): ?RedirectResponse
+    {
+        if (! $request->boolean('continue') || ! $request->user()->hasPermission('members.edit')) {
+            return null;
+        }
+
+        return to_route('members.edit', ['member' => $member, 'step' => max(0, $request->integer('step'))]);
     }
 
     /** Soft delete: the record stays, marked Deleted, and can be restored. */
@@ -306,11 +319,13 @@ class MemberController extends Controller
         return [
             'maritalStatuses' => self::MARITAL_STATUSES,
             'marriageTypes' => self::MARRIAGE_TYPES,
-            'generationalGroups' => self::GENERATIONAL_GROUPS,
+            // Stored value => name. The group itself is worked out from age and sex (Member::generationalGroupFor).
+            'generationalGroups' => Member::GENERATIONAL_GROUPS,
             'serviceTypes' => collect(MemberServiceRecord::TYPES)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values()->all(),
             'groups' => $this->groupOptions(),
             // Suggestions for the Residence box: places already recorded.
             'residences' => Member::whereNotNull('residence')->where('residence', '!=', '')->distinct()->orderBy('residence')->pluck('residence')->all(),
+            'emergencyRelationships' => MemberNextOfKin::emergencyRelationships(),
             // The church's city (Church Settings) narrows Residence to its neighbourhoods and the towns of its region.
             'residenceArea' => Neighbourhoods::forCity(ChurchSetting::values(['city_name'])['city_name'] ?? null),
             // The church where a baptism or confirmation took place: presbytery → district → congregation.
@@ -469,7 +484,6 @@ class MemberController extends Controller
             'father_member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), Rule::notIn([$member?->id ?? 0])],
             'mother_name' => ['nullable', 'string', 'max:150'],
             'mother_member_id' => ['nullable', 'integer', Rule::exists('members', 'id'), Rule::notIn([$member?->id ?? 0]), 'different:father_member_id'],
-            'generational_group' => ['nullable', Rule::in(self::GENERATIONAL_GROUPS)],
             'non_communicant' => ['boolean'],
             'non_communicant_reason' => ['nullable', 'string', 'max:500'],
             'photo' => ['nullable', File::image(allowSvg: false)->types(['jpg', 'jpeg', 'png', 'webp'])->max(4096)],
@@ -511,7 +525,7 @@ class MemberController extends Controller
             'date_of_birth' => $data['date_of_birth'],
             'marital_status' => $data['marital_status'] ?? null,
             'joined_on' => $data['joined_on'] ?? null,
-            'generational_group' => $data['generational_group'] ?? null,
+            'generational_group' => Member::generationalGroupFor($data['date_of_birth'], $data['sex']),
             'place_of_birth' => $data['place_of_birth'] ?? null,
             'hometown' => $data['hometown'] ?? null,
             'mobile' => $data['mobile'] ?? null,

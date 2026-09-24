@@ -59,7 +59,8 @@ class MemberProfile
             'mother_member' => $linked($m->mother),
             // Church
             'joined_on' => $m->joined_on?->toDateString(),
-            'generational_group' => $m->generational_group,
+            // Worked out afresh, so it is right even before the nightly update catches a birthday.
+            'generational_group' => Member::GENERATIONAL_GROUPS[Member::generationalGroupFor($m->date_of_birth, $m->sex) ?? ''] ?? null,
             // Sacraments
             'is_communicant' => $m->is_communicant,
             'non_communicant' => $m->is_communicant === false,

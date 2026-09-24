@@ -264,16 +264,6 @@ export function MemberSection({
     related: RelatedData;
 }) {
     if (tab === 'basic') {
-        const kin = related.next_of_kin;
-        const hasKin =
-            kin.name ||
-            kin.phone ||
-            kin.residential_address ||
-            kin.postal_address;
-
-        const contact = related.emergency_contact;
-        const hasContact = contact.name || contact.phone;
-
         return (
             <div className="space-y-5">
                 <DetailList
@@ -296,94 +286,16 @@ export function MemberSection({
                             value: member.place_of_birth,
                         },
                         { label: 'Home Town', value: member.hometown },
-                        {
-                            label: "Father's Name",
-                            value: linkedName(
-                                member.father_member,
-                                member.father_name,
-                            ),
-                        },
-                        {
-                            label: "Mother's Name",
-                            value: linkedName(
-                                member.mother_member,
-                                member.mother_name,
-                            ),
-                        },
                     ]}
                 />
-                {hasContact ? (
-                    <div className="space-y-4 rounded-lg border p-4">
-                        <h3 className="font-medium">Emergency Contact</h3>
-                        <DetailList
-                            items={[
-                                {
-                                    label: 'Name',
-                                    value: (
-                                        <LinkedName
-                                            name={contact.name}
-                                            member={contact.member}
-                                        />
-                                    ),
-                                },
-                                { label: 'Phone', value: contact.phone },
-                                {
-                                    label: 'Relationship',
-                                    value: contact.relationship,
-                                },
-                            ]}
-                        />
-                        {contact.phone && (
-                            <ReachButtons
-                                phone={contact.phone}
-                                name={contact.name || member.full_name}
-                            />
-                        )}
-                    </div>
-                ) : (
-                    empty('No emergency contact recorded.')
-                )}
-                {hasKin ? (
-                    <div className="space-y-4 rounded-lg border p-4">
-                        <h3 className="font-medium">Next of Kin</h3>
-                        <DetailList
-                            items={[
-                                {
-                                    label: 'Name',
-                                    value: (
-                                        <LinkedName
-                                            name={kin.name}
-                                            member={kin.member}
-                                        />
-                                    ),
-                                },
-                                { label: 'Phone', value: kin.phone },
-                                {
-                                    label: 'Residential Address',
-                                    value: kin.residential_address,
-                                },
-                                {
-                                    label: 'Postal Address',
-                                    value: kin.postal_address,
-                                },
-                            ]}
-                        />
-                        {kin.phone && (
-                            <ReachButtons
-                                phone={kin.phone}
-                                name={kin.name || member.full_name}
-                            />
-                        )}
-                    </div>
-                ) : (
-                    empty('No next of kin recorded.')
-                )}
-                <FamilyTree member={member} related={related} />
             </div>
         );
     }
 
     if (tab === 'contact') {
+        const contact = related.emergency_contact;
+        const hasContact = contact.name || contact.phone;
+
         return (
             <div className="space-y-5">
                 {!member.mobile && !member.telephone && (
@@ -442,15 +354,67 @@ export function MemberSection({
                         },
                     ]}
                 />
+                {hasContact ? (
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <h3 className="font-medium">Emergency Contact</h3>
+                        <DetailList
+                            items={[
+                                {
+                                    label: 'Name',
+                                    value: (
+                                        <LinkedName
+                                            name={contact.name}
+                                            member={contact.member}
+                                        />
+                                    ),
+                                },
+                                { label: 'Phone', value: contact.phone },
+                                {
+                                    label: 'Relationship',
+                                    value: contact.relationship,
+                                },
+                            ]}
+                        />
+                        {contact.phone && (
+                            <ReachButtons
+                                phone={contact.phone}
+                                name={contact.name || member.full_name}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    empty('No emergency contact recorded.')
+                )}
             </div>
         );
     }
 
     if (tab === 'family') {
+        const kin = related.next_of_kin;
+        const hasKin =
+            kin.name ||
+            kin.phone ||
+            kin.residential_address ||
+            kin.postal_address;
+
         return (
             <div className="space-y-5">
                 <DetailList
                     items={[
+                        {
+                            label: "Father's Name",
+                            value: linkedName(
+                                member.father_member,
+                                member.father_name,
+                            ),
+                        },
+                        {
+                            label: "Mother's Name",
+                            value: linkedName(
+                                member.mother_member,
+                                member.mother_name,
+                            ),
+                        },
                         {
                             label: 'Marital Status',
                             value: member.marital_status
@@ -561,6 +525,42 @@ export function MemberSection({
                         </div>
                     )}
                 </div>
+                {hasKin ? (
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <h3 className="font-medium">Next of Kin</h3>
+                        <DetailList
+                            items={[
+                                {
+                                    label: 'Name',
+                                    value: (
+                                        <LinkedName
+                                            name={kin.name}
+                                            member={kin.member}
+                                        />
+                                    ),
+                                },
+                                { label: 'Phone', value: kin.phone },
+                                {
+                                    label: 'Residential Address',
+                                    value: kin.residential_address,
+                                },
+                                {
+                                    label: 'Postal Address',
+                                    value: kin.postal_address,
+                                },
+                            ]}
+                        />
+                        {kin.phone && (
+                            <ReachButtons
+                                phone={kin.phone}
+                                name={kin.name || member.full_name}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    empty('No next of kin recorded.')
+                )}
+                <FamilyTree member={member} related={related} />
             </div>
         );
     }

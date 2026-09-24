@@ -37,15 +37,6 @@ class MemberReport
                     'Date of Birth' => self::dateWithAge($m['date_of_birth'], $m['age']),
                     'Place of Birth' => $m['place_of_birth'],
                     'Home Town' => $m['hometown'],
-                    "Father's Name" => $m['father_name'].($m['father_member'] ? " ({$m['father_member']['member_number']})" : ''),
-                    "Mother's Name" => $m['mother_name'].($m['mother_member'] ? " ({$m['mother_member']['member_number']})" : ''),
-                    'Emergency Contact' => self::withMemberNo($r['emergency_contact']['name'], $r['emergency_contact']['member']),
-                    'Emergency Contact Phone' => $r['emergency_contact']['phone'],
-                    'Emergency Contact Relationship' => $r['emergency_contact']['relationship'],
-                    'Next of Kin' => self::withMemberNo($r['next_of_kin']['name'], $r['next_of_kin']['member']),
-                    'Next of Kin Phone' => $r['next_of_kin']['phone'],
-                    'Residential Address' => $r['next_of_kin']['residential_address'],
-                    'Postal Address' => $r['next_of_kin']['postal_address'],
                 ]),
                 self::rows('Contact', [
                     'Primary Mobile' => $m['mobile'],
@@ -57,8 +48,13 @@ class MemberReport
                     'TikTok' => $m['tiktok_id'],
                     'Residence' => $m['residence'],
                     'Home Location' => $m['latitude'] !== null && $m['longitude'] !== null ? "{$m['latitude']}, {$m['longitude']}" : null,
+                    'Emergency Contact' => self::withMemberNo($r['emergency_contact']['name'], $r['emergency_contact']['member']),
+                    'Emergency Contact Phone' => $r['emergency_contact']['phone'],
+                    'Emergency Contact Relationship' => $r['emergency_contact']['relationship'],
                 ]),
-                self::rows('Marital', [
+                self::rows('Family', [
+                    "Father's Name" => $m['father_name'].($m['father_member'] ? " ({$m['father_member']['member_number']})" : ''),
+                    "Mother's Name" => $m['mother_name'].($m['mother_member'] ? " ({$m['mother_member']['member_number']})" : ''),
                     'Marital Status' => self::label($m['marital_status']),
                     // Marriage details are printed for married members only.
                     ...($m['marital_status'] !== 'married' ? [] : [
@@ -68,6 +64,10 @@ class MemberReport
                         'Maiden Name' => $m['maiden_name'],
                         'Spouse' => $m['spouse_name'].($m['spouse_member'] ? " ({$m['spouse_member']['member_number']})" : ''),
                     ]),
+                    'Next of Kin' => self::withMemberNo($r['next_of_kin']['name'], $r['next_of_kin']['member']),
+                    'Next of Kin Phone' => $r['next_of_kin']['phone'],
+                    'Next of Kin Residential Address' => $r['next_of_kin']['residential_address'],
+                    'Next of Kin Postal Address' => $r['next_of_kin']['postal_address'],
                 ]),
                 self::rows('Church', [
                     'Date Joined' => self::date($m['joined_on']),

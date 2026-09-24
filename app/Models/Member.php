@@ -8,11 +8,71 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /** The main (adult) register. Junior Youth and Children Service live in {@see YoungMember}. */
 class Member extends Model
 {
     protected $guarded = [];
+
+    /** Generational groups: stored value => name. CS and JY only reach older under-18 records on this register. */
+    public const GENERATIONAL_GROUPS = [
+        'CS' => 'Children Service (CS)',
+        'JY' => 'Junior Youth (JY)',
+        'YPG' => "Young People's Guild (YPG)",
+        'YAF' => "Young Adults' Fellowship (YAF)",
+        "Men's Fellowship" => "Men's Fellowship",
+        "Women's Fellowship" => "Women's Fellowship",
+    ];
+
+    /**
+     * The generational group follows age and sex: 0–14 Children Service, 15–17 Junior Youth, 18–29 YPG, 30–39 YAF,
+     * 40 and over Men's or Women's Fellowship. (New under-18s go on the Junior Youth / Children Service register, which
+     * keeps its own age split.) Unknown without a date of birth, or for 40 and over without a sex.
+     */
+    public static function generationalGroupFor(mixed $dateOfBirth, ?string $sex): ?string
+    {
+        if (! filled($dateOfBirth)) {
+            return null;
+        }
+
+        $age = Carbon::parse($dateOfBirth)->age;
+
+        return match (true) {
+            $age < 15 => 'CS',
+            $age < 18 => 'JY',
+            $age < 30 => 'YPG',
+            $age < 40 => 'YAF',
+            $sex === 'male' => "Men's Fellowship",
+            $sex === 'female' => "Women's Fellowship",
+            default => null,
+        };
+    }
+
+    /**
+     * Brings every member's stored generational group up to date (run daily, as members age into the next group).
+     * Only rows whose group changes are written. Returns how many changed.
+     */
+    public static function syncGenerationalGroups(): int
+    {
+        $changed = 0;
+
+        static::query()->select(['id', 'date_of_birth', 'sex', 'generational_group'])->chunkById(500, function ($members) use (&$changed) {
+            foreach ($members as $member) {
+                $group = static::generationalGroupFor($member->date_of_birth, $member->sex);
+
+                if ($group !== $member->generational_group) {
+                    // A group changing with age is not an edit of the record, so updated_at is kept as it was
+                    // (set to itself: the column has ON UPDATE CURRENT_TIMESTAMP).
+                    static::whereKey($member->id)->toBase()->update(['generational_group' => $group, 'updated_at' => DB::raw('updated_at')]);
+                    $changed++;
+                }
+            }
+        });
+
+        return $changed;
+    }
 
     protected function casts(): array
     {

@@ -8,10 +8,12 @@ use App\Models\MemberGroup;
 use App\Models\MemberNextOfKin;
 use App\Models\MemberSacrament;
 use App\Models\YoungMember;
+use App\Support\MemberReport;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MemberDirectoryTest extends TestCase
@@ -718,6 +720,119 @@ class MemberDirectoryTest extends TestCase
         $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration([
             'father_member_id' => $member->id, 'mother_member_id' => $member->id,
         ]))->assertSessionHasErrors(['father_member_id', 'mother_member_id']);
+    }
+
+    /** @return array<string, array{int, ?string, ?string}> */
+    public static function generationalAges(): array
+    {
+        return [
+            '14 is Children Service' => [14, 'female', 'CS'],
+            '15 is Junior Youth' => [15, 'male', 'JY'],
+            '17 is Junior Youth' => [17, 'female', 'JY'],
+            '18 is YPG' => [18, 'male', 'YPG'],
+            '29 is YPG' => [29, 'female', 'YPG'],
+            '30 is YAF' => [30, 'male', 'YAF'],
+            '39 is YAF' => [39, 'female', 'YAF'],
+            '40, male' => [40, 'male', "Men's Fellowship"],
+            '65, female' => [65, 'female', "Women's Fellowship"],
+            '40 without a sex' => [40, null, null],
+        ];
+    }
+
+    #[DataProvider('generationalAges')]
+    public function test_the_generational_group_follows_age_and_sex(int $age, ?string $sex, ?string $group): void
+    {
+        $this->assertSame($group, Member::generationalGroupFor(today()->subYears($age)->toDateString(), $sex));
+    }
+
+    public function test_the_generational_group_is_set_on_save_and_kept_current(): void
+    {
+        $user = $this->userWith(['members.create', 'members.view']);
+
+        // Whatever the form sends is ignored: the group comes from age (30) and sex.
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration(['generational_group' => 'YPG']))
+            ->assertSessionHasNoErrors();
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+        $this->assertSame('YAF', $member->generational_group);
+
+        $this->actingAs($user)->get(route('members.show', $member))->assertInertia(fn (Assert $page) => $page
+            ->where('member.generational_group', "Young Adults' Fellowship (YAF)"));
+
+        // A birthday into the next group is picked up by the daily update, without marking the record as edited.
+        $member->update(['date_of_birth' => today()->subYears(40)]);
+        Member::whereKey($member->id)->toBase()->update(['updated_at' => '2020-01-01 00:00:00']);
+        $this->artisan('members:sync-generational-groups')->expectsOutputToContain('updated for 1 members')->assertSuccessful();
+        $this->assertSame("Women's Fellowship", $member->fresh()->generational_group);
+        $this->assertSame('2020-01-01', $member->fresh()->updated_at->toDateString());
+    }
+
+    public function test_save_on_a_step_keeps_the_form_open_on_that_step(): void
+    {
+        $user = $this->userWith(['members.create', 'members.edit', 'members.view']);
+
+        // A new member is registered once, then comes back as an edit of the saved record.
+        $response = $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration(['continue' => true, 'step' => 2]));
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+        $response->assertRedirect(route('members.edit', ['member' => $member, 'step' => 2]));
+        $this->assertSame(1, Member::where('first_name', 'Efua')->count());
+
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration(['first_name' => 'Kojo', 'continue' => true, 'step' => 3]))
+            ->assertRedirect(route('members.edit', ['member' => Member::where('first_name', 'Kojo')->value('id'), 'step' => 3]));
+
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration(['residence' => 'Osu', 'continue' => true, 'step' => 1]))
+            ->assertRedirect(route('members.edit', ['member' => $member, 'step' => 1]));
+        $this->assertSame('Osu', $member->fresh()->residence);
+
+        $this->actingAs($user)->get(route('members.edit', ['member' => $member, 'step' => 1]))
+            ->assertInertia(fn (Assert $page) => $page->component('members/adult-form')->where('initialStep', 1));
+
+        // The final save still leaves the form.
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration())->assertRedirect(route('members.show', $member));
+
+        // Someone who may register but not edit is sent on as after a normal save.
+        $this->actingAs($this->userWith(['members.create']))->post(route('members.adult.store'), $this->adultRegistration(['first_name' => 'Ama', 'continue' => true, 'step' => 2]))
+            ->assertRedirect(route('members.index', ['category' => 'adults']));
+    }
+
+    public function test_the_emergency_contact_relationship_is_chosen_from_the_guardian_types_plus_friend(): void
+    {
+        $user = $this->userWith(['members.create', 'members.edit']);
+
+        $this->actingAs($user)->get(route('members.adult.create'))->assertInertia(fn (Assert $page) => $page->where('emergencyRelationships', [
+            'Mother', 'Father', 'Aunt', 'Uncle', 'Grandmother', 'Grandfather', 'Sibling', 'Friend', 'Other',
+        ]));
+
+        $contact = ['name' => 'Yaw Boateng', 'phone' => '0200000000', 'member_id' => null];
+        $this->actingAs($user)->post(route('members.adult.store'), $this->adultRegistration([
+            'emergency_contact' => [...$contact, 'relationship' => 'Friend'],
+        ]))->assertSessionHasNoErrors();
+        $member = Member::where('first_name', 'Efua')->firstOrFail();
+        $this->assertSame('Friend', $member->nextOfKin->emergency_contact_relationship);
+
+        // "Other" stores the relationship as typed.
+        $this->actingAs($user)->put(route('members.update', $member), $this->adultRegistration([
+            'emergency_contact' => [...$contact, 'relationship' => 'Pastor'],
+        ]))->assertSessionHasNoErrors();
+        $this->assertSame('Pastor', $member->fresh()->nextOfKin->emergency_contact_relationship);
+    }
+
+    public function test_the_printed_profile_puts_emergency_contact_under_contact_and_next_of_kin_under_family(): void
+    {
+        $member = $this->member('M1', 'Mensah Efua', age: 40);
+        $member->update(['father_name' => 'Kofi Mensah', 'marital_status' => 'single', 'mobile' => '0244111222']);
+        MemberNextOfKin::create([
+            'member_id' => $member->id, 'name' => 'Ama Mensah', 'phone' => '0244000111',
+            'emergency_contact_name' => 'Yaw Boateng', 'emergency_contact_phone' => '0200000000',
+        ]);
+
+        $labels = collect(MemberReport::adult($member)['blocks'])->filter()
+            ->mapWithKeys(fn ($block) => [$block['title'] => collect($block['rows'] ?? [])->flatten(1)->pluck(0)->all()]);
+
+        $this->assertContains('Emergency Contact', $labels['Contact']);
+        $this->assertContains('Next of Kin', $labels['Family']);
+        $this->assertContains("Father's Name", $labels['Family']);
+        $this->assertNotContains('Emergency Contact', $labels['Basic Information']);
+        $this->assertNotContains('Next of Kin', $labels['Basic Information']);
     }
 
     public function test_marriage_date_and_church_are_saved_and_cleared_for_single_members(): void

@@ -18,6 +18,19 @@ class MemberNextOfKin extends Model
 
     protected $guarded = [];
 
+    /**
+     * The choices for the emergency contact's relationship: the guardian types plus Friend, with Other last (the
+     * form then asks for the relationship in words). The label itself is stored, so any other text is kept as typed.
+     *
+     * @return list<string>
+     */
+    public static function emergencyRelationships(): array
+    {
+        $guardians = collect(YoungMember::RELATIONSHIPS)->except('other')->values();
+
+        return [...$guardians, 'Friend', YoungMember::RELATIONSHIPS['other']];
+    }
+
     /** The next of kin's own member record, when they are also a member. */
     public function relatedMember(): BelongsTo
     {

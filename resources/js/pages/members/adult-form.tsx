@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Check, Church, Plus, Trash2, X } from 'lucide-react';
+import { Check, Church, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { GpsCapture } from '@/components/gps-capture';
@@ -111,12 +111,17 @@ type Member = {
 type Props = {
     /** The record being edited, or null when registering a new one. */
     member: Member | null;
+    /** The step to open on: after "Save" on a step, the form comes back to it. */
+    initialStep?: number;
     maritalStatuses: string[];
     marriageTypes: string[];
-    generationalGroups: string[];
+    /** Stored value => name; the group itself follows age and sex (see generationalGroupFor). */
+    generationalGroups: Record<string, string>;
     serviceTypes: { value: string; label: string }[];
     groups: { id: number; name: string; short_name: string | null }[];
     residences: string[];
+    /** Choices for the emergency contact's relationship; the last is "Other". */
+    emergencyRelationships: string[];
     /** The church's city (Church Settings): its neighbourhoods and region narrow the Residence suggestions. */
     residenceArea: {
         city: string | null;
@@ -150,8 +155,6 @@ const STEP_OF_FIELD: Record<string, number> = {
     place_of_birth: 0,
     hometown: 0,
     photo: 0,
-    next_of_kin: 0,
-    emergency_contact: 0,
     mobile: 1,
     telephone: 1,
     email: 1,
@@ -163,6 +166,7 @@ const STEP_OF_FIELD: Record<string, number> = {
     latitude: 1,
     longitude: 1,
     location_accuracy: 1,
+    emergency_contact: 1,
     marital_status: 2,
     marriage_type: 2,
     maiden_name: 2,
@@ -174,13 +178,52 @@ const STEP_OF_FIELD: Record<string, number> = {
     father_member_id: 2,
     mother_name: 2,
     mother_member_id: 2,
+    next_of_kin: 2,
     joined_on: 3,
-    generational_group: 3,
     group_ids: 3,
     service_records: 4,
     sacraments: 5,
     non_communicant: 5,
     non_communicant_reason: 5,
+};
+
+/** Mirrors Member::generationalGroupFor on the server, which is what is saved. */
+const generationalGroupFor = (
+    dateOfBirth: string,
+    sex: string,
+    names: Record<string, string>,
+): string | null => {
+    if (!dateOfBirth) {
+        return null;
+    }
+
+    const born = new Date(`${dateOfBirth}T00:00:00`);
+    const today = new Date();
+    const age =
+        today.getFullYear() -
+        born.getFullYear() -
+        (today.getMonth() < born.getMonth() ||
+        (today.getMonth() === born.getMonth() &&
+            today.getDate() < born.getDate())
+            ? 1
+            : 0);
+
+    const group =
+        age < 15
+            ? 'CS'
+            : age < 18
+              ? 'JY'
+              : age < 30
+                ? 'YPG'
+                : age < 40
+                  ? 'YAF'
+                  : sex === 'male'
+                    ? "Men's Fellowship"
+                    : sex === 'female'
+                      ? "Women's Fellowship"
+                      : null;
+
+    return group ? (names[group] ?? group) : null;
 };
 
 const stepOfError = (key: string) => STEP_OF_FIELD[key.split('.')[0]] ?? 0;
@@ -232,15 +275,18 @@ export default function AdultMemberForm({
     serviceTypes,
     groups,
     residences,
+    emergencyRelationships,
     residenceArea,
     presbyteries,
     congregations,
     church,
     member,
+    initialStep = 0,
 }: Props) {
     const editing = member !== null;
-    const [step, setStep] = useState(0);
-    const [reached, setReached] = useState(0);
+    const opening = Math.min(Math.max(initialStep, 0), STEPS.length - 1);
+    const [step, setStep] = useState(opening);
+    const [reached, setReached] = useState(opening);
     const [spouse, setSpouse] = useState<Member['spouse_member']>(
         member?.spouse_member ?? null,
     );
@@ -293,7 +339,6 @@ export default function AdultMemberForm({
         mother_name: member?.mother_member ? '' : (member?.mother_name ?? ''),
         mother_member_id: (member?.mother_member?.id ?? null) as number | null,
         joined_on: member?.joined_on ?? '',
-        generational_group: member?.generational_group ?? '',
         non_communicant: member?.non_communicant ?? false,
         non_communicant_reason: member?.non_communicant_reason ?? '',
         // Tells the server the Next of Kin, Sacraments, Groups and Service steps were part of this save.
@@ -366,6 +411,32 @@ export default function AdultMemberForm({
         }
     };
 
+    /**
+     * Saves the whole record. `stay` is the Save button on a step: the server brings the form back on this step
+     * (a new member comes back as an edit of the saved record) instead of leaving it.
+     */
+    const save = (stay: boolean) => {
+        for (let i = 0; i <= last; i++) {
+            if (!stepIsValid(i)) {
+                return;
+            }
+        }
+
+        form.transform((data) => ({
+            ...data,
+            // A file upload cannot be sent as PUT, so the update is a POST that says it means PUT.
+            ...(editing ? { _method: 'put' } : {}),
+            ...(stay ? { continue: true, step } : {}),
+        }));
+
+        form.post(editing ? update(member.id).url : store().url, {
+            preserveScroll: stay,
+            onError: (problems) => {
+                goTo(Math.min(...Object.keys(problems).map(stepOfError)));
+            },
+        });
+    };
+
     const submit = (event: FormEvent) => {
         event.preventDefault();
 
@@ -376,22 +447,7 @@ export default function AdultMemberForm({
             return;
         }
 
-        for (let i = 0; i <= last; i++) {
-            if (!stepIsValid(i)) {
-                return;
-            }
-        }
-
-        if (editing) {
-            // A file upload cannot be sent as PUT, so the update is a POST that says it means PUT.
-            form.transform((data) => ({ ...data, _method: 'put' }));
-        }
-
-        form.post(editing ? update(member.id).url : store().url, {
-            onError: (problems) => {
-                goTo(Math.min(...Object.keys(problems).map(stepOfError)));
-            },
-        });
+        save(false);
     };
 
     const text = (
@@ -424,7 +480,7 @@ export default function AdultMemberForm({
     };
 
     const select = (
-        name: 'sex' | 'marital_status' | 'marriage_type' | 'generational_group',
+        name: 'sex' | 'marital_status' | 'marriage_type',
         label: string,
         options: { value: string; label: string }[],
         props: { required?: boolean; blank?: string } = {},
@@ -484,10 +540,7 @@ export default function AdultMemberForm({
         );
     };
 
-    const contactField = (
-        name: 'name' | 'phone' | 'relationship',
-        label: string,
-    ) => {
+    const contactField = (name: 'name' | 'phone', label: string) => {
         const value = form.data.emergency_contact[name];
         const set = (v: string) =>
             form.setData('emergency_contact', {
@@ -505,6 +558,64 @@ export default function AdultMemberForm({
                     {...(name === 'phone' ? phoneInputProps : {})}
                 />
                 <InputError message={errors[`emergency_contact.${name}`]} />
+            </div>
+        );
+    };
+
+    /** The emergency contact's relationship: a listed one, or "Other" with the relationship typed in. */
+    const otherRelationship =
+        emergencyRelationships[emergencyRelationships.length - 1];
+    const [relationshipChoice, setRelationshipChoice] = useState(() => {
+        const saved = member?.emergency_contact?.relationship ?? '';
+
+        return !saved || emergencyRelationships.includes(saved)
+            ? saved
+            : otherRelationship;
+    });
+
+    const relationshipField = () => {
+        const setRelationship = (relationship: string) =>
+            form.setData('emergency_contact', {
+                ...form.data.emergency_contact,
+                relationship,
+            });
+
+        return (
+            <div className="grid gap-2">
+                <Label htmlFor="contact-relationship">Relationship</Label>
+                <NativeSelect
+                    id="contact-relationship"
+                    value={relationshipChoice}
+                    onChange={(e) => {
+                        setRelationshipChoice(e.target.value);
+                        // "Other" is not stored; the typed relationship is.
+                        setRelationship(
+                            e.target.value === otherRelationship
+                                ? ''
+                                : e.target.value,
+                        );
+                    }}
+                >
+                    <option value="">Not stated</option>
+                    {emergencyRelationships.map((r) => (
+                        <option key={r} value={r}>
+                            {r}
+                        </option>
+                    ))}
+                </NativeSelect>
+                {relationshipChoice === otherRelationship && (
+                    <Input
+                        aria-label="Relationship, in words"
+                        value={form.data.emergency_contact.relationship}
+                        onChange={(e) => setRelationship(e.target.value)}
+                        placeholder="e.g. Pastor, Neighbour"
+                        maxLength={100}
+                        autoFocus
+                    />
+                )}
+                <InputError
+                    message={errors['emergency_contact.relationship']}
+                />
             </div>
         );
     };
@@ -843,147 +954,6 @@ export default function AdultMemberForm({
                             })}
                             <TownSuggestions id="ghana-towns" />
                         </section>
-
-                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
-                            <div className="sm:col-span-2">
-                                <h2 className="font-medium">
-                                    Emergency Contact
-                                </h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Who to contact in an emergency. Optional.
-                                </p>
-                            </div>
-                            {contactMember ? (
-                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3 sm:col-span-2">
-                                    <div className="text-sm">
-                                        <div className="font-medium">
-                                            {contactMember.full_name}
-                                        </div>
-                                        <div className="text-muted-foreground">
-                                            {contactMember.member_number} · a
-                                            member
-                                        </div>
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                            setContactMember(null);
-                                            form.setData('emergency_contact', {
-                                                ...form.data.emergency_contact,
-                                                member_id: null,
-                                            });
-                                        }}
-                                    >
-                                        <X /> Remove
-                                    </Button>
-                                </div>
-                            ) : (
-                                <>
-                                    {contactField('name', 'Name')}
-                                    {contactField('phone', 'Phone')}
-                                    <div className="grid gap-2 sm:col-span-2">
-                                        <Label className="text-xs font-normal text-muted-foreground">
-                                            Or find them if they are a member
-                                        </Label>
-                                        <MemberPicker
-                                            invalid={Boolean(
-                                                errors[
-                                                    'emergency_contact.member_id'
-                                                ],
-                                            )}
-                                            onPick={(hit: MemberHit) => {
-                                                setContactMember({
-                                                    id: hit.id,
-                                                    member_number:
-                                                        hit.member_number,
-                                                    full_name: hit.full_name,
-                                                });
-                                                form.setData(
-                                                    'emergency_contact',
-                                                    {
-                                                        ...form.data
-                                                            .emergency_contact,
-                                                        member_id: hit.id,
-                                                    },
-                                                );
-                                            }}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                            {contactField('relationship', 'Relationship')}
-                        </section>
-
-                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
-                            <div className="sm:col-span-2">
-                                <h2 className="font-medium">Next of Kin</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Closest relative for official records.
-                                    Optional.
-                                </p>
-                            </div>
-                            {kinMember ? (
-                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3 sm:col-span-2">
-                                    <div className="text-sm">
-                                        <div className="font-medium">
-                                            {kinMember.full_name}
-                                        </div>
-                                        <div className="text-muted-foreground">
-                                            {kinMember.member_number} · a member
-                                        </div>
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                            setKinMember(null);
-                                            form.setData('next_of_kin', {
-                                                ...form.data.next_of_kin,
-                                                member_id: null,
-                                            });
-                                        }}
-                                    >
-                                        <X /> Remove
-                                    </Button>
-                                </div>
-                            ) : (
-                                <>
-                                    {kin('name', 'Name')}
-                                    {kin('phone', 'Phone')}
-                                    <div className="grid gap-2 sm:col-span-2">
-                                        <Label className="text-xs font-normal text-muted-foreground">
-                                            Or find them if they are a member
-                                        </Label>
-                                        <MemberPicker
-                                            invalid={Boolean(
-                                                errors['next_of_kin.member_id'],
-                                            )}
-                                            onPick={(hit: MemberHit) => {
-                                                setKinMember({
-                                                    id: hit.id,
-                                                    member_number:
-                                                        hit.member_number,
-                                                    full_name: hit.full_name,
-                                                });
-                                                form.setData('next_of_kin', {
-                                                    ...form.data.next_of_kin,
-                                                    member_id: hit.id,
-                                                });
-                                            }}
-                                        />
-                                    </div>
-                                </>
-                            )}
-                            {kin(
-                                'residential_address',
-                                'Residential address',
-                                true,
-                            )}
-                            {kin('postal_address', 'Postal address', true)}
-                        </section>
                     </>,
                 )}
 
@@ -1065,6 +1035,78 @@ export default function AdultMemberForm({
                                         form.errors.longitude}
                                 </p>
                             )}
+                        </section>
+
+                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
+                            <div className="sm:col-span-2">
+                                <h2 className="font-medium">
+                                    Emergency Contact
+                                </h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Who to contact in an emergency. Optional.
+                                </p>
+                            </div>
+                            {contactMember ? (
+                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3 sm:col-span-2">
+                                    <div className="text-sm">
+                                        <div className="font-medium">
+                                            {contactMember.full_name}
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            {contactMember.member_number} · a
+                                            member
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setContactMember(null);
+                                            form.setData('emergency_contact', {
+                                                ...form.data.emergency_contact,
+                                                member_id: null,
+                                            });
+                                        }}
+                                    >
+                                        <X /> Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {contactField('name', 'Name')}
+                                    {contactField('phone', 'Phone')}
+                                    <div className="grid gap-2 sm:col-span-2">
+                                        <Label className="text-xs font-normal text-muted-foreground">
+                                            Or find them if they are a member
+                                        </Label>
+                                        <MemberPicker
+                                            invalid={Boolean(
+                                                errors[
+                                                    'emergency_contact.member_id'
+                                                ],
+                                            )}
+                                            onPick={(hit: MemberHit) => {
+                                                setContactMember({
+                                                    id: hit.id,
+                                                    member_number:
+                                                        hit.member_number,
+                                                    full_name: hit.full_name,
+                                                });
+                                                form.setData(
+                                                    'emergency_contact',
+                                                    {
+                                                        ...form.data
+                                                            .emergency_contact,
+                                                        member_id: hit.id,
+                                                    },
+                                                );
+                                            }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            {relationshipField()}
                         </section>
                     </>,
                 )}
@@ -1202,6 +1244,75 @@ export default function AdultMemberForm({
                                 </p>
                             )}
                         </section>
+
+                        <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
+                            <div className="sm:col-span-2">
+                                <h2 className="font-medium">Next of Kin</h2>
+                                <p className="mt-1 text-sm text-muted-foreground">
+                                    Closest relative for official records.
+                                    Optional.
+                                </p>
+                            </div>
+                            {kinMember ? (
+                                <div className="flex items-start justify-between gap-3 rounded-md border bg-muted/40 p-3 sm:col-span-2">
+                                    <div className="text-sm">
+                                        <div className="font-medium">
+                                            {kinMember.full_name}
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                            {kinMember.member_number} · a member
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setKinMember(null);
+                                            form.setData('next_of_kin', {
+                                                ...form.data.next_of_kin,
+                                                member_id: null,
+                                            });
+                                        }}
+                                    >
+                                        <X /> Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <>
+                                    {kin('name', 'Name')}
+                                    {kin('phone', 'Phone')}
+                                    <div className="grid gap-2 sm:col-span-2">
+                                        <Label className="text-xs font-normal text-muted-foreground">
+                                            Or find them if they are a member
+                                        </Label>
+                                        <MemberPicker
+                                            invalid={Boolean(
+                                                errors['next_of_kin.member_id'],
+                                            )}
+                                            onPick={(hit: MemberHit) => {
+                                                setKinMember({
+                                                    id: hit.id,
+                                                    member_number:
+                                                        hit.member_number,
+                                                    full_name: hit.full_name,
+                                                });
+                                                form.setData('next_of_kin', {
+                                                    ...form.data.next_of_kin,
+                                                    member_id: hit.id,
+                                                });
+                                            }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            {kin(
+                                'residential_address',
+                                'Residential address',
+                                true,
+                            )}
+                            {kin('postal_address', 'Postal address', true)}
+                        </section>
                     </>,
                 )}
 
@@ -1214,15 +1325,26 @@ export default function AdultMemberForm({
                                 Church
                             </h2>
                             {text('joined_on', 'Date joined', { type: 'date' })}
-                            {select(
-                                'generational_group',
-                                'Generational group',
-                                generationalGroups.map((value) => ({
-                                    value,
-                                    label: value,
-                                })),
-                                { blank: 'Select group' },
-                            )}
+                            <div className="grid gap-2">
+                                <Label>Generational group</Label>
+                                <p className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                                    {generationalGroupFor(
+                                        form.data.date_of_birth,
+                                        form.data.sex,
+                                        generationalGroups,
+                                    ) ?? (
+                                        <span className="text-muted-foreground">
+                                            Set once date of birth and sex are
+                                            entered
+                                        </span>
+                                    )}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Set from age and sex: 18–29 YPG, 30–39 YAF,
+                                    40 and over Men&apos;s or Women&apos;s
+                                    Fellowship.
+                                </p>
+                            </div>
                         </section>
                         <section className="space-y-4 rounded-lg border p-5">
                             <div>
@@ -1556,6 +1678,17 @@ export default function AdultMemberForm({
                                 onClick={() => goTo(step - 1)}
                             >
                                 Previous
+                            </Button>
+                        )}
+                        {step < last && (
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={form.processing}
+                                onClick={() => save(true)}
+                                title="Save what is entered so far and stay on this step"
+                            >
+                                <Save /> Save
                             </Button>
                         )}
                         {step < last ? (

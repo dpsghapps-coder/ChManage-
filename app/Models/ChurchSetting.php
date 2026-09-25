@@ -44,6 +44,18 @@ class ChurchSetting extends Model
         return $days > 0 ? $days : self::DEFAULT_FOLLOWUP_DAYS;
     }
 
+    /** Days before a committee term ends that it is flagged for renewal. */
+    public const TERM_WARNING_DAYS = 'committee_term_warning_days';
+
+    public const DEFAULT_TERM_WARNING_DAYS = 90;
+
+    public static function termWarningDays(): int
+    {
+        $days = (int) (static::values([self::TERM_WARNING_DAYS])[self::TERM_WARNING_DAYS] ?? 0);
+
+        return $days > 0 ? $days : self::DEFAULT_TERM_WARNING_DAYS;
+    }
+
     /** @param  list<string>  $keys  @return array<string, ?string> */
     public static function values(array $keys): array
     {

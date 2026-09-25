@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -10,6 +10,7 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
@@ -26,12 +27,13 @@ export function NavMain({
     label = 'Platform',
     collapsible = false,
 }: {
-    items: NavItem[];
+    items: (NavItem & { badgeKey?: string })[];
     label?: string;
     collapsible?: boolean;
 }) {
     const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
     const { state, isMobile } = useSidebar();
+    const badges = (usePage().props.badges ?? {}) as Record<string, number>;
     const holdsCurrent = items.some((item) => isCurrentOrParentUrl(item.href));
     const [toggled, setToggled] = useState<boolean | null>(null);
 
@@ -53,6 +55,11 @@ export function NavMain({
                             <span>{item.title}</span>
                         </Link>
                     </SidebarMenuButton>
+                    {item.badgeKey && badges[item.badgeKey] > 0 && (
+                        <SidebarMenuBadge className="bg-amber-500 text-white">
+                            {badges[item.badgeKey]}
+                        </SidebarMenuBadge>
+                    )}
                 </SidebarMenuItem>
             ))}
         </SidebarMenu>

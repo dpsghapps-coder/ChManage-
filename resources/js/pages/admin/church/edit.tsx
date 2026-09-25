@@ -24,6 +24,8 @@ type Settings = {
     city: string;
     /** Days without a visit or lesson before a newcomer is flagged for follow-up. */
     followup_days: number;
+    /** Days before a committee term ends that it is flagged. */
+    term_warning_days: number;
 };
 
 type Presbytery = {
@@ -171,6 +173,40 @@ export default function ChurchSettings({
                     ))}
                     {/* City suggestions: cities with a neighbourhood list, then the Ghana town list. */}
                     <TownSuggestions id="city-options" extra={cities} />
+                </section>
+
+                <section className="grid gap-2 rounded-lg border p-5">
+                    <h2 className="font-medium">Committees</h2>
+                    <Label htmlFor="term_warning_days">
+                        Warn before a term ends
+                    </Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            id="term_warning_days"
+                            type="number"
+                            inputMode="numeric"
+                            min={7}
+                            max={365}
+                            className="w-28"
+                            value={form.data.term_warning_days}
+                            onChange={(e) =>
+                                form.setData(
+                                    'term_warning_days',
+                                    Number(e.target.value),
+                                )
+                            }
+                            required
+                        />
+                        <span className="text-sm text-muted-foreground">
+                            days
+                        </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        A committee term ending within this many days shows as
+                        “Ends in …” on the committee, in the Terms ending soon
+                        list, and as a count on the Committees menu item.
+                    </p>
+                    <InputError message={form.errors.term_warning_days} />
                 </section>
 
                 <section className="grid gap-2 rounded-lg border p-5">

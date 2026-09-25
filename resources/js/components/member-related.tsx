@@ -118,6 +118,13 @@ export type RelatedData = {
         }
     >;
     groups: { id: number; name: string; short_name: string | null }[];
+    committee_terms?: {
+        committee: string;
+        position: string;
+        started_on: string;
+        ends_on: string;
+        serving: boolean;
+    }[];
     service_records: {
         type: string;
         type_label: string;
@@ -621,27 +628,67 @@ export function MemberSection({
     }
 
     if (tab === 'service') {
-        return related.service_records.length === 0 ? (
+        const terms = related.committee_terms ?? [];
+
+        return related.service_records.length === 0 && terms.length === 0 ? (
             empty('No service records.')
         ) : (
-            <div className="space-y-2">
-                {related.service_records.map((record, i) => (
-                    <div key={i} className="rounded-lg border p-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-medium">{record.name}</span>
-                            <Badge variant="secondary">
-                                {record.type_label}
-                            </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                            {record.position}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                            {record.started_on || '—'} –{' '}
-                            {record.ended_on || 'Present'}
-                        </div>
+            <div className="space-y-4">
+                {related.service_records.length > 0 && (
+                    <div className="space-y-2">
+                        {related.service_records.map((record, i) => (
+                            <div key={i} className="rounded-lg border p-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-medium">
+                                        {record.name}
+                                    </span>
+                                    <Badge variant="secondary">
+                                        {record.type_label}
+                                    </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {record.position}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    {record.started_on || '—'} –{' '}
+                                    {record.ended_on || 'Present'}
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                )}
+                {terms.length > 0 && (
+                    <div className="space-y-2">
+                        <h4 className="text-xs font-medium text-muted-foreground">
+                            Committee terms, from the committees&apos; own lists
+                        </h4>
+                        {terms.map((term, i) => (
+                            <div key={i} className="rounded-lg border p-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-medium">
+                                        {term.committee}
+                                    </span>
+                                    <Badge
+                                        variant={
+                                            term.serving
+                                                ? 'default'
+                                                : 'secondary'
+                                        }
+                                    >
+                                        {term.serving ? 'Serving' : 'Past'}
+                                    </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {term.position}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                    {term.started_on} –{' '}
+                                    {term.ends_on || 'no fixed end'}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         );
     }

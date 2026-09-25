@@ -93,6 +93,13 @@ return [
                 'record' => 'Record visitors',
             ],
         ],
+        'committees' => [
+            'label' => 'Committee Members',
+            'actions' => [
+                'view' => 'View who serves on each committee, and the terms',
+                'manage' => 'Add, renew and end committee terms, and set the term rules',
+            ],
+        ],
         'meetings' => [
             'label' => 'Meetings, Decisions & Actions',
             'actions' => [
@@ -184,11 +191,11 @@ return [
         'admin' => ['*'],
         'admin_super_user' => [
             'members.*', 'contributions.*', 'income.*', 'expenses.*', 'budgets.*', 'banking.*', 'payroll.view',
-            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'events.*', 'meetings.*', 'sms.*', 'reports.view', 'staff.*',
+            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'events.*', 'meetings.*', 'committees.*', 'sms.*', 'reports.view', 'staff.*',
             'users.view', 'roles.view', 'permissions.view',
         ],
         'admin_user' => [
-            'members.view', 'members.create', 'members.edit', 'attendance.*', 'visitors.*', 'newcomers.view', 'newcomers.manage', 'events.view', 'events.manage', 'meetings.view', 'sms.*',
+            'members.view', 'members.create', 'members.edit', 'attendance.*', 'visitors.*', 'newcomers.view', 'newcomers.manage', 'events.view', 'events.manage', 'meetings.view', 'committees.view', 'sms.*',
             'staff.view', 'assets.view', 'reports.view',
         ],
         'admin_data_entry' => [

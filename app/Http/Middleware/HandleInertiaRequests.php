@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CommitteeTerms;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,8 +45,22 @@ class HandleInertiaRequests extends Middleware
                 // the server enforces every permission on its own.
                 'permissions' => $this->permissions($request),
             ],
+            // Small counts shown on menu items, for those who may act on them.
+            'badges' => $this->badges($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /** @return array<string, int> */
+    private function badges(Request $request): array
+    {
+        $user = $request->user();
+
+        if (! $user || ! $user->hasAnyPermission(['committees.manage'])) {
+            return [];
+        }
+
+        return ['committees' => CommitteeTerms::endingSoon()->count()];
     }
 
     /** @return array<string, mixed>|null */

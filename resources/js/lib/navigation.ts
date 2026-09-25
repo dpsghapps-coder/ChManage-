@@ -51,7 +51,6 @@ import {
 import { dashboard } from '@/routes';
 import { index as auditIndex } from '@/routes/admin/audit';
 import { edit as churchEdit } from '@/routes/admin/church';
-import { index as committeesIndex } from '@/routes/admin/committees';
 import { index as neighbourhoodsIndex } from '@/routes/admin/neighbourhoods';
 import { index as occupationsIndex } from '@/routes/admin/occupations';
 import { index as permissionsIndex } from '@/routes/admin/permissions';
@@ -69,6 +68,7 @@ import {
     calendar as eventsCalendar,
     index as eventsIndex,
 } from '@/routes/events';
+import { overview as committeesOverview } from '@/routes/committees';
 import { index as decisionsIndex } from '@/routes/decisions';
 import { index as meetingsIndex } from '@/routes/meetings';
 import * as operations from '@/routes/operations';
@@ -80,7 +80,11 @@ import { create as staffCreate, index as staffIndex } from '@/routes/staff';
 import type { NavItem } from '@/types';
 
 /** A menu entry, hidden from people who lack `permission`. */
-export type GatedNavItem = NavItem & { permission?: string };
+export type GatedNavItem = NavItem & {
+    permission?: string;
+    /** Key into the shared `badges` counts, shown as a small number on the item. */
+    badgeKey?: string;
+};
 
 export type NavSection = { title: string; items: GatedNavItem[] };
 
@@ -128,9 +132,10 @@ export const moduleSections: NavSection[] = [
         items: [
             {
                 title: 'Committees',
-                href: committeesIndex(),
+                href: committeesOverview(),
                 icon: Users2,
-                permission: 'settings.manage',
+                permission: 'committees.view',
+                badgeKey: 'committees',
             },
             {
                 title: 'Groups',

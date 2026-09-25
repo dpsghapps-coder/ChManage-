@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\ServicePositionController;
 use App\Http\Controllers\Admin\TownController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
+use App\Http\Controllers\CommitteeMemberController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MeetingActionController;
@@ -158,6 +159,20 @@ Route::middleware('auth')->group(function () {
     Route::get('operations/actions', [MeetingActionController::class, 'index'])->middleware('permission:meetings.view')->name('actions.index');
     Route::put('operations/actions/{action}', [MeetingActionController::class, 'update'])->middleware('permission:meetings.manage')->name('actions.update');
     Route::delete('operations/actions/{action}', [MeetingActionController::class, 'destroy'])->middleware('permission:meetings.manage')->name('actions.destroy');
+
+    // Who serves on each committee, term by term.
+    Route::prefix('ministry/committees')->name('committees.')->group(function () {
+        Route::get('/', [CommitteeMemberController::class, 'overview'])->middleware('permission:committees.view')->name('overview');
+        Route::get('{committee}', [CommitteeMemberController::class, 'show'])->middleware('permission:committees.view')->name('show');
+        Route::put('{committee}/rules', [CommitteeMemberController::class, 'updateRules'])->middleware('permission:committees.manage')->name('rules');
+        Route::post('{committee}/members', [CommitteeMemberController::class, 'store'])->middleware('permission:committees.manage')->name('members.store');
+    });
+    Route::prefix('ministry/committee-terms/{membership}')->name('committees.terms.')->middleware('permission:committees.manage')->group(function () {
+        Route::put('/', [CommitteeMemberController::class, 'update'])->name('update');
+        Route::post('renew', [CommitteeMemberController::class, 'renew'])->name('renew');
+        Route::put('end', [CommitteeMemberController::class, 'end'])->name('end');
+        Route::delete('/', [CommitteeMemberController::class, 'destroy'])->name('destroy');
+    });
 
     // Modules still to be built: each is a "coming soon" page with its menu link, named e.g. finance.giving.
     foreach (config('modules') as $section => $module) {

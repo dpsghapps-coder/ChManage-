@@ -18,7 +18,7 @@ class ChurchSettingsController extends Controller
     public function edit(): Response
     {
         return Inertia::render('admin/church/edit', [
-            'settings' => [...$this->current(), 'followup_days' => ChurchSetting::followUpDays()],
+            'settings' => [...$this->current(), 'followup_days' => ChurchSetting::followUpDays(), 'term_warning_days' => ChurchSetting::termWarningDays()],
             // Suggestions only: a presbytery or district missing from the list can still be typed in.
             'presbyteries' => Presbyteries::options(),
             // Cities with a neighbourhood list come first among the City suggestions.
@@ -36,7 +36,8 @@ class ChurchSettingsController extends Controller
             // Optional: without it, Residence suggests towns from anywhere in Ghana.
             'city' => ['nullable', 'string', 'max:150'],
             'followup_days' => ['sometimes', 'integer', 'between:7,365'],
-        ], ['followup_days.between' => 'Choose between 7 and 365 days.']);
+            'term_warning_days' => ['sometimes', 'integer', 'between:7,365'],
+        ], ['followup_days.between' => 'Choose between 7 and 365 days.', 'term_warning_days.between' => 'Choose between 7 and 365 days.']);
 
         $before = $this->current();
         $changed = [];
@@ -54,6 +55,11 @@ class ChurchSettingsController extends Controller
         if (isset($data['followup_days']) && (int) $data['followup_days'] !== ChurchSetting::followUpDays()) {
             $changed['followup_days'] = ['from' => ChurchSetting::followUpDays(), 'to' => (int) $data['followup_days']];
             ChurchSetting::put(ChurchSetting::FOLLOWUP_DAYS, (string) (int) $data['followup_days']);
+        }
+
+        if (isset($data['term_warning_days']) && (int) $data['term_warning_days'] !== ChurchSetting::termWarningDays()) {
+            $changed['term_warning_days'] = ['from' => ChurchSetting::termWarningDays(), 'to' => (int) $data['term_warning_days']];
+            ChurchSetting::put(ChurchSetting::TERM_WARNING_DAYS, (string) (int) $data['term_warning_days']);
         }
 
         if ($changed) {

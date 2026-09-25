@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\CommitteeMember;
 use App\Models\Member;
 use App\Models\MemberSacrament;
 use App\Models\MemberServiceRecord;
@@ -124,6 +125,14 @@ class MemberProfile
                 'position' => $r->position ?? '',
                 'started_on' => $r->started_on?->toDateString() ?? '',
                 'ended_on' => $r->ended_on?->toDateString() ?? '',
+            ])->values()->all(),
+            // Terms on the committees' own lists (read-only here; they are managed on the Committees page).
+            'committee_terms' => CommitteeMember::where('member_id', $m->id)->with('committee:id,name')->orderByDesc('started_on')->get()->map(fn (CommitteeMember $t) => [
+                'committee' => $t->committee->name,
+                'position' => $t->position ?? 'Member',
+                'started_on' => $t->started_on->toDateString(),
+                'ends_on' => $t->ends_on?->toDateString() ?? '',
+                'serving' => $t->ends_on === null || $t->ends_on->gte(today()),
             ])->values()->all(),
             // Adult members who name this member as their father or mother.
             'adult_children' => Member::query()

@@ -1,0 +1,1 @@
+var e=e=>e>1?`Ends in ${e} days`:e===1?`Ends tomorrow`:e===0?`Ends today`:`Ended ${-e} day${e===-1?``:`s`} ago`;export{e as t};

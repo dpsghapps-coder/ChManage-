@@ -11,6 +11,9 @@ return [
     // Photos taken at registration of Junior Youth / Children Service members (file names are stored in young_members.photo_path).
     'young_member_photos' => env('YOUNG_MEMBER_PHOTOS_PATH', storage_path('app/private/young-member-photos')),
 
+    // Photos taken when registering visitors and newcomers (file names are stored in newcomers.photo_path).
+    'newcomer_photos' => env('NEWCOMER_PHOTOS_PATH', storage_path('app/private/newcomer-photos')),
+
     // The PCG presbyteries and their districts (see App\Support\Presbyteries). Edit the file to correct or extend the list.
     'presbyteries' => env('PRESBYTERIES_PATH', resource_path('data/pcg-presbyteries.md')),
 

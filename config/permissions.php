@@ -93,6 +93,14 @@ return [
                 'record' => 'Record visitors',
             ],
         ],
+        'newcomers' => [
+            'label' => 'Visitors & Newcomers',
+            'actions' => [
+                'view' => 'View visitors, newcomers and catechumens',
+                'manage' => 'Register and update them, assign counsellors and record lessons',
+                'promote' => 'Make a newcomer a member',
+            ],
+        ],
         'sms' => [
             'label' => 'SMS',
             'actions' => [
@@ -162,11 +170,11 @@ return [
         'admin' => ['*'],
         'admin_super_user' => [
             'members.*', 'contributions.*', 'income.*', 'expenses.*', 'budgets.*', 'banking.*', 'payroll.view',
-            'assets.*', 'attendance.*', 'visitors.*', 'sms.*', 'reports.view', 'staff.*',
+            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'sms.*', 'reports.view', 'staff.*',
             'users.view', 'roles.view', 'permissions.view',
         ],
         'admin_user' => [
-            'members.view', 'members.create', 'members.edit', 'attendance.*', 'visitors.*', 'sms.*',
+            'members.view', 'members.create', 'members.edit', 'attendance.*', 'visitors.*', 'newcomers.view', 'newcomers.manage', 'sms.*',
             'staff.view', 'assets.view', 'reports.view',
         ],
         'admin_data_entry' => [

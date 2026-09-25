@@ -26,6 +26,7 @@ export type MemberDetail = {
     age: number | null;
     place_of_birth: string | null;
     hometown: string | null;
+    occupation: string | null;
     mobile: string | null;
     telephone: string | null;
     email: string | null;
@@ -53,6 +54,7 @@ export type MemberDetail = {
     mother_name: string | null;
     mother_member: LinkedMember;
     joined_on: string | null;
+    previous_congregation: string | null;
     generational_group: string | null;
     is_communicant: boolean | null;
     non_communicant: boolean;
@@ -287,6 +289,10 @@ export function MemberSection({
                             value: member.place_of_birth,
                         },
                         { label: 'Home Town', value: member.hometown },
+                        {
+                            label: 'Occupation / Profession',
+                            value: member.occupation,
+                        },
                     ]}
                 />
             </div>
@@ -576,6 +582,10 @@ export function MemberSection({
                 <DetailList
                     items={[
                         { label: 'Date Joined', value: member.joined_on },
+                        {
+                            label: 'Previous Congregation',
+                            value: member.previous_congregation,
+                        },
                         {
                             label: 'Generational Group',
                             value: member.generational_group,

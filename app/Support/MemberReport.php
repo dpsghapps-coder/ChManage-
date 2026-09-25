@@ -37,6 +37,7 @@ class MemberReport
                     'Date of Birth' => self::dateWithAge($m['date_of_birth'], $m['age']),
                     'Place of Birth' => $m['place_of_birth'],
                     'Home Town' => $m['hometown'],
+                    'Occupation / Profession' => $m['occupation'],
                 ]),
                 self::rows('Contact', [
                     'Primary Mobile' => $m['mobile'],
@@ -72,6 +73,7 @@ class MemberReport
                 ]),
                 self::rows('Church', [
                     'Date Joined' => self::date($m['joined_on']),
+                    'Previous Congregation' => $m['previous_congregation'],
                     'Generational Group' => $m['generational_group'],
                     'Service Groups' => collect($r['groups'])->pluck('name')->implode(', '),
                 ]),

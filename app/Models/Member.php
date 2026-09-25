@@ -110,6 +110,11 @@ class Member extends Model
         return $this->belongsTo(self::class, 'spouse_member_id');
     }
 
+    public function profession(): BelongsTo
+    {
+        return $this->belongsTo(Profession::class);
+    }
+
     public function father(): BelongsTo
     {
         return $this->belongsTo(self::class, 'father_member_id');

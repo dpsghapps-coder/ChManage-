@@ -6,7 +6,11 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TownSuggestions } from '@/components/town-suggestions';
+import {
+    TownSuggestions,
+    townTooltip,
+    useGhanaTowns,
+} from '@/components/town-suggestions';
 import { edit, update } from '@/routes/admin/church';
 import { index as neighbourhoodsIndex } from '@/routes/admin/neighbourhoods';
 import { index as townsIndex } from '@/routes/admin/towns';
@@ -85,6 +89,8 @@ export default function ChurchSettings({
     cities: string[];
 }) {
     const form = useForm<Settings>({ ...settings });
+    // Hover text for City: the town's district and region.
+    const towns = useGhanaTowns();
 
     // Once a listed presbytery is chosen, only its districts are suggested.
     const chosen = presbyteries.find((p) => same(p.name, form.data.presbytery));
@@ -140,6 +146,11 @@ export default function ChurchSettings({
                                         : undefined
                                 }
                                 autoComplete="off"
+                                title={
+                                    field.name === 'city'
+                                        ? townTooltip(towns, form.data.city)
+                                        : undefined
+                                }
                                 maxLength={150}
                                 required={!optional.includes(field.name)}
                             />

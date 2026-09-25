@@ -43,6 +43,33 @@ export function useGhanaTowns(): Town[] {
 }
 
 /**
+ * Hover text for a field holding a town: "Town: Osu · District: … · Region: Greater Accra Region". A name found in
+ * more than one region lists each place. Undefined when the value is not on the town list.
+ */
+export function townTooltip(towns: Town[], value: string): string | undefined {
+    const name = value.trim().toLowerCase();
+    const matches = name
+        ? towns.filter((t) => t.name.toLowerCase() === name)
+        : [];
+
+    if (matches.length === 0) {
+        return undefined;
+    }
+
+    const place = (t: Town) =>
+        [
+            t.district ? `District: ${t.district}` : null,
+            `Region: ${t.region} Region`,
+        ]
+            .filter(Boolean)
+            .join(' · ');
+
+    return matches.length === 1
+        ? `Town: ${matches[0].name} · ${place(matches[0])}`
+        : `Town: ${matches[0].name} — found in ${matches.length} places: ${matches.map((t) => [t.district, `${t.region} Region`].filter(Boolean).join(', ')).join('; ')}`;
+}
+
+/**
  * A <datalist> of Ghana towns for an input's `list` attribute. Each suggestion shows its district and region;
  * `extra` places (e.g. ones already recorded) come first, and `region` keeps only that region's towns.
  * Anything can still be typed.

@@ -28,7 +28,6 @@ class CleanNames extends Command
         'member_sacraments' => ['id', ['minister']],
         'staff' => ['id', ['full_name', 'emergency_contact_name']],
         'users' => ['id', ['first_name', 'last_name']],
-        'visitors' => ['id', ['name']],
     ];
 
     public function handle(): int

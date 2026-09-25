@@ -16,7 +16,7 @@ class MemberProfile
     /** The member's own fields. @return array<string, mixed> */
     public static function adult(Member $m): array
     {
-        $m->loadMissing(['photo', 'spouse', 'father', 'mother']);
+        $m->loadMissing(['photo', 'spouse', 'father', 'mother', 'profession']);
         $linked = fn (?Member $other) => $other ? ['id' => $other->id, 'member_number' => $other->member_number, 'full_name' => $other->full_name] : null;
 
         return [
@@ -32,6 +32,8 @@ class MemberProfile
             'age' => $m->date_of_birth?->age,
             'place_of_birth' => $m->place_of_birth,
             'hometown' => $m->hometown,
+            'profession_id' => $m->profession_id,
+            'occupation' => $m->profession?->name,
             // Contact
             'mobile' => $m->mobile,
             'telephone' => $m->telephone,
@@ -59,6 +61,7 @@ class MemberProfile
             'mother_member' => $linked($m->mother),
             // Church
             'joined_on' => $m->joined_on?->toDateString(),
+            'previous_congregation' => $m->previous_congregation,
             // Worked out afresh, so it is right even before the nightly update catches a birthday.
             'generational_group' => Member::GENERATIONAL_GROUPS[Member::generationalGroupFor($m->date_of_birth, $m->sex) ?? ''] ?? null,
             // Sacraments

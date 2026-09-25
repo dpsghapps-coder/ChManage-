@@ -1,0 +1,245 @@
+[
+  {
+    "category": "Education & Academia",
+    "slug": "education-academia",
+    "occupations": [
+      "Primary / Basic School Teacher",
+      "Junior High School (JHS) Teacher",
+      "Senior High School (SHS) Teacher",
+      "Headmaster / Headmistress / Principal",
+      "University / Tertiary Lecturer",
+      "Professor / Academic Researcher",
+      "Early Childhood Educator / Daycare Attendant",
+      "Vocational / Technical Instructor",
+      "Tutor / Private Home Teacher",
+      "Education Officer / Circuit Supervisor",
+      "School Administrator / Registrar"
+    ]
+  },
+  {
+    "category": "Healthcare & Medical Services",
+    "slug": "healthcare-medical",
+    "occupations": [
+      "Medical Doctor (General Practitioner)",
+      "Medical Specialist / Consultant",
+      "Surgeon",
+      "Physician Assistant (PA)",
+      "Registered General Nurse (RGN)",
+      "Midwife",
+      "Community Health Nurse",
+      "Pharmacist",
+      "Medicine Counter Assistant (MCA) / Pharmacy Technician",
+      "Medical Laboratory Scientist / Technician",
+      "Dentist / Dental Therapist",
+      "Optometrist / Ophthalmic Nurse",
+      "Physiotherapist",
+      "Radiographer",
+      "Nutritionist / Dietitian",
+      "Herbal / Traditional Medicine Practitioner",
+      "Ward Assistant / Healthcare Orderly"
+    ]
+  },
+  {
+    "category": "Business, Finance & Administration",
+    "slug": "business-finance-admin",
+    "occupations": [
+      "Accountant / Auditor",
+      "Chartered Banker",
+      "Bank Teller / Cashier",
+      "Financial Analyst / Advisor",
+      "Microfinance / Credit Officer",
+      "Mobile Banker / Susu Collector",
+      "Insurance Agent / Underwriter",
+      "Human Resource (HR) Manager / Officer",
+      "Administrative Assistant / Secretary",
+      "Executive Secretary / Personal Assistant (PA)",
+      "Customer Service Representative",
+      "Procurement / Purchasing Officer",
+      "Operations Manager",
+      "Business Consultant / Strategist"
+    ]
+  },
+  {
+    "category": "Trade, Commerce & Sales",
+    "slug": "trade-commerce-sales",
+    "occupations": [
+      "Retail Trader / Provision Shop Owner",
+      "Market Vendor (Wholesale / Retail)",
+      "Importer / Exporter",
+      "Storekeeper / Warehouse Manager",
+      "Supermarket Attendant / Cashier",
+      "Sales Representative / Marketer",
+      "Real Estate Agent / Broker",
+      "OTC Medicine Store Owner (Chemical Seller)",
+      "Street Vendor / Petty Trader",
+      "Boutique / Clothing Merchant"
+    ]
+  },
+  {
+    "category": "Artisans, Crafts & Technical Vocations",
+    "slug": "artisans-crafts-technical",
+    "occupations": [
+      "Mason / Bricklayer",
+      "Carpenter / Joiner / Cabinet Maker",
+      "Electrician (Domestic / Industrial)",
+      "Plumber / Pipe Fitter",
+      "Painter / Decorator",
+      "Welder / Fabricator",
+      "Tile Layer",
+      "Steel Bender",
+      "Auto Mechanic",
+      "Auto Electrician",
+      "Auto Body Sprayer / Panel Beater",
+      "Vulcanizer",
+      "Air Conditioning & Refrigeration Technician",
+      "Tailor / Fashion Designer",
+      "Seamstress / Dressmaker",
+      "Hairdresser / Beautician / Nail Technician",
+      "Barber",
+      "Shoemaker / Cobbler",
+      "Upholsterer / Interior Decorator"
+    ]
+  },
+  {
+    "category": "Agriculture, Agro-Processing & Fisheries",
+    "slug": "agriculture-fisheries",
+    "occupations": [
+      "Cocoa Farmer",
+      "Crop Farmer (Maize, Cassava, Rice, Yam)",
+      "Vegetable Farmer (Horticulturist)",
+      "Poultry Farmer",
+      "Livestock / Cattle Farmer",
+      "Fish Farmer (Aquaculture)",
+      "Marine Fisherman / Canoe Fisherman",
+      "Fish Monger / Smoker / Processor",
+      "Agronomist / Agricultural Extension Officer",
+      "Farm Laborer / Farm Hand",
+      "Timber / Forestry Worker"
+    ]
+  },
+  {
+    "category": "Transport, Driving & Logistics",
+    "slug": "transport-logistics",
+    "occupations": [
+      "Commercial Driver (Trotro / Minibus)",
+      "Taxi Driver",
+      "Ride-Hailing Driver (Uber, Bolt, Yango)",
+      "Bus Conductor (Mate)",
+      "Long-Haul / Heavy-Duty Truck Driver",
+      "Dispatch Rider / Courier Delivery Driver",
+      "Tricycle Rider (Pragya / Aboboyaa)",
+      "Heavy Equipment / Forklift Operator",
+      "Freight Forwarder / Clearing Agent",
+      "Logistics & Supply Chain Officer"
+    ]
+  },
+  {
+    "category": "Information Technology & Engineering",
+    "slug": "it-engineering",
+    "occupations": [
+      "Software Developer / Engineer",
+      "Web Developer / Designer",
+      "Mobile App Developer",
+      "IT Support Technician",
+      "Network / Systems Administrator",
+      "Database Administrator",
+      "Data Analyst / Data Scientist",
+      "UI/UX Designer",
+      "Cyber Security Specialist",
+      "Civil Engineer",
+      "Electrical Engineer",
+      "Mechanical Engineer",
+      "Structural / Quantity Surveyor",
+      "Architect / Draftsman"
+    ]
+  },
+  {
+    "category": "Public, Security & Uniformed Services",
+    "slug": "public-security-services",
+    "occupations": [
+      "Police Officer (Ghana Police Service)",
+      "Soldier / Military Officer (Ghana Armed Forces)",
+      "Immigration Officer (Ghana Immigration Service - GIS)",
+      "Firefighter (Ghana National Fire Service - GNFS)",
+      "Customs Officer (GRA - Customs Division)",
+      "Prisons Officer (Ghana Prisons Service)",
+      "Private Security Guard / Watchman",
+      "Civil Servant / Local Government Officer (District Assembly)",
+      "Court Registrar / Bailiff",
+      "Lawyer / Legal Practitioner",
+      "Judge / Magistrate"
+    ]
+  },
+  {
+    "category": "Hospitality, Catering & Food Services",
+    "slug": "hospitality-catering",
+    "occupations": [
+      "Chef / Head Cook",
+      "Commercial Caterer / Chop Bar Operator",
+      "Baker / Pastry Chef",
+      "Waiter / Waitress",
+      "Bartender / Barista",
+      "Hotel Receptionist / Front Desk Officer",
+      "Hotel / Guest House Manager",
+      "Housekeeper / Cleaner",
+      "Event Planner / Decorator",
+      "Tour Guide / Tourism Officer"
+    ]
+  },
+  {
+    "category": "Media, Arts & Entertainment",
+    "slug": "media-arts-entertainment",
+    "occupations": [
+      "Journalist / Reporter",
+      "Radio / TV Presenter",
+      "News Anchor / Producer",
+      "Video Editor / Videographer",
+      "Professional Photographer",
+      "Graphic Designer / Digital Artist",
+      "Sound Engineer / Music Producer",
+      "Musician / Singer",
+      "MC (Master of Ceremonies) / Comedian",
+      "Actor / Actress"
+    ]
+  },
+  {
+    "category": "Mining, Energy & Natural Resources",
+    "slug": "mining-energy",
+    "occupations": [
+      "Mining Engineer",
+      "Geologist / Mineralogist",
+      "Metallurgist",
+      "Petroleum / Chemical Engineer",
+      "Drill Rig Operator / Blaster",
+      "Mine Safety & Environmental Officer",
+      "Artisan / Small-Scale Gold Miner"
+    ]
+  },
+  {
+    "category": "Clergy, Religious & Community Work",
+    "slug": "clergy-religious-community",
+    "occupations": [
+      "Pastor / Reverend Minister / Bishop",
+      "Catholic / Anglican Priest",
+      "Evangelist / Missionary",
+      "Imam / Islamic Scholar",
+      "Church Administrator / Ministry Worker",
+      "Social Worker / Counselor",
+      "NGO / Development Officer"
+    ]
+  },
+  {
+    "category": "Demographics & Non-Working Status",
+    "slug": "demographics-non-working",
+    "occupations": [
+      "Student (Primary / JHS / SHS)",
+      "Tertiary Student (University / Polytechnic / College)",
+      "Apprentice / Trainee",
+      "National Service Personnel (NSS)",
+      "Homemaker / Housewife",
+      "Self-Employed (General)",
+      "Retired / Pensioner",
+      "Unemployed / Seeking Employment"
+    ]
+  }
+]

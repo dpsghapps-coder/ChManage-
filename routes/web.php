@@ -4,6 +4,10 @@ use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ChurchSettingsController;
 use App\Http\Controllers\Admin\CommitteeController;
 use App\Http\Controllers\Admin\NeighbourhoodController;
+use App\Http\Controllers\Admin\NewcomerCounsellorController;
+use App\Http\Controllers\Admin\NewcomerLessonController;
+use App\Http\Controllers\Admin\NewcomerOptionController;
+use App\Http\Controllers\Admin\OccupationController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceGroupController;
@@ -14,6 +18,7 @@ use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MemberReportController;
+use App\Http\Controllers\NewcomerController;
 use App\Http\Controllers\PresbyteryController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StaffLookupController;
@@ -60,6 +65,51 @@ Route::middleware('auth')->group(function () {
     Route::delete('members/{member}', [MemberController::class, 'destroy'])->middleware('permission:members.delete')->name('members.destroy');
     Route::post('members/{member}/restore', [MemberController::class, 'restore'])->middleware('permission:members.delete')->name('members.restore');
     Route::get('members/{member}/photo', [MemberController::class, 'photo'])->middleware('permission:members.view,members.create,members.edit')->name('members.photo');
+
+    // Visitors, newcomers and catechumens. The settings tabs (counsellors, lessons, lists) come before {newcomer}.
+    Route::prefix('people/newcomers')->name('newcomers.')->group(function () {
+        Route::get('/', [NewcomerController::class, 'index'])->middleware('permission:newcomers.view')->name('index');
+        Route::get('create', [NewcomerController::class, 'create'])->middleware('permission:newcomers.manage')->name('create');
+        Route::post('/', [NewcomerController::class, 'store'])->middleware('permission:newcomers.manage')->name('store');
+        Route::get('duplicates', [NewcomerController::class, 'duplicates'])->middleware('permission:newcomers.manage')->name('duplicates');
+
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::get('counsellors', [NewcomerCounsellorController::class, 'index'])->name('counsellors.index');
+            Route::post('counsellors', [NewcomerCounsellorController::class, 'store'])->name('counsellors.store');
+            Route::put('counsellors/{counsellor}', [NewcomerCounsellorController::class, 'update'])->name('counsellors.update');
+            Route::delete('counsellors/{counsellor}', [NewcomerCounsellorController::class, 'destroy'])->name('counsellors.destroy');
+
+            Route::get('lessons', [NewcomerLessonController::class, 'index'])->name('lessons.index');
+            Route::post('lessons', [NewcomerLessonController::class, 'store'])->name('lessons.store');
+            Route::put('lessons/{lesson}', [NewcomerLessonController::class, 'update'])->name('lessons.update');
+            Route::put('lessons/{lesson}/move', [NewcomerLessonController::class, 'move'])->name('lessons.move');
+            Route::delete('lessons/{lesson}', [NewcomerLessonController::class, 'destroy'])->name('lessons.destroy');
+
+            Route::get('lists', [NewcomerOptionController::class, 'index'])->name('lists.index');
+            Route::post('lists', [NewcomerOptionController::class, 'store'])->name('lists.store');
+            Route::put('lists/{option}', [NewcomerOptionController::class, 'update'])->name('lists.update');
+            Route::delete('lists/{option}', [NewcomerOptionController::class, 'destroy'])->name('lists.destroy');
+        });
+
+        Route::get('{newcomer}', [NewcomerController::class, 'show'])->middleware('permission:newcomers.view')->name('show');
+        Route::get('{newcomer}/photo', [NewcomerController::class, 'photo'])->middleware('permission:newcomers.view')->name('photo');
+        Route::get('{newcomer}/edit', [NewcomerController::class, 'edit'])->middleware('permission:newcomers.manage')->name('edit');
+        Route::put('{newcomer}', [NewcomerController::class, 'update'])->middleware('permission:newcomers.manage')->name('update');
+        Route::post('{newcomer}/visits', [NewcomerController::class, 'addVisit'])->middleware('permission:newcomers.manage')->name('visits.store');
+        Route::post('{newcomer}/enrol', [NewcomerController::class, 'enrol'])->middleware('permission:newcomers.manage')->name('enrol');
+        Route::put('{newcomer}/lessons/{lesson}', [NewcomerController::class, 'updateProgress'])->middleware('permission:newcomers.manage')->name('progress.update');
+        Route::post('{newcomer}/promote', [NewcomerController::class, 'promote'])->middleware('permission:newcomers.promote')->name('promote');
+        Route::put('{newcomer}/status', [NewcomerController::class, 'setStatus'])->middleware('permission:newcomers.manage')->name('status');
+    });
+
+    // Modules still to be built: each is a "coming soon" page with its menu link, named e.g. finance.giving.
+    foreach (config('modules') as $section => $module) {
+        foreach ($module['pages'] as $slug => [$title, $description]) {
+            Route::inertia("{$section}/{$slug}", 'coming-soon', [
+                'section' => $module['title'], 'title' => $title, 'description' => $description, 'path' => "/{$section}/{$slug}",
+            ])->middleware('permission:members.view')->name("{$section}.{$slug}");
+        }
+    }
 
     // PCG presbyteries and districts: a reference open to everyone signed in, edited by those who manage settings.
     Route::get('presbyteries', [PresbyteryController::class, 'index'])->name('presbyteries.index');
@@ -116,6 +166,12 @@ Route::middleware('auth')->group(function () {
             Route::post('service-groups', [ServiceGroupController::class, 'store'])->name('service-groups.store');
             Route::put('service-groups/{group}', [ServiceGroupController::class, 'update'])->name('service-groups.update');
             Route::delete('service-groups/{group}', [ServiceGroupController::class, 'destroy'])->name('service-groups.destroy');
+
+            Route::get('occupations', [OccupationController::class, 'index'])->name('occupations.index');
+            Route::post('occupations', [OccupationController::class, 'store'])->name('occupations.store');
+            Route::put('occupations/categories', [OccupationController::class, 'renameCategory'])->name('occupations.categories.update');
+            Route::put('occupations/{occupation}', [OccupationController::class, 'update'])->name('occupations.update');
+            Route::delete('occupations/{occupation}', [OccupationController::class, 'destroy'])->name('occupations.destroy');
 
             Route::get('committees', [CommitteeController::class, 'index'])->name('committees.index');
             Route::post('committees', [CommitteeController::class, 'store'])->name('committees.store');

@@ -13,7 +13,7 @@ import {
 import { useSidebar } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { usePermission } from '@/hooks/use-permission';
-import { directoryItems, platformItems, quickActions } from '@/lib/navigation';
+import { moduleSections, platformItems, quickActions } from '@/lib/navigation';
 import type { GatedNavItem } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
@@ -21,7 +21,7 @@ import { index as membersIndex } from '@/routes/members';
 
 /**
  * Phone navigation (below the md breakpoint): a bottom bar with Home, Members, the app drawer and the sidebar.
- * The drawer holds Dashboard, the directories and quick "Add" actions; the sidebar holds Administration and the account menu.
+ * The drawer holds quick "Add" actions, Dashboard and the modules by section; the sidebar holds System and the account menu.
  */
 export function MobileNav() {
     const { can } = usePermission();
@@ -42,7 +42,13 @@ export function MobileNav() {
     const visible = (items: GatedNavItem[]) =>
         items.filter((item) => !item.permission || can(item.permission));
     const actions = visible(quickActions);
-    const apps = visible([...platformItems, ...directoryItems]);
+    const sections = [
+        { title: 'General', items: visible(platformItems) },
+        ...moduleSections.map((section) => ({
+            ...section,
+            items: visible(section.items),
+        })),
+    ].filter((section) => section.items.length > 0);
 
     return (
         <>
@@ -103,15 +109,20 @@ export function MobileNav() {
                         </DrawerSection>
                     )}
 
-                    <DrawerSection title="Sections">
-                        {apps.map((item) => (
-                            <AppTile
-                                key={item.title}
-                                item={item}
-                                active={isCurrentOrParentUrl(item.href)}
-                            />
-                        ))}
-                    </DrawerSection>
+                    {sections.map((section) => (
+                        <DrawerSection
+                            key={section.title}
+                            title={section.title}
+                        >
+                            {section.items.map((item) => (
+                                <AppTile
+                                    key={item.title}
+                                    item={item}
+                                    active={isCurrentOrParentUrl(item.href)}
+                                />
+                            ))}
+                        </DrawerSection>
+                    ))}
                 </SheetContent>
             </Sheet>
         </>

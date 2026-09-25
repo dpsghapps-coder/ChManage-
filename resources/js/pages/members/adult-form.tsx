@@ -2,6 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { Check, Church, Plus, Save, Trash2, X } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
+import { ChoiceOrOther } from '@/components/choice-or-other';
 import { GpsCapture } from '@/components/gps-capture';
 import InputError from '@/components/input-error';
 import { MemberPicker } from '@/components/member-picker';
@@ -9,7 +10,11 @@ import type { MemberHit } from '@/components/member-picker';
 import { PageHeader } from '@/components/page-header';
 import { PhotoPicker } from '@/components/photo-picker';
 import { statusLabel } from '@/components/staff-status';
-import { TownSuggestions } from '@/components/town-suggestions';
+import {
+    TownSuggestions,
+    townTooltip,
+    useGhanaTowns,
+} from '@/components/town-suggestions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,6 +63,7 @@ type Member = {
     date_of_birth: string | null;
     place_of_birth: string | null;
     hometown: string | null;
+    profession_id: number | null;
     mobile: string | null;
     telephone: string | null;
     email: string | null;
@@ -85,6 +91,7 @@ type Member = {
     mother_name: string | null;
     mother_member: LinkedMember;
     joined_on: string | null;
+    previous_congregation: string | null;
     generational_group: string | null;
     non_communicant: boolean;
     non_communicant_reason: string | null;
@@ -129,6 +136,13 @@ type Props = {
     executiveGroups: string[];
     /** The church's committees, for a committee service record. */
     committees: string[];
+    /** Occupations grouped by category, for Basic Info. */
+    occupations: {
+        category: string;
+        options: { id: number; name: string }[];
+    }[];
+    /** Previous congregations already typed on other records. */
+    previousCongregations: string[];
     /** The church's city (Church Settings): its neighbourhoods and region narrow the Residence suggestions. */
     residenceArea: {
         city: string | null;
@@ -161,6 +175,7 @@ const STEP_OF_FIELD: Record<string, number> = {
     date_of_birth: 0,
     place_of_birth: 0,
     hometown: 0,
+    profession_id: 0,
     photo: 0,
     mobile: 1,
     telephone: 1,
@@ -187,6 +202,7 @@ const STEP_OF_FIELD: Record<string, number> = {
     mother_member_id: 2,
     next_of_kin: 2,
     joined_on: 3,
+    previous_congregation: 3,
     group_ids: 3,
     service_records: 4,
     sacraments: 5,
@@ -273,66 +289,8 @@ type TextField =
     | 'father_name'
     | 'mother_name'
     | 'joined_on'
+    | 'previous_congregation'
     | 'non_communicant_reason';
-
-/**
- * A dropdown of listed values with "Other…" for anything else, which is then typed in. The typed or picked text is
- * the value; a saved value that is not on the list opens as "Other…" with its text.
- */
-function ChoiceOrOther({
-    id,
-    value,
-    options,
-    onChange,
-    placeholder,
-    required,
-}: {
-    id: string;
-    value: string;
-    options: string[];
-    onChange: (value: string) => void;
-    placeholder: string;
-    required?: boolean;
-}) {
-    const [typing, setTyping] = useState(
-        () => value !== '' && !options.includes(value),
-    );
-    const other = typing || (value !== '' && !options.includes(value));
-
-    return (
-        <>
-            <NativeSelect
-                id={id}
-                value={other ? '__other' : value}
-                onChange={(e) => {
-                    const picked = e.target.value;
-                    setTyping(picked === '__other');
-                    onChange(picked === '__other' ? '' : picked);
-                }}
-                required={required && !other}
-            >
-                <option value="">Select…</option>
-                {options.map((option) => (
-                    <option key={option} value={option}>
-                        {option}
-                    </option>
-                ))}
-                <option value="__other">Other…</option>
-            </NativeSelect>
-            {other && (
-                <Input
-                    aria-label={`${placeholder}, in words`}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    placeholder={placeholder}
-                    maxLength={150}
-                    required={required}
-                    autoFocus={typing}
-                />
-            )}
-        </>
-    );
-}
 
 export default function AdultMemberForm({
     maritalStatuses,
@@ -345,6 +303,8 @@ export default function AdultMemberForm({
     positions,
     executiveGroups,
     committees,
+    occupations,
+    previousCongregations,
     residenceArea,
     presbyteries,
     congregations,
@@ -355,7 +315,10 @@ export default function AdultMemberForm({
     const editing = member !== null;
     const opening = Math.min(Math.max(initialStep, 0), STEPS.length - 1);
     const [step, setStep] = useState(opening);
-    const [reached, setReached] = useState(opening);
+    // Editing, every step is open from the start; registering, a step opens once reached with Next.
+    const [reached, setReached] = useState(
+        editing ? STEPS.length - 1 : opening,
+    );
     const [spouse, setSpouse] = useState<Member['spouse_member']>(
         member?.spouse_member ?? null,
     );
@@ -384,6 +347,9 @@ export default function AdultMemberForm({
         date_of_birth: member?.date_of_birth ?? '',
         place_of_birth: member?.place_of_birth ?? '',
         hometown: member?.hometown ?? '',
+        profession_id: member?.profession_id
+            ? String(member.profession_id)
+            : '',
         photo: null as File | null,
         mobile: member?.mobile ?? '',
         telephone: member?.telephone ?? '',
@@ -408,6 +374,7 @@ export default function AdultMemberForm({
         mother_name: member?.mother_member ? '' : (member?.mother_name ?? ''),
         mother_member_id: (member?.mother_member?.id ?? null) as number | null,
         joined_on: member?.joined_on ?? '',
+        previous_congregation: member?.previous_congregation ?? '',
         non_communicant: member?.non_communicant ?? false,
         non_communicant_reason: member?.non_communicant_reason ?? '',
         // Tells the server the Next of Kin, Sacraments, Groups and Service steps were part of this save.
@@ -450,6 +417,27 @@ export default function AdultMemberForm({
     });
 
     const errors = form.errors as Record<string, string | undefined>;
+
+    // Hover text for the town fields: the town's district and region.
+    const towns = useGhanaTowns();
+    const residenceTooltip = () => {
+        const value = form.data.residence.trim().toLowerCase();
+        const neighbourhood = residenceArea.neighbourhoods.find(
+            (n) => n.toLowerCase() === value,
+        );
+
+        return neighbourhood
+            ? [
+                  `Neighbourhood: ${neighbourhood}`,
+                  `City: ${residenceArea.city}`,
+                  residenceArea.region
+                      ? `Region: ${residenceArea.region} Region`
+                      : null,
+              ]
+                  .filter(Boolean)
+                  .join(' · ')
+            : townTooltip(towns, form.data.residence);
+    };
 
     /** Checks the fields of one step with the browser's own rules and points at the first problem. */
     const stepIsValid = (at: number) => {
@@ -507,17 +495,17 @@ export default function AdultMemberForm({
         });
     };
 
+    /**
+     * Enter inside a field never saves: before the last step it moves on, on the last step it does nothing. Saving
+     * is only ever a click on Save, Save Changes or Register (all type="button", so a click cannot turn into a
+     * submit when the button under the pointer changes from Next to Save Changes).
+     */
     const submit = (event: FormEvent) => {
         event.preventDefault();
 
-        // Enter inside a field moves on, it does not save half a form.
         if (step < last) {
             next();
-
-            return;
         }
-
-        save(false);
     };
 
     const text = (
@@ -919,7 +907,7 @@ export default function AdultMemberForm({
                                     <button
                                         type="button"
                                         disabled={i > reached}
-                                        onClick={() => setStep(i)}
+                                        onClick={() => goTo(i)}
                                         aria-current={
                                             step === i ? 'step' : undefined
                                         }
@@ -1019,13 +1007,48 @@ export default function AdultMemberForm({
                                 list: 'ghana-towns',
                                 autoComplete: 'off',
                                 placeholder: 'Town',
+                                title: townTooltip(
+                                    towns,
+                                    form.data.place_of_birth,
+                                ),
                             })}
                             {text('hometown', 'Home town', {
                                 list: 'ghana-towns',
                                 autoComplete: 'off',
                                 placeholder: 'Town',
+                                title: townTooltip(towns, form.data.hometown),
                             })}
                             <TownSuggestions id="ghana-towns" />
+                            <div className="grid gap-2">
+                                <Label htmlFor="profession_id">
+                                    Occupation / Profession
+                                </Label>
+                                <NativeSelect
+                                    id="profession_id"
+                                    value={form.data.profession_id}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'profession_id',
+                                            e.target.value,
+                                        )
+                                    }
+                                >
+                                    <option value="">Not stated</option>
+                                    {occupations.map((group) => (
+                                        <optgroup
+                                            key={group.category}
+                                            label={group.category}
+                                        >
+                                            {group.options.map((o) => (
+                                                <option key={o.id} value={o.id}>
+                                                    {o.name}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    ))}
+                                </NativeSelect>
+                                <InputError message={errors.profession_id} />
+                            </div>
                         </section>
                     </>,
                 )}
@@ -1044,6 +1067,7 @@ export default function AdultMemberForm({
                             {text('residence', 'Residence', {
                                 list: 'residences',
                                 autoComplete: 'off',
+                                title: residenceTooltip(),
                                 placeholder: residenceArea.city
                                     ? `Neighbourhood in ${residenceArea.city}`
                                     : 'Neighbourhood or town',
@@ -1399,6 +1423,21 @@ export default function AdultMemberForm({
                                 Church
                             </h2>
                             {text('joined_on', 'Date joined', { type: 'date' })}
+                            {text(
+                                'previous_congregation',
+                                'Previous congregation',
+                                {
+                                    list: 'previous-congregations',
+                                    autoComplete: 'off',
+                                    placeholder: 'Where the member came from',
+                                    maxLength: 150,
+                                },
+                            )}
+                            <datalist id="previous-congregations">
+                                {previousCongregations.map((c) => (
+                                    <option key={c} value={c} />
+                                ))}
+                            </datalist>
                             <div className="grid gap-2">
                                 <Label>Generational group</Label>
                                 <p className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-sm">
@@ -1795,11 +1834,16 @@ export default function AdultMemberForm({
                             </Button>
                         )}
                         {step < last ? (
-                            <Button type="button" onClick={next}>
+                            <Button key="next" type="button" onClick={next}>
                                 Next
                             </Button>
                         ) : (
-                            <Button type="submit" disabled={form.processing}>
+                            <Button
+                                key="finish"
+                                type="button"
+                                disabled={form.processing}
+                                onClick={() => save(false)}
+                            >
                                 {editing ? 'Save Changes' : 'Register'}
                             </Button>
                         )}

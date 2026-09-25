@@ -13,17 +13,13 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { usePermission } from '@/hooks/use-permission';
-import {
-    administrationItems,
-    directoryItems,
-    platformItems,
-} from '@/lib/navigation';
+import { moduleSections, platformItems, systemSection } from '@/lib/navigation';
 import type { GatedNavItem } from '@/lib/navigation';
 import { dashboard } from '@/routes';
 
 export function AppSidebar() {
     const { can } = usePermission();
-    // On a phone, Dashboard and the directories live in the app drawer (MobileNav); the sidebar keeps the rest.
+    // On a phone, Dashboard and the modules live in the app drawer (MobileNav); the sidebar keeps System.
     const { isMobile } = useSidebar();
     const visible = (items: GatedNavItem[]) =>
         items.filter((item) => !item.permission || can(item.permission));
@@ -49,15 +45,20 @@ export function AppSidebar() {
                             items={visible(platformItems)}
                             label="Platform"
                         />
-                        <NavMain
-                            items={visible(directoryItems)}
-                            label="Directory"
-                        />
+                        {moduleSections.map((section) => (
+                            <NavMain
+                                key={section.title}
+                                items={visible(section.items)}
+                                label={section.title}
+                                collapsible
+                            />
+                        ))}
                     </>
                 )}
                 <NavMain
-                    items={visible(administrationItems)}
-                    label="Administration"
+                    items={visible(systemSection.items)}
+                    label={systemSection.title}
+                    collapsible={!isMobile}
                 />
             </SidebarContent>
 

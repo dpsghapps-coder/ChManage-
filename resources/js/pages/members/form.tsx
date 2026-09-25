@@ -38,6 +38,14 @@ type GuardianPayload = {
     is_primary: boolean;
 };
 
+/** The form's sections, for the jump buttons at the top: [element id, label]. */
+const SECTIONS = [
+    ['section-photo', 'Photo & Location'],
+    ['section-member', 'Member'],
+    ['section-contact', 'Contact'],
+    ['section-guardians', 'Guardians'],
+] as const;
+
 type Child = {
     id: number;
     first_name: string | null;
@@ -194,7 +202,34 @@ export default function MemberForm({ relationships, child }: Props) {
                     }
                 />
 
-                <section className="grid gap-5 rounded-lg border p-5">
+                {/* Jump to any section of the form. */}
+                <nav
+                    aria-label="Form sections"
+                    className="sticky top-0 z-10 -mx-4 flex gap-2 overflow-x-auto border-b bg-background/95 px-4 py-2 backdrop-blur"
+                >
+                    {SECTIONS.map(([id, label]) => (
+                        <Button
+                            key={id}
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0"
+                            onClick={() =>
+                                document.getElementById(id)?.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                })
+                            }
+                        >
+                            {label}
+                        </Button>
+                    ))}
+                </nav>
+
+                <section
+                    id="section-photo"
+                    className="grid scroll-mt-16 gap-5 rounded-lg border p-5"
+                >
                     <h2 className="font-medium">Photo and Location</h2>
                     <PhotoPicker
                         value={form.data.photo}
@@ -237,7 +272,10 @@ export default function MemberForm({ relationships, child }: Props) {
                     </div>
                 </section>
 
-                <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-3">
+                <section
+                    id="section-member"
+                    className="grid scroll-mt-16 gap-5 rounded-lg border p-5 sm:grid-cols-3"
+                >
                     <h2 className="font-medium sm:col-span-3">Member</h2>
                     {text('first_name', 'First name', { required: true })}
                     {text('last_name', 'Surname', { required: true })}
@@ -265,7 +303,10 @@ export default function MemberForm({ relationships, child }: Props) {
                     {text('joined_on', 'Date joined', { type: 'date' })}
                 </section>
 
-                <section className="grid gap-5 rounded-lg border p-5 sm:grid-cols-2">
+                <section
+                    id="section-contact"
+                    className="grid scroll-mt-16 gap-5 rounded-lg border p-5 sm:grid-cols-2"
+                >
                     <div className="sm:col-span-2">
                         <h2 className="font-medium">Contact</h2>
                         <p className="mt-1 text-sm text-muted-foreground">
@@ -277,7 +318,10 @@ export default function MemberForm({ relationships, child }: Props) {
                     {text('telephone', 'Contact no. 2')}
                 </section>
 
-                <section className="space-y-4">
+                <section
+                    id="section-guardians"
+                    className="scroll-mt-16 space-y-4"
+                >
                     <div className="flex items-center justify-between gap-3">
                         <h2 className="font-medium">Guardians</h2>
                         <Button

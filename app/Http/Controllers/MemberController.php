@@ -10,6 +10,7 @@ use App\Models\MemberGroup;
 use App\Models\MemberNextOfKin;
 use App\Models\MemberSacrament;
 use App\Models\MemberServiceRecord;
+use App\Models\Profession;
 use App\Models\ServicePosition;
 use App\Models\YoungMember;
 use App\Rules\PhoneNumber;
@@ -332,6 +333,10 @@ class MemberController extends Controller
             // The Service step: positions for each type of service, and the groups an executive can serve.
             'positions' => ServicePosition::byType(),
             'committees' => Committee::orderBy('sort_order')->orderBy('name')->pluck('name'),
+            'occupations' => Profession::grouped(),
+            // Suggestions for Previous Congregation: ones already typed on other records.
+            'previousCongregations' => Member::whereNotNull('previous_congregation')->where('previous_congregation', '!=', '')
+                ->distinct()->orderBy('previous_congregation')->pluck('previous_congregation'),
             'executiveGroups' => [
                 ...MemberGroup::where('name', '!=', 'Other')->orderBy('name')->pluck('name'),
                 ...array_values(Member::GENERATIONAL_GROUPS),
@@ -475,6 +480,8 @@ class MemberController extends Controller
             'date_of_birth' => ['required', 'date', 'before_or_equal:'.today()->subYears(YoungMember::REGISTER_UNDER)->toDateString()],
             'marital_status' => ['nullable', Rule::in(self::MARITAL_STATUSES)],
             'joined_on' => ['nullable', 'date', 'before_or_equal:today'],
+            'previous_congregation' => ['nullable', 'string', 'max:150'],
+            'profession_id' => ['nullable', 'integer', Rule::exists('professions', 'id')],
             'place_of_birth' => ['nullable', 'string', 'max:150'],
             'hometown' => ['nullable', 'string', 'max:150'],
             'mobile' => ['nullable', new PhoneNumber],
@@ -536,6 +543,8 @@ class MemberController extends Controller
             'date_of_birth' => $data['date_of_birth'],
             'marital_status' => $data['marital_status'] ?? null,
             'joined_on' => $data['joined_on'] ?? null,
+            'previous_congregation' => filled($data['previous_congregation'] ?? null) ? trim($data['previous_congregation']) : null,
+            'profession_id' => $data['profession_id'] ?? null,
             'generational_group' => Member::generationalGroupFor($data['date_of_birth'], $data['sex']),
             'place_of_birth' => $data['place_of_birth'] ?? null,
             'hometown' => $data['hometown'] ?? null,

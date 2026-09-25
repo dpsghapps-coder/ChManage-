@@ -22,6 +22,8 @@ type Settings = {
     district: string;
     congregation: string;
     city: string;
+    /** Days without a visit or lesson before a newcomer is flagged for follow-up. */
+    followup_days: number;
 };
 
 type Presbytery = {
@@ -169,6 +171,40 @@ export default function ChurchSettings({
                     ))}
                     {/* City suggestions: cities with a neighbourhood list, then the Ghana town list. */}
                     <TownSuggestions id="city-options" extra={cities} />
+                </section>
+
+                <section className="grid gap-2 rounded-lg border p-5">
+                    <h2 className="font-medium">Newcomers</h2>
+                    <Label htmlFor="followup_days">
+                        Flag for follow-up after
+                    </Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            id="followup_days"
+                            type="number"
+                            inputMode="numeric"
+                            min={7}
+                            max={365}
+                            className="w-28"
+                            value={form.data.followup_days}
+                            onChange={(e) =>
+                                form.setData(
+                                    'followup_days',
+                                    Number(e.target.value),
+                                )
+                            }
+                            required
+                        />
+                        <span className="text-sm text-muted-foreground">
+                            days
+                        </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        A visitor, newcomer or catechumen with no visit and no
+                        completed lesson for this long shows under “Needs
+                        follow-up” on the Newcomers overview.
+                    </p>
+                    <InputError message={form.errors.followup_days} />
                 </section>
 
                 {/* The lists these settings draw their suggestions from. */}

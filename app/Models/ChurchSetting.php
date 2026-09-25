@@ -32,6 +32,18 @@ class ChurchSetting extends Model
         'city' => 'city_name',
     ];
 
+    /** Days without a visit or a lesson after which someone still coming is flagged on the Newcomers overview. */
+    public const FOLLOWUP_DAYS = 'newcomer_followup_days';
+
+    public const DEFAULT_FOLLOWUP_DAYS = 60;
+
+    public static function followUpDays(): int
+    {
+        $days = (int) (static::values([self::FOLLOWUP_DAYS])[self::FOLLOWUP_DAYS] ?? 0);
+
+        return $days > 0 ? $days : self::DEFAULT_FOLLOWUP_DAYS;
+    }
+
     /** @param  list<string>  $keys  @return array<string, ?string> */
     public static function values(array $keys): array
     {

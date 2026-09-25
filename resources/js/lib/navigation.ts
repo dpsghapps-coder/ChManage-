@@ -65,8 +65,14 @@ import * as finance from '@/routes/finance';
 import { index as membersIndex } from '@/routes/members';
 import { create as adultCreate } from '@/routes/members/adult';
 import * as ministry from '@/routes/ministry';
+import {
+    calendar as eventsCalendar,
+    index as eventsIndex,
+} from '@/routes/events';
+import { index as decisionsIndex } from '@/routes/decisions';
+import { index as meetingsIndex } from '@/routes/meetings';
 import * as operations from '@/routes/operations';
-import { index as newcomersIndex } from '@/routes/newcomers';
+import { overview as newcomersIndex } from '@/routes/newcomers';
 import { index as presbyteriesIndex } from '@/routes/presbyteries';
 import * as reporting from '@/routes/reporting';
 import * as resources from '@/routes/resources';
@@ -139,10 +145,30 @@ export const moduleSections: NavSection[] = [
     {
         title: 'Operations',
         items: [
-            soon('Events', operations.events(), CalendarDays),
-            soon('Calendar', operations.calendar(), CalendarRange),
-            soon('Meetings', operations.meetings(), Presentation),
-            soon('Decisions', operations.decisions(), Gavel),
+            {
+                title: 'Events',
+                href: eventsIndex(),
+                icon: CalendarDays,
+                permission: 'events.view',
+            },
+            {
+                title: 'Calendar',
+                href: eventsCalendar(),
+                icon: CalendarRange,
+                permission: 'events.view',
+            },
+            {
+                title: 'Meetings',
+                href: meetingsIndex(),
+                icon: Presentation,
+                permission: 'meetings.view',
+            },
+            {
+                title: 'Decisions & Actions',
+                href: decisionsIndex(),
+                icon: Gavel,
+                permission: 'meetings.view',
+            },
             soon('Tasks', operations.tasks(), ListChecks),
             soon('Facilities', operations.facilities(), Building2),
         ],

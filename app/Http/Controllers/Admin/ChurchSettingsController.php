@@ -18,7 +18,7 @@ class ChurchSettingsController extends Controller
     public function edit(): Response
     {
         return Inertia::render('admin/church/edit', [
-            'settings' => $this->current(),
+            'settings' => [...$this->current(), 'followup_days' => ChurchSetting::followUpDays()],
             // Suggestions only: a presbytery or district missing from the list can still be typed in.
             'presbyteries' => Presbyteries::options(),
             // Cities with a neighbourhood list come first among the City suggestions.
@@ -35,7 +35,8 @@ class ChurchSettingsController extends Controller
             'congregation' => ['required', 'string', 'max:150'],
             // Optional: without it, Residence suggests towns from anywhere in Ghana.
             'city' => ['nullable', 'string', 'max:150'],
-        ]);
+            'followup_days' => ['sometimes', 'integer', 'between:7,365'],
+        ], ['followup_days.between' => 'Choose between 7 and 365 days.']);
 
         $before = $this->current();
         $changed = [];
@@ -48,6 +49,11 @@ class ChurchSettingsController extends Controller
             }
 
             ChurchSetting::put($key, $value);
+        }
+
+        if (isset($data['followup_days']) && (int) $data['followup_days'] !== ChurchSetting::followUpDays()) {
+            $changed['followup_days'] = ['from' => ChurchSetting::followUpDays(), 'to' => (int) $data['followup_days']];
+            ChurchSetting::put(ChurchSetting::FOLLOWUP_DAYS, (string) (int) $data['followup_days']);
         }
 
         if ($changed) {

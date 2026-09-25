@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ChurchSettingsController;
 use App\Http\Controllers\Admin\CommitteeController;
+use App\Http\Controllers\Admin\EventVenueController;
 use App\Http\Controllers\Admin\NeighbourhoodController;
 use App\Http\Controllers\Admin\NewcomerCounsellorController;
 use App\Http\Controllers\Admin\NewcomerLessonController;
@@ -15,7 +16,11 @@ use App\Http\Controllers\Admin\ServicePositionController;
 use App\Http\Controllers\Admin\TownController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\MeetingActionController;
+use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MeetingDecisionController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MemberReportController;
 use App\Http\Controllers\NewcomerController;
@@ -69,6 +74,8 @@ Route::middleware('auth')->group(function () {
     // Visitors, newcomers and catechumens. The settings tabs (counsellors, lessons, lists) come before {newcomer}.
     Route::prefix('people/newcomers')->name('newcomers.')->group(function () {
         Route::get('/', [NewcomerController::class, 'index'])->middleware('permission:newcomers.view')->name('index');
+        Route::get('overview', [NewcomerController::class, 'overview'])->middleware('permission:newcomers.view')->name('overview');
+        Route::get('dashboard', [NewcomerController::class, 'dashboard'])->middleware('permission:newcomers.view')->name('dashboard');
         Route::get('create', [NewcomerController::class, 'create'])->middleware('permission:newcomers.manage')->name('create');
         Route::post('/', [NewcomerController::class, 'store'])->middleware('permission:newcomers.manage')->name('store');
         Route::get('duplicates', [NewcomerController::class, 'duplicates'])->middleware('permission:newcomers.manage')->name('duplicates');
@@ -101,6 +108,56 @@ Route::middleware('auth')->group(function () {
         Route::post('{newcomer}/promote', [NewcomerController::class, 'promote'])->middleware('permission:newcomers.promote')->name('promote');
         Route::put('{newcomer}/status', [NewcomerController::class, 'setStatus'])->middleware('permission:newcomers.manage')->name('status');
     });
+
+    // Events and the calendar. The venues list (settings) comes before {event}.
+    Route::get('operations/calendar', [EventController::class, 'calendar'])->middleware('permission:events.view')->name('events.calendar');
+    Route::prefix('operations/events')->name('events.')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->middleware('permission:events.view')->name('index');
+        Route::get('create', [EventController::class, 'create'])->middleware('permission:events.manage')->name('create');
+        Route::post('/', [EventController::class, 'store'])->middleware('permission:events.manage')->name('store');
+
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::get('venues', [EventVenueController::class, 'index'])->name('venues.index');
+            Route::post('venues', [EventVenueController::class, 'store'])->name('venues.store');
+            Route::put('venues/{venue}', [EventVenueController::class, 'update'])->name('venues.update');
+            Route::delete('venues/{venue}', [EventVenueController::class, 'destroy'])->name('venues.destroy');
+        });
+
+        Route::get('{event}', [EventController::class, 'show'])->middleware('permission:events.view')->name('show');
+        Route::get('{event}/edit', [EventController::class, 'edit'])->middleware('permission:events.manage')->name('edit');
+        Route::put('{event}', [EventController::class, 'update'])->middleware('permission:events.manage')->name('update');
+        Route::put('{event}/status', [EventController::class, 'setStatus'])->middleware('permission:events.manage')->name('status');
+        Route::delete('{event}', [EventController::class, 'destroy'])->middleware('permission:events.manage')->name('destroy');
+    });
+
+    // Committee meetings, their decisions and the actions that follow. Fixed paths come before {meeting}.
+    Route::prefix('operations/meetings')->name('meetings.')->group(function () {
+        Route::get('/', [MeetingController::class, 'index'])->middleware('permission:meetings.view')->name('index');
+        Route::get('create', [MeetingController::class, 'create'])->middleware('permission:meetings.manage')->name('create');
+        Route::post('/', [MeetingController::class, 'store'])->middleware('permission:meetings.manage')->name('store');
+
+        Route::get('{meeting}', [MeetingController::class, 'show'])->middleware('permission:meetings.view')->name('show');
+        Route::get('{meeting}/edit', [MeetingController::class, 'edit'])->middleware('permission:meetings.manage')->name('edit');
+        Route::put('{meeting}', [MeetingController::class, 'update'])->middleware('permission:meetings.manage')->name('update');
+        Route::put('{meeting}/status', [MeetingController::class, 'setStatus'])->middleware('permission:meetings.manage')->name('status');
+        Route::put('{meeting}/minutes', [MeetingController::class, 'updateMinutes'])->middleware('permission:meetings.manage')->name('minutes');
+        Route::delete('{meeting}', [MeetingController::class, 'destroy'])->middleware('permission:meetings.manage')->name('destroy');
+
+        Route::post('{meeting}/attendees', [MeetingController::class, 'storeAttendee'])->middleware('permission:meetings.manage')->name('attendees.store');
+        Route::put('{meeting}/attendees/{attendee}', [MeetingController::class, 'updateAttendee'])->middleware('permission:meetings.manage')->name('attendees.update');
+        Route::delete('{meeting}/attendees/{attendee}', [MeetingController::class, 'destroyAttendee'])->middleware('permission:meetings.manage')->name('attendees.destroy');
+
+        Route::post('{meeting}/decisions', [MeetingDecisionController::class, 'store'])->middleware('permission:meetings.manage')->name('decisions.store');
+    });
+
+    Route::get('operations/decisions', [MeetingDecisionController::class, 'index'])->middleware('permission:meetings.view')->name('decisions.index');
+    Route::put('operations/decisions/{decision}', [MeetingDecisionController::class, 'update'])->middleware('permission:meetings.manage')->name('decisions.update');
+    Route::delete('operations/decisions/{decision}', [MeetingDecisionController::class, 'destroy'])->middleware('permission:meetings.manage')->name('decisions.destroy');
+    Route::post('operations/decisions/{decision}/actions', [MeetingActionController::class, 'store'])->middleware('permission:meetings.manage')->name('actions.store');
+
+    Route::get('operations/actions', [MeetingActionController::class, 'index'])->middleware('permission:meetings.view')->name('actions.index');
+    Route::put('operations/actions/{action}', [MeetingActionController::class, 'update'])->middleware('permission:meetings.manage')->name('actions.update');
+    Route::delete('operations/actions/{action}', [MeetingActionController::class, 'destroy'])->middleware('permission:meetings.manage')->name('actions.destroy');
 
     // Modules still to be built: each is a "coming soon" page with its menu link, named e.g. finance.giving.
     foreach (config('modules') as $section => $module) {

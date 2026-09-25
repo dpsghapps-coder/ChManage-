@@ -15,7 +15,7 @@ class CommitteesTest extends TestCase
 
     public function test_the_committees_are_seeded_and_offered_on_the_member_form(): void
     {
-        $this->assertSame(13, Committee::count());
+        $this->assertSame(15, Committee::count());
 
         $this->actingAs($this->userWith(['members.create']))->get(route('members.adult.create'))->assertInertia(fn (Assert $page) => $page
             ->where('committees.0', 'Administration and Human Resource Management')
@@ -35,7 +35,7 @@ class CommitteesTest extends TestCase
         $member->serviceRecords()->create(['type' => 'executive', 'name' => 'Committee on Finance', 'position' => 'Secretary', 'started_on' => '2020-01-01']);
 
         $this->actingAs($user)->get(route('admin.committees.index'))->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->component('admin/committees/index')->has('committees', 13)
+            ->component('admin/committees/index')->has('committees', 15)
             ->where('committees', fn ($list) => collect($list)->firstWhere('name', 'Committee on Finance')['records'] === 1));
 
         $this->actingAs($user)->post(route('admin.committees.store'), ['name' => '  Media  Committee '])->assertSessionHasNoErrors();

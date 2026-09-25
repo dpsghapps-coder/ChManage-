@@ -93,6 +93,20 @@ return [
                 'record' => 'Record visitors',
             ],
         ],
+        'meetings' => [
+            'label' => 'Meetings, Decisions & Actions',
+            'actions' => [
+                'view' => 'View meetings, minutes, decisions and actions',
+                'manage' => 'Record meetings, minutes, decisions and actions, and update their status',
+            ],
+        ],
+        'events' => [
+            'label' => 'Events & Calendar',
+            'actions' => [
+                'view' => 'View the events and the calendar',
+                'manage' => 'Create, change, cancel and delete events',
+            ],
+        ],
         'newcomers' => [
             'label' => 'Visitors & Newcomers',
             'actions' => [
@@ -170,11 +184,11 @@ return [
         'admin' => ['*'],
         'admin_super_user' => [
             'members.*', 'contributions.*', 'income.*', 'expenses.*', 'budgets.*', 'banking.*', 'payroll.view',
-            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'sms.*', 'reports.view', 'staff.*',
+            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'events.*', 'meetings.*', 'sms.*', 'reports.view', 'staff.*',
             'users.view', 'roles.view', 'permissions.view',
         ],
         'admin_user' => [
-            'members.view', 'members.create', 'members.edit', 'attendance.*', 'visitors.*', 'newcomers.view', 'newcomers.manage', 'sms.*',
+            'members.view', 'members.create', 'members.edit', 'attendance.*', 'visitors.*', 'newcomers.view', 'newcomers.manage', 'events.view', 'events.manage', 'meetings.view', 'sms.*',
             'staff.view', 'assets.view', 'reports.view',
         ],
         'admin_data_entry' => [

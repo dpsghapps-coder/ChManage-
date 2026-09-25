@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { index as counsellors } from '@/routes/newcomers/counsellors';
 import { index as lessons } from '@/routes/newcomers/lessons';
 import { index as lists } from '@/routes/newcomers/lists';
-import { index } from '@/routes/newcomers';
+import { dashboard, index, overview } from '@/routes/newcomers';
 
 /** The tabs across the top of the Newcomers section. Counsellors, lessons and lists are settings, so they need `settings.manage`. */
 export function NewcomersNav() {
@@ -14,6 +14,8 @@ export function NewcomersNav() {
     const { isCurrentUrl } = useCurrentUrl();
 
     const tabs = [
+        { title: 'Overview', href: overview(), show: can('newcomers.view') },
+        { title: 'Dashboard', href: dashboard(), show: can('newcomers.view') },
         { title: 'People', href: index(), show: can('newcomers.view') },
         {
             title: 'Counsellors',

@@ -39,6 +39,7 @@ type Row = {
     counsellor: string | null;
     lessons_done: number;
     lessons_total: number;
+    current_lesson: { title: string; state: 'now' | 'next' } | null;
 };
 
 type Filters = {
@@ -58,6 +59,12 @@ type Props = {
     myCounsellorId: number | null;
     filters: Filters;
 };
+
+/** "Now: Baptism" for the lesson in progress, "Next: Baptism" for the one after, or that they have finished. */
+const lessonNow = (p: Row) =>
+    p.current_lesson
+        ? `${p.current_lesson.state === 'now' ? 'Now' : 'Next'}: ${p.current_lesson.title}`
+        : 'All lessons done';
 
 const formatDate = (iso: string | null) =>
     iso
@@ -264,7 +271,7 @@ export default function NewcomersIndex({
                                                 : 'No counsellor yet'}
                                             {p.stage === 'catechumen' &&
                                             p.lessons_total > 0
-                                                ? ` · Lessons ${p.lessons_done}/${p.lessons_total}`
+                                                ? ` · Lessons ${p.lessons_done}/${p.lessons_total} · ${lessonNow(p)}`
                                                 : ''}
                                         </p>
                                     </Link>
@@ -325,11 +332,21 @@ export default function NewcomersIndex({
                                             <TableCell>
                                                 {formatDate(p.first_visit_on)}
                                             </TableCell>
-                                            <TableCell className="tabular-nums">
+                                            <TableCell>
                                                 {p.stage === 'catechumen' &&
-                                                p.lessons_total > 0
-                                                    ? `${p.lessons_done}/${p.lessons_total}`
-                                                    : '—'}
+                                                p.lessons_total > 0 ? (
+                                                    <>
+                                                        <span className="tabular-nums">
+                                                            {p.lessons_done}/
+                                                            {p.lessons_total}
+                                                        </span>
+                                                        <span className="block text-xs text-muted-foreground">
+                                                            {lessonNow(p)}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    '—'
+                                                )}
                                             </TableCell>
                                             <TableCell
                                                 className={cn(

@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Models\ChurchSetting;
 use App\Models\Member;
 use App\Models\MemberNextOfKin;
 use App\Models\Newcomer;
 use App\Models\NewcomerCounsellor;
 use App\Models\NewcomerLesson;
 use App\Models\NewcomerOption;
+use App\Models\NewcomerStageChange;
+use App\Models\NewcomerVisit;
 use App\Models\YoungMember;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -302,7 +305,16 @@ class NewcomersTest extends TestCase
 
         // Skipped lessons are not counted against them.
         $this->actingAs($user)->get(route('newcomers.index'))->assertInertia(fn (Assert $page) => $page
-            ->where('people.data.0.lessons_done', 1)->where('people.data.0.lessons_total', 2));
+            ->where('people.data.0.lessons_done', 1)->where('people.data.0.lessons_total', 2)
+            ->where('people.data.0.current_lesson', ['title' => 'Lesson 2', 'state' => 'now']));
+
+        // With nothing in progress it is the next lesson not started; with all done there is none.
+        $this->actingAs($user)->put(route('newcomers.progress.update', [$person, $two]), ['status' => 'not_started']);
+        $this->actingAs($user)->get(route('newcomers.index'))->assertInertia(fn (Assert $page) => $page
+            ->where('people.data.0.current_lesson', ['title' => 'Lesson 2', 'state' => 'next']));
+        $this->actingAs($user)->put(route('newcomers.progress.update', [$person, $two]), ['status' => 'completed']);
+        $this->actingAs($user)->get(route('newcomers.index'))->assertInertia(fn (Assert $page) => $page->where('people.data.0.current_lesson', null));
+        $this->actingAs($user)->put(route('newcomers.progress.update', [$person, $two]), ['status' => 'in_progress']);
 
         // A completed lesson forgets its date once it is reopened; a lesson added later reaches them; a lesson on a record cannot be removed.
         $this->actingAs($user)->put(route('newcomers.progress.update', [$person, $one]), ['status' => 'in_progress']);
@@ -389,6 +401,79 @@ class NewcomersTest extends TestCase
 
         // Making a member needs its own permission.
         $this->actingAs($this->userWith(['newcomers.view', 'newcomers.manage']))->post(route('newcomers.promote', $noSex), ['joined_on' => today()->toDateString()])->assertForbidden();
+    }
+
+    public function test_the_overview_flags_who_has_gone_quiet_and_who_needs_attention(): void
+    {
+        $user = $this->userWith(['newcomers.view']);
+        $quiet = $this->newcomerWithCounsellor(['first_visit_on' => today()->subDays(100), 'first_name' => 'Quiet']);
+        $seen = $this->newcomerWithCounsellor(['first_visit_on' => today()->subDays(100), 'first_name' => 'Seen']);
+        NewcomerVisit::create(['newcomer_id' => $seen->id, 'visited_on' => today()->subDay()]);
+        $this->newcomerWithCounsellor(['first_visit_on' => today()->subDays(100), 'status' => 'on_hold', 'first_name' => 'Paused']);
+        Newcomer::create(['first_visit_on' => today()->subDays(3), 'surname' => 'Boateng', 'first_name' => 'Waiting']);
+
+        $this->lessons(2);
+        $done = $this->newcomerWithCounsellor(['first_visit_on' => today()->subDays(100), 'stage' => 'catechumen', 'first_name' => 'Done']);
+        $done->syncLessons();
+        $done->progress()->update(['status' => 'completed', 'completed_on' => today()->subDays(2)]);
+
+        $this->actingAs($user)->get(route('newcomers.overview'))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('newcomers/overview')
+            ->where('counts', ['visitor' => 1, 'newcomer' => 3, 'catechumen' => 1, 'member' => 0])
+            ->where('on_hold', 1)->where('follow_up.days', 60)->where('follow_up.total', 1)
+            ->where('follow_up.people.0.id', $quiet->id)->where('follow_up.people.0.days_quiet', 100)
+            ->where('waiting.total', 1)->where('waiting.people.0.name', 'Waiting Boateng')
+            ->where('ready.total', 1)->where('ready.people.0.id', $done->id));
+
+        // The period is a setting: a longer one leaves the quiet newcomer alone.
+        ChurchSetting::put(ChurchSetting::FOLLOWUP_DAYS, '120');
+        $this->actingAs($user)->get(route('newcomers.overview'))->assertInertia(fn (Assert $page) => $page->where('follow_up.total', 0)->where('follow_up.days', 120));
+
+        $this->actingAs($this->userWith([]))->get(route('newcomers.overview'))->assertForbidden();
+        $this->actingAs($this->userWith([]))->get(route('newcomers.dashboard'))->assertForbidden();
+    }
+
+    public function test_the_follow_up_period_is_set_on_church_settings(): void
+    {
+        $user = $this->userWith(['settings.manage']);
+        $church = ['church_name' => 'PCG', 'presbytery' => 'Accra West', 'district' => 'Mamprobi', 'congregation' => 'Ebenezer'];
+
+        $this->actingAs($user)->get(route('admin.church.edit'))->assertInertia(fn (Assert $page) => $page->where('settings.followup_days', 60));
+        $this->actingAs($user)->put(route('admin.church.update'), [...$church, 'followup_days' => 3])->assertSessionHasErrors('followup_days');
+        $this->actingAs($user)->put(route('admin.church.update'), [...$church, 'followup_days' => 45])->assertSessionHasNoErrors();
+        $this->assertSame(45, ChurchSetting::followUpDays());
+        // Saving the church details without the field leaves the period alone.
+        $this->actingAs($user)->put(route('admin.church.update'), $church)->assertSessionHasNoErrors();
+        $this->assertSame(45, ChurchSetting::followUpDays());
+    }
+
+    public function test_the_dashboard_adds_up_registrations_conversion_and_workload(): void
+    {
+        $user = $this->userWith(['newcomers.view']);
+        $counsellor = $this->counsellor();
+        $a = Newcomer::create(['first_visit_on' => today()->subDays(50), 'surname' => 'A', 'first_name' => 'A', 'heard_via' => 'Friend', 'stage' => 'member', 'made_member_on' => today()->subDays(10),
+            'counsellor_id' => $counsellor->id]);
+        $b = Newcomer::create(['first_visit_on' => today()->subDays(20), 'surname' => 'B', 'first_name' => 'B', 'heard_via' => 'Friend', 'stage' => 'catechumen', 'counsellor_id' => $counsellor->id]);
+        $c = Newcomer::create(['first_visit_on' => today()->subDays(5), 'surname' => 'C', 'first_name' => 'C', 'heard_via' => 'Flyer', 'status' => 'inactive', 'inactive_reason' => 'Moved away']);
+        Newcomer::create(['first_visit_on' => today(), 'surname' => 'D', 'first_name' => 'D']);
+        foreach ([[$a, 'newcomer'], [$a, 'catechumen'], [$a, 'member'], [$b, 'newcomer'], [$b, 'catechumen']] as [$person, $to]) {
+            NewcomerStageChange::create(['newcomer_id' => $person->id, 'kind' => 'stage', 'to_value' => $to, 'changed_on' => today()]);
+        }
+        $this->lessons(2);
+        $b->syncLessons();
+        $b->progress()->orderBy('id')->first()->update(['status' => 'completed', 'completed_on' => today()]);
+
+        $this->actingAs($user)->get(route('newcomers.dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('newcomers/dashboard')
+            ->where('totals', ['registered' => 4, 'working' => 2, 'members' => 1, 'inactive' => 1])
+            ->has('months', 12)->where('months', fn ($months) => collect($months)->sum('count') === 4 && collect($months)->last()['count'] >= 1)
+            ->where('sources.0', ['label' => 'Friend', 'count' => 2])
+            ->where('funnel', fn ($rows) => collect($rows)->pluck('count', 'stage')->all() === ['visitor' => 4, 'newcomer' => 2, 'catechumen' => 2, 'member' => 1])
+            ->where('time_to_member', ['count' => 1, 'average_days' => 40])
+            ->where('class', ['catechumens' => 1, 'average_percent' => 50])
+            ->where('lessons.0', ['title' => 'Lesson 1', 'completed' => 1, 'total' => 1])
+            ->where('counsellors.0.total', 1)->where('counsellors.0.catechumen', 1)
+            ->where('inactive_reasons.0', ['label' => 'Moved away', 'count' => 1]));
     }
 
     public function test_the_form_lists_are_seeded_and_editable(): void

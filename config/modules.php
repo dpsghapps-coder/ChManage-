@@ -11,10 +11,6 @@ return [
         'discipleship' => ['Discipleship', 'Classes, catechism and discipleship programmes.'],
     ]],
     'operations' => ['title' => 'Operations', 'pages' => [
-        'events' => ['Events', 'Services, programmes and church activities.'],
-        'calendar' => ['Calendar', 'The church calendar.'],
-        'meetings' => ['Meetings', 'Session, committee and group meetings, with minutes.'],
-        'decisions' => ['Decisions', 'Decisions taken at meetings, and who acts on them.'],
         'tasks' => ['Tasks', 'Work assigned to people, and its progress.'],
         'facilities' => ['Facilities', 'Church buildings, rooms and their bookings.'],
     ]],

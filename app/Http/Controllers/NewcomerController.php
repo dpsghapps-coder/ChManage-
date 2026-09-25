@@ -11,6 +11,7 @@ use App\Models\NewcomerLessonProgress;
 use App\Models\NewcomerOption;
 use App\Models\NewcomerVisit;
 use App\Support\Audit;
+use App\Support\NewcomerInsights;
 use App\Support\NewcomerPromotion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -54,8 +55,10 @@ class NewcomerController extends Controller
                 'progress as lessons_total' => fn ($q) => $q->where('status', '!=', 'skipped'),
             ])
             ->orderByDesc('first_visit_on')->orderByDesc('id')
-            ->paginate(25)->withQueryString()
-            ->through(fn (Newcomer $n) => $this->row($n));
+            ->paginate(25)->withQueryString();
+
+        $current = $this->currentLessons($people->getCollection()->where('stage', 'catechumen')->pluck('id')->all());
+        $people->through(fn (Newcomer $n) => [...$this->row($n), 'current_lesson' => $current[$n->id] ?? null]);
 
         return Inertia::render('newcomers/index', [
             'people' => $people,
@@ -66,6 +69,17 @@ class NewcomerController extends Controller
             'myCounsellorId' => $myCounsellorId,
             'filters' => ['q' => $request->string('q')->value(), 'stage' => $stage, 'status' => $status, 'counsellor' => $counsellorId ?: null, 'mine' => $mine],
         ]);
+    }
+
+    /** The landing page: where everyone is in the journey, and who needs attention. */
+    public function overview(): Response
+    {
+        return Inertia::render('newcomers/overview', [...NewcomerInsights::overview(), 'stages' => Newcomer::STAGES]);
+    }
+
+    public function dashboard(): Response
+    {
+        return Inertia::render('newcomers/dashboard', NewcomerInsights::dashboard());
     }
 
     public function create(): Response
@@ -346,6 +360,29 @@ class NewcomerController extends Controller
             $newcomer->log('stage', 'visitor', 'newcomer', 'Counsellor assigned');
             $newcomer->update(['stage' => 'newcomer']);
         }
+    }
+
+    /**
+     * Where each catechumen is in the class, for the list: the lesson in progress, else the next one not started.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{title: string, state: 'now'|'next'}>
+     */
+    private function currentLessons(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        return NewcomerLessonProgress::whereIn('newcomer_id', $ids)->whereIn('status', ['in_progress', 'not_started'])->with('lesson')->get()
+            ->filter(fn ($row) => $row->status === 'in_progress' || $row->lesson->is_active)
+            ->groupBy('newcomer_id')
+            ->map(function ($rows) {
+                $order = fn ($row) => [$row->lesson->sort_order, $row->lesson->id];
+                $row = $rows->where('status', 'in_progress')->sortBy($order)->first() ?? $rows->sortBy($order)->first();
+
+                return ['title' => $row->lesson->title, 'state' => $row->status === 'in_progress' ? 'now' : 'next'];
+            })->all();
     }
 
     /** The class lessons in teaching order with this person's standing; a lesson taken out of use shows only if they have started it. */

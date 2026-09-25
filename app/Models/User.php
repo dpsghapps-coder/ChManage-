@@ -77,6 +77,16 @@ class User extends Authenticatable implements PasskeyUser
         return $this->belongsTo(Staff::class);
     }
 
+    /**
+     * The church member this account belongs to, through its staff record; null when it is not linked to one.
+     * Read from the database rather than the `staff` relation, which the shared page props load with only a few
+     * columns (so `member_id` is not on it).
+     */
+    public function linkedMemberId(): ?int
+    {
+        return $this->staff_id ? Staff::whereKey($this->staff_id)->value('member_id') : null;
+    }
+
     public function isAdmin(): bool
     {
         return $this->role?->slug === Role::ADMIN;

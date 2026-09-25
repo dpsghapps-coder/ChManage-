@@ -11,6 +11,7 @@ use App\Models\NewcomerLesson;
 use App\Models\NewcomerOption;
 use App\Models\NewcomerStageChange;
 use App\Models\NewcomerVisit;
+use App\Models\Staff;
 use App\Models\YoungMember;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -474,6 +475,20 @@ class NewcomersTest extends TestCase
             ->where('lessons.0', ['title' => 'Lesson 1', 'completed' => 1, 'total' => 1])
             ->where('counsellors.0.total', 1)->where('counsellors.0.catechumen', 1)
             ->where('inactive_reasons.0', ['label' => 'Moved away', 'count' => 1]));
+    }
+
+    public function test_my_newcomers_follows_the_account_linked_to_a_counsellor(): void
+    {
+        $counsellor = $this->counsellor();
+        $staff = Staff::create(['full_name' => 'Owusu Kofi', 'member_id' => $counsellor->member_id]);
+        $user = $this->userWith(['newcomers.view'], ['staff_id' => $staff->id]);
+        Newcomer::create(['first_visit_on' => today(), 'surname' => 'Boateng', 'first_name' => 'Ama', 'stage' => 'newcomer', 'counsellor_id' => $counsellor->id]);
+        Newcomer::create(['first_visit_on' => today(), 'surname' => 'Asante', 'first_name' => 'Yaw']);
+
+        $this->actingAs($user)->get(route('newcomers.index', ['mine' => 1]))->assertInertia(fn (Assert $page) => $page
+            ->where('myCounsellorId', $counsellor->id)->has('people.data', 1)->where('people.data.0.name', 'Ama Boateng'));
+        // An account not linked to a counsellor has no such filter.
+        $this->actingAs($this->userWith(['newcomers.view']))->get(route('newcomers.index'))->assertInertia(fn (Assert $page) => $page->where('myCounsellorId', null));
     }
 
     public function test_the_form_lists_are_seeded_and_editable(): void

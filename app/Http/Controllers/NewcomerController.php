@@ -404,7 +404,7 @@ class NewcomerController extends Controller
     /** The counsellor record of the signed-in user, when their account is linked to a member who counsels. */
     private function myCounsellorId(Request $request): ?int
     {
-        $memberId = $request->user()?->staff?->member_id;
+        $memberId = $request->user()?->linkedMemberId();
 
         return $memberId ? NewcomerCounsellor::where('member_id', $memberId)->value('id') : null;
     }

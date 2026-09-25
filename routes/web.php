@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\TownController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\CommitteeMemberController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MeetingActionController;
@@ -36,7 +37,7 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware('auth')->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     // Shown after signing in with a temporary password (see EnsurePasswordIsChanged).
     Route::get('account/password', [ForcePasswordChangeController::class, 'edit'])->name('password.change');

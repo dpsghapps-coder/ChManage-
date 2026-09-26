@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\ChurchSetting;
 use App\Models\Committee;
+use App\Models\CommunionService;
 use App\Models\EventVenue;
 use App\Models\Member;
 use App\Models\MemberGroup;
+use App\Models\MemberRequest;
 use App\Models\NewcomerOption;
 use App\Models\Profession;
 use App\Models\Role;
@@ -122,6 +124,22 @@ class SetupTest extends TestCase
 
         $this->assertTrue(MemberGroup::where('name', 'Church Choir')->exists());
         $this->assertFalse(MemberGroup::where('name', 'Brigade')->exists());
+    }
+
+    public function test_choosing_sample_data_populates_the_app_for_testing(): void
+    {
+        $this->post(route('setup.store'), $this->payload(['sample_data' => true]))->assertRedirect(route('dashboard'));
+
+        $this->assertTrue(Member::where('is_sample', true)->exists());
+        $this->assertTrue(CommunionService::where('is_sample', true)->exists());
+        $this->assertTrue(MemberRequest::where('is_sample', true)->exists());
+    }
+
+    public function test_starting_clean_adds_no_sample_data(): void
+    {
+        $this->post(route('setup.store'), $this->payload())->assertRedirect(route('dashboard'));
+
+        $this->assertFalse(Member::where('is_sample', true)->exists());
     }
 
     public function test_the_administrator_details_are_checked(): void

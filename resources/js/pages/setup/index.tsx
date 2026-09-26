@@ -5,11 +5,13 @@ import {
     Check,
     CheckCircle2,
     Church,
+    FileText,
     Gauge,
     Layers,
     ListChecks,
     Loader2,
     Plus,
+    Sparkles,
     UserCog,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -217,8 +219,10 @@ export default function Setup({
     const [options, setOptions] = useState<Chips>(tickedGroups(lists.options));
     const [category, setCategory] = useState('');
     const [stepIndex, setStepIndex] = useState(0);
+    const [dataMode, setDataMode] = useState<'sample' | 'clean' | null>(null);
 
     const steps = [
+        { key: 'welcome', label: 'Start', icon: Sparkles },
         { key: 'admin', label: 'Administrator', icon: UserCog },
         { key: 'church', label: 'The church', icon: Church },
         { key: 'limits', label: 'Reminders', icon: Gauge },
@@ -246,6 +250,8 @@ export default function Setup({
 
     const canProceed = (() => {
         switch (current) {
+            case 'welcome':
+                return dataMode !== null;
             case 'admin':
                 return (
                     d.username.trim() !== '' &&
@@ -279,6 +285,7 @@ export default function Setup({
             occupations: chosenGroups(occupations),
             venues: chosen(venues['']),
             options: chosenGroups(options),
+            sample_data: dataMode === 'sample',
         }));
         form.post(store().url);
     };
@@ -361,6 +368,61 @@ export default function Setup({
                     onSubmit={submit}
                     className="space-y-6 rounded-xl border p-5 sm:p-6"
                 >
+                    {current === 'welcome' && (
+                        <div className="space-y-4">
+                            <div>
+                                <h2 className="text-lg font-medium">
+                                    How would you like to start?
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    You can always add real records and remove
+                                    sample ones later.
+                                </p>
+                            </div>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setDataMode('sample')}
+                                    className={cn(
+                                        'rounded-lg border p-4 text-left transition-colors hover:border-primary/50',
+                                        dataMode === 'sample' &&
+                                            'border-primary bg-primary/5',
+                                    )}
+                                >
+                                    <Sparkles className="mb-2 size-5 text-primary" />
+                                    <p className="font-medium">
+                                        Start with sample data
+                                    </p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        Adds a sample congregation with
+                                        members, committees, events, meetings,
+                                        newcomers, communion and requests, so
+                                        you can try the app out. Every sample
+                                        record is marked and can be removed at
+                                        any time.
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setDataMode('clean')}
+                                    className={cn(
+                                        'rounded-lg border p-4 text-left transition-colors hover:border-primary/50',
+                                        dataMode === 'clean' &&
+                                            'border-primary bg-primary/5',
+                                    )}
+                                >
+                                    <FileText className="mb-2 size-5 text-primary" />
+                                    <p className="font-medium">Start clean</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        An empty system with just this
+                                        congregation&apos;s own setup, ready
+                                        for real records.
+                                    </p>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {current === 'admin' && (
                         <div className="space-y-4">
                             <div>
@@ -807,6 +869,12 @@ export default function Setup({
                             <dl className="divide-y rounded-lg border text-sm">
                                 {[
                                     [
+                                        'Data',
+                                        dataMode === 'sample'
+                                            ? 'Sample data will be added'
+                                            : 'Clean, no sample data',
+                                    ],
+                                    [
                                         'Administrator',
                                         `${d.first_name} ${d.last_name}`.trim() +
                                             ` (${d.username})`,
@@ -880,6 +948,13 @@ export default function Setup({
                                         }
                                     </button>{' '}
                                     step.
+                                </p>
+                            )}
+                            {dataMode === 'sample' && (
+                                <p className="text-sm text-muted-foreground">
+                                    Adding the sample data takes a little
+                                    longer than a clean setup. Please wait for
+                                    the page to move on after you finish.
                                 </p>
                             )}
                         </div>

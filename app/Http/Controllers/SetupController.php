@@ -19,6 +19,7 @@ use App\Support\Presbyteries;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -96,6 +97,8 @@ class SetupController extends Controller
             'options' => ['present', 'array'],
             'options.*' => ['array'],
             'options.*.*' => ['string', 'max:150'],
+
+            'sample_data' => ['sometimes', 'boolean'],
         ], [
             'username.regex' => 'Use letters, numbers, dots, dashes and underscores only.',
             'followup_days.between' => 'Choose between 7 and 365 days.',
@@ -144,7 +147,15 @@ class SetupController extends Controller
         Auth::login($admin);
         $request->session()->regenerate();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Setup complete. Welcome to ChManage+.'.($inUse ? ' '.count($inUse).' list entries were kept because members already use them.' : '')]);
+        $message = 'Setup complete. Welcome to ChManage+.'.($inUse ? ' '.count($inUse).' list entries were kept because members already use them.' : '');
+
+        if ($request->boolean('sample_data')) {
+            set_time_limit(0); // Populating every module can take a while; do not let the web server's timeout cut it off.
+            Artisan::call('sample:seed');
+            $message .= ' Sample data was added so you can try the app out; remove it any time with php artisan sample:seed --purge.';
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
 
         return to_route('dashboard');
     }

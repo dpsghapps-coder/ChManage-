@@ -14,6 +14,7 @@ import {
 } from '@/routes/committees';
 import { calendar, show as showEvent } from '@/routes/events';
 import { index as meetingsIndex, show as showMeeting } from '@/routes/meetings';
+import { index as requestsIndex, show as showRequest } from '@/routes/requests';
 import {
     overview as newcomersOverview,
     show as showNewcomer,
@@ -43,6 +44,16 @@ type ActionItem = ActionRow & { meeting_id: number; committee: string };
 type Actions = { overdue: number; open: number; list: ActionItem[] };
 
 type Cards = {
+    requests?: {
+        total: number;
+        list: {
+            id: number;
+            type_label: string;
+            member: string;
+            status: string;
+            made_on: string;
+        }[];
+    };
     events?: EventItem[];
     meetings?: MeetingItem[];
     actions?: Actions;
@@ -140,6 +151,47 @@ export default function Dashboard({
                 )}
 
                 <div className="grid gap-4 md:grid-cols-2">
+                    {cards.requests && (
+                        <Card
+                            title="Member requests"
+                            count={cards.requests.total}
+                            tone={cards.requests.total > 0 ? 'warn' : undefined}
+                            note="Waiting for you, oldest first."
+                            href={requestsIndex()}
+                            more="Open the inbox"
+                        >
+                            {cards.requests.list.length === 0 ? (
+                                <Empty>Nothing is waiting.</Empty>
+                            ) : (
+                                <ul className="divide-y">
+                                    {cards.requests.list.map((r) => (
+                                        <li key={r.id}>
+                                            <Link
+                                                href={showRequest(r.id)}
+                                                className="flex items-center justify-between gap-2 py-2 hover:bg-accent/50"
+                                            >
+                                                <span>
+                                                    <span className="block text-sm font-medium">
+                                                        {r.member}
+                                                    </span>
+                                                    <span className="block text-xs text-muted-foreground">
+                                                        {r.type_label} ·{' '}
+                                                        {r.made_on}
+                                                    </span>
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {r.status === 'in_review'
+                                                        ? 'In review'
+                                                        : 'New'}
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </Card>
+                    )}
+
                     {cards.my_actions && (
                         <Card
                             title="My actions"

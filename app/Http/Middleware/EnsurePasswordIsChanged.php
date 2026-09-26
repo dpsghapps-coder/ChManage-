@@ -11,7 +11,7 @@ class EnsurePasswordIsChanged
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         if ($user && $user->must_reset_password
             && ! $request->routeIs('password.change', 'password.change.update', 'logout')) {

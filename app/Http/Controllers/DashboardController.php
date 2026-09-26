@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\Meeting;
 use App\Models\MeetingAction;
+use App\Models\MemberRequest;
 use App\Support\CommitteeTerms;
 use App\Support\NewcomerInsights;
+use App\Support\RequestAccess;
+use App\Support\RequestTypes;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -74,6 +77,20 @@ class DashboardController extends Controller
                 'follow_up' => ['days' => $overview['follow_up']['days'], 'total' => $overview['follow_up']['total'], 'people' => $overview['follow_up']['people']->take(5)->values()],
                 'waiting' => $overview['waiting']['total'],
                 'ready' => $overview['ready']['total'],
+            ];
+        }
+
+        // Member requests waiting for this person, for the types routed to them.
+        $handled = RequestAccess::types($user);
+
+        if ($handled !== []) {
+            $open = MemberRequest::whereIn('type', $handled)->whereIn('status', MemberRequest::OPEN);
+            $cards['requests'] = [
+                'total' => (clone $open)->count(),
+                'list' => (clone $open)->with('member:id,full_name')->orderBy('id')->limit(6)->get()->map(fn (MemberRequest $r) => [
+                    'id' => $r->id, 'type_label' => RequestTypes::label($r->type), 'member' => $r->member->full_name,
+                    'status' => $r->status, 'made_on' => $r->created_at->toDateString(),
+                ])->values(),
             ];
         }
 

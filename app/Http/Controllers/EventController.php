@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Committee;
 use App\Models\Event;
+use App\Models\EventParticipant;
 use App\Models\EventVenue;
 use App\Models\Meeting;
 use App\Models\MemberGroup;
@@ -120,9 +121,12 @@ class EventController extends Controller
 
     public function show(Event $event): Response
     {
-        $event->load(['group:id,name', 'committee:id,name', 'organizer:id,member_number,full_name,mobile']);
+        $event->load(['group:id,name', 'committee:id,name', 'organizer:id,member_number,full_name,mobile', 'participants']);
 
         return Inertia::render('events/show', [
+            'participants' => $event->participants->map(fn (EventParticipant $p) => ['id' => $p->id, 'member_id' => $p->member_id, 'name' => $p->name, 'source' => $p->source])->values(),
+            'groups' => MemberGroup::orderBy('name')->get(['id', 'name']),
+            'committees' => Committee::orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
             'event' => [
                 ...$this->row($event),
                 'description' => $event->description,

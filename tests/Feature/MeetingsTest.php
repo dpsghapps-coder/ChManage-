@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Committee;
+use App\Models\CommitteeMember;
 use App\Models\Meeting;
 use App\Models\MeetingAction;
 use App\Models\MeetingDecision;
@@ -210,6 +211,35 @@ class MeetingsTest extends TestCase
         $this->actingAs($user)->delete(route('meetings.destroy', $meeting))->assertRedirect(route('meetings.index'));
         $this->assertSame(0, MeetingDecision::count());
         $this->assertDatabaseHas('audit_logs', ['event' => 'meeting.deleted']);
+    }
+
+    public function test_a_meeting_can_be_filled_with_the_committees_members_of_that_day(): void
+    {
+        $user = $this->userWith(['meetings.view', 'meetings.manage']);
+        $session = $this->committee('Session');
+        $meeting = $this->meeting(['committee_id' => $session->id, 'meeting_date' => '2026-10-15']);
+        $serving = $this->member('M1', 'Serving Now');
+        $ended = $this->member('M2', 'Ended Before');
+        $already = $this->member('M3', 'Already Listed');
+        $term = fn (Member $m, string $from, ?string $to) => CommitteeMember::create(['committee_id' => $session->id, 'member_id' => $m->id, 'name' => $m->full_name, 'started_on' => $from, 'ends_on' => $to]);
+        $term($serving, '2025-01-01', '2028-01-01');
+        $term($ended, '2020-01-01', '2026-10-01');
+        $term($already, '2025-01-01', null);
+        CommitteeMember::create(['committee_id' => $session->id, 'name' => 'Rev. Guest', 'started_on' => '2025-01-01']);
+        $meeting->attendees()->create(['member_id' => $already->id, 'name' => $already->full_name, 'attendance' => 'apologies']);
+
+        $this->actingAs($user)->post(route('meetings.attendees.committee', $meeting))->assertSessionHasNoErrors();
+
+        // Those serving on the day are added as present; someone already listed keeps their own mark.
+        $this->assertSame([['Already Listed', 'apologies'], ['Rev. Guest', 'present'], ['Serving Now', 'present']], $meeting->attendees()->get()->map(fn ($a) => [$a->name, $a->attendance])->all());
+        $this->actingAs($user)->post(route('meetings.attendees.committee', $meeting));
+        $this->assertSame(3, $meeting->attendees()->count());
+
+        // A committee with no one serving that day adds nobody.
+        $empty = $this->meeting(['committee_id' => $this->committee('Harvest Committee')->id]);
+        $this->actingAs($user)->post(route('meetings.attendees.committee', $empty))->assertSessionHasNoErrors();
+        $this->assertSame(0, $empty->attendees()->count());
+        $this->actingAs($this->userWith(['meetings.view']))->post(route('meetings.attendees.committee', $meeting))->assertForbidden();
     }
 
     public function test_session_and_the_district_church_council_can_hold_meetings(): void

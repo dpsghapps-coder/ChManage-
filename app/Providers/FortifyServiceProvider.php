@@ -66,6 +66,11 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Event::listen(Login::class, function (Login $event) {
+            // Members signing in to the portal (the `member` guard) are recorded by their own controller.
+            if (! $event->user instanceof User) {
+                return;
+            }
+
             $event->user->forceFill(['last_login_at' => now()])->saveQuietly();
             Audit::record('auth.login', "{$event->user->username} signed in", $event->user, [], $event->user->id);
         });

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Committee;
+use App\Models\CommitteeMember;
 use App\Models\Event;
 use App\Models\EventVenue;
 use App\Models\Meeting;
@@ -196,6 +197,82 @@ class EventsTest extends TestCase
 
         $meeting->update(['status' => 'cancelled']);
         $this->actingAs($both)->get(route('events.calendar', ['month' => '2026-10']))->assertInertia(fn (Assert $page) => $page->where('events.1.status', 'cancelled'));
+    }
+
+    public function test_participants_are_added_one_by_one_and_removed(): void
+    {
+        $user = $this->userWith(['events.view', 'events.manage']);
+        $event = $this->event();
+        $member = Member::create(['member_number' => 'M1', 'full_name' => 'Mensah Efua', 'status' => 'active', 'sex' => 'female']);
+
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['member_id' => $member->id])->assertSessionHasNoErrors();
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['member_id' => $member->id])->assertSessionHasErrors('member_id');
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['name' => 'Rev. Guest'])->assertSessionHasNoErrors();
+        $this->actingAs($user)->post(route('events.participants.store', $event), [])->assertSessionHasErrors('member_id');
+        $this->assertSame(['Mensah Efua', 'Rev. Guest'], $event->participants()->pluck('name')->all());
+
+        $this->actingAs($user)->get(route('events.show', $event))->assertInertia(fn (Assert $page) => $page
+            ->has('participants', 2)->where('participants.0.member_id', $member->id)->has('groups')->has('committees'));
+
+        // A participant of another event cannot be reached through this one.
+        $otherEvent = $this->event(['title' => 'Other']);
+        $other = $otherEvent->participants()->create(['name' => 'Elsewhere']);
+        $this->actingAs($user)->delete(route('events.participants.destroy', [$event, $other]))->assertNotFound();
+        $this->actingAs($user)->delete(route('events.participants.destroy', [$event, $event->participants()->firstOrFail()]))->assertSessionHasNoErrors();
+        $this->assertSame(1, $event->participants()->count());
+        $this->actingAs($user)->delete(route('events.participants.clear', $event));
+        $this->assertSame(0, $event->participants()->count());
+        $this->assertSame(1, $otherEvent->participants()->count());
+
+        $viewer = $this->userWith(['events.view']);
+        $this->actingAs($viewer)->post(route('events.participants.store', $event), ['name' => 'X'])->assertForbidden();
+        $this->actingAs($viewer)->delete(route('events.participants.clear', $event))->assertForbidden();
+    }
+
+    public function test_a_group_is_added_as_its_active_members_and_never_twice(): void
+    {
+        $user = $this->userWith(['events.manage']);
+        $choir = MemberGroup::where('name', 'Church Choir')->firstOrFail();
+        $event = $this->event();
+        $one = Member::create(['member_number' => 'M1', 'full_name' => 'Mensah Efua', 'status' => 'active', 'sex' => 'female']);
+        $two = Member::create(['member_number' => 'M2', 'full_name' => 'Owusu Kofi', 'status' => 'active', 'sex' => 'male']);
+        $gone = Member::create(['member_number' => 'M3', 'full_name' => 'Left Church', 'status' => 'transferred', 'sex' => 'male']);
+        foreach ([$one, $two, $gone] as $member) {
+            $member->groups()->attach($choir->id);
+        }
+
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['group_id' => $choir->id])->assertSessionHasNoErrors();
+        $this->assertSame([['Mensah Efua', 'Church Choir'], ['Owusu Kofi', 'Church Choir']], $event->participants()->get()->map(fn ($p) => [$p->name, $p->source])->all());
+
+        // Adding again, or after adding someone by hand, leaves no repeats; later changes to the group do not touch the event.
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['group_id' => $choir->id])->assertSessionHasNoErrors();
+        $this->assertSame(2, $event->participants()->count());
+        $one->groups()->detach($choir->id);
+        $this->assertSame(2, $event->participants()->count());
+
+        // A group nobody is in says so instead of adding nothing silently.
+        $empty = MemberGroup::where('name', 'Brigade')->firstOrFail();
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['group_id' => $empty->id])->assertSessionHasNoErrors();
+        $this->assertSame(2, $event->participants()->count());
+    }
+
+    public function test_a_committee_is_added_as_those_serving_on_the_day_of_the_event(): void
+    {
+        $user = $this->userWith(['events.manage']);
+        $committee = Committee::where('name', 'Session')->firstOrFail();
+        $event = $this->event(['starts_on' => '2026-10-04', 'ends_on' => '2026-10-04']);
+        $serving = Member::create(['member_number' => 'M1', 'full_name' => 'Serving Now', 'status' => 'active', 'sex' => 'male']);
+        $ended = Member::create(['member_number' => 'M2', 'full_name' => 'Ended Before', 'status' => 'active', 'sex' => 'male']);
+        $later = Member::create(['member_number' => 'M3', 'full_name' => 'Starts After', 'status' => 'active', 'sex' => 'male']);
+        $term = fn (Member $m, string $from, ?string $to) => CommitteeMember::create(['committee_id' => $committee->id, 'member_id' => $m->id, 'name' => $m->full_name, 'started_on' => $from, 'ends_on' => $to]);
+        $term($serving, '2025-01-01', '2028-01-01');
+        $term($ended, '2020-01-01', '2026-09-30');
+        $term($later, '2026-11-01', null);
+        CommitteeMember::create(['committee_id' => $committee->id, 'name' => 'Rev. Guest', 'started_on' => '2025-01-01']);
+
+        $this->actingAs($user)->post(route('events.participants.store', $event), ['committee_id' => $committee->id])->assertSessionHasNoErrors();
+        $this->assertSame(['Rev. Guest', 'Serving Now'], $event->participants()->pluck('name')->all());
+        $this->assertSame(['Session'], $event->participants()->pluck('source')->unique()->all());
     }
 
     public function test_venues_are_seeded_and_managed_by_settings_managers(): void

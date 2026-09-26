@@ -14,7 +14,7 @@ class CheckPermission
 {
     public function handle(Request $request, Closure $next, string ...$permissions): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         abort_unless($user, 401);
         abort_unless($user->role, 403, 'No role is assigned to your account.');

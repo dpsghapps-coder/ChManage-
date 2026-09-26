@@ -13,12 +13,12 @@ class EnsureUserIsActive
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         if ($user && ! $user->is_active) {
             Audit::record('auth.blocked', "Deactivated account {$user->username} was signed out", $user, [], $user->id);
 
-            Auth::logout();
+            Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 

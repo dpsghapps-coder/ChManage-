@@ -16,7 +16,8 @@ class Audit
     {
         try {
             AuditLog::create([
-                'user_id' => $userId ?? auth()->id(),
+                // Only a staff sign-in is a user: a member on the portal (the `member` guard) has no row in `users`.
+                'user_id' => $userId ?? auth('web')->id(),
                 'event' => $event,
                 'subject_type' => $subject ? class_basename($subject) : null,
                 'subject_id' => $subject?->getKey(),

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** Something the church holds on a date: a service, a meeting, a programme, a parade ... */
 class Event extends Model
@@ -32,6 +33,11 @@ class Event extends Model
     public function committee(): BelongsTo
     {
         return $this->belongsTo(Committee::class);
+    }
+
+    public function participants(): HasMany
+    {
+        return $this->hasMany(EventParticipant::class)->orderBy('name');
     }
 
     public function organizer(): BelongsTo

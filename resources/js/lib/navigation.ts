@@ -46,6 +46,7 @@ import {
     Users2,
     UsersRound,
     Wallet,
+    Wine,
     Wrench,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
@@ -73,6 +74,9 @@ import { index as decisionsIndex } from '@/routes/decisions';
 import { index as meetingsIndex } from '@/routes/meetings';
 import * as operations from '@/routes/operations';
 import { overview as newcomersIndex } from '@/routes/newcomers';
+import { index as requestsIndex } from '@/routes/requests';
+import { index as speakingIndex } from '@/routes/speaking';
+import { index as communionIndex } from '@/routes/communion';
 import { index as presbyteriesIndex } from '@/routes/presbyteries';
 import * as reporting from '@/routes/reporting';
 import * as resources from '@/routes/resources';
@@ -84,7 +88,19 @@ export type GatedNavItem = NavItem & {
     permission?: string;
     /** Key into the shared `badges` counts, shown as a small number on the item. */
     badgeKey?: string;
+    /** Shown only to people who have a count under `badgeKey` (even 0), not through a permission. */
+    badgeRequired?: boolean;
 };
+
+/** Whether a menu entry is offered: by permission, or (badgeRequired) by having a count for it. */
+export const isVisible = (
+    item: GatedNavItem,
+    can: (permission: string) => boolean,
+    badges: Record<string, number>,
+): boolean =>
+    item.badgeRequired
+        ? item.badgeKey !== undefined && badges[item.badgeKey] !== undefined
+        : !item.permission || can(item.permission);
 
 export type NavSection = { title: string; items: GatedNavItem[] };
 
@@ -120,6 +136,13 @@ export const moduleSections: NavSection[] = [
                 permission: 'newcomers.view',
             },
             {
+                title: 'Member Requests',
+                href: requestsIndex(),
+                icon: ClipboardCheck,
+                badgeKey: 'requests',
+                badgeRequired: true,
+            },
+            {
                 title: 'Staff Directory',
                 href: staffIndex(),
                 icon: UsersRound,
@@ -145,6 +168,23 @@ export const moduleSections: NavSection[] = [
             },
             soon('Pastoral Care', ministry.pastoralCare(), HeartHandshake),
             soon('Discipleship', ministry.discipleship(), Sprout),
+        ],
+    },
+    {
+        title: 'Communion',
+        items: [
+            {
+                title: 'Speaking',
+                href: speakingIndex(),
+                icon: MessageSquareText,
+                permission: 'speaking.view',
+            },
+            {
+                title: 'Communion',
+                href: communionIndex(),
+                icon: Wine,
+                permission: 'communion.view',
+            },
         ],
     },
     {

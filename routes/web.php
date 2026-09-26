@@ -17,16 +17,24 @@ use App\Http\Controllers\Admin\TownController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use App\Http\Controllers\CommitteeMemberController;
+use App\Http\Controllers\CommunionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventParticipantController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MeetingActionController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MeetingDecisionController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MemberReportController;
+use App\Http\Controllers\MemberRequestController;
 use App\Http\Controllers\NewcomerController;
+use App\Http\Controllers\Portal\PortalAuthController;
+use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Portal\PortalRequestController;
 use App\Http\Controllers\PresbyteryController;
+use App\Http\Controllers\SetupController;
+use App\Http\Controllers\SpeakingController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\StaffLookupController;
 use App\Http\Controllers\StaffTransferController;
@@ -35,6 +43,26 @@ use Illuminate\Support\Facades\Route;
 
 // Internal system: no public landing page. Guests are sent to sign in by the `auth` middleware.
 Route::redirect('/', '/dashboard')->name('home');
+
+// First-time setup: open only while there are no user accounts.
+Route::get('setup', [SetupController::class, 'show'])->name('setup.show');
+Route::post('setup', [SetupController::class, 'store'])->name('setup.store');
+
+// The member portal: members sign in with their phone number and date of birth (the `member` guard, a session of its own).
+Route::prefix('portal')->name('portal.')->group(function () {
+    Route::middleware('guest:member')->group(function () {
+        Route::get('login', [PortalAuthController::class, 'create'])->name('login');
+        Route::post('login', [PortalAuthController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware(['auth:member', 'portal'])->group(function () {
+        Route::get('/', [PortalController::class, 'home'])->name('home');
+        Route::get('requests/{type}/new', [PortalRequestController::class, 'create'])->name('requests.create');
+        Route::post('requests/{type}', [PortalRequestController::class, 'store'])->name('requests.store');
+        Route::post('requests/{memberRequest}/cancel', [PortalRequestController::class, 'cancel'])->name('requests.cancel');
+        Route::post('logout', [PortalAuthController::class, 'destroy'])->name('logout');
+    });
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
@@ -130,6 +158,10 @@ Route::middleware('auth')->group(function () {
         Route::put('{event}', [EventController::class, 'update'])->middleware('permission:events.manage')->name('update');
         Route::put('{event}/status', [EventController::class, 'setStatus'])->middleware('permission:events.manage')->name('status');
         Route::delete('{event}', [EventController::class, 'destroy'])->middleware('permission:events.manage')->name('destroy');
+
+        Route::post('{event}/participants', [EventParticipantController::class, 'store'])->middleware('permission:events.manage')->name('participants.store');
+        Route::delete('{event}/participants', [EventParticipantController::class, 'clear'])->middleware('permission:events.manage')->name('participants.clear');
+        Route::delete('{event}/participants/{participant}', [EventParticipantController::class, 'destroy'])->middleware('permission:events.manage')->name('participants.destroy');
     });
 
     // Committee meetings, their decisions and the actions that follow. Fixed paths come before {meeting}.
@@ -145,6 +177,7 @@ Route::middleware('auth')->group(function () {
         Route::put('{meeting}/minutes', [MeetingController::class, 'updateMinutes'])->middleware('permission:meetings.manage')->name('minutes');
         Route::delete('{meeting}', [MeetingController::class, 'destroy'])->middleware('permission:meetings.manage')->name('destroy');
 
+        Route::post('{meeting}/attendees/committee', [MeetingController::class, 'addCommitteeAttendees'])->middleware('permission:meetings.manage')->name('attendees.committee');
         Route::post('{meeting}/attendees', [MeetingController::class, 'storeAttendee'])->middleware('permission:meetings.manage')->name('attendees.store');
         Route::put('{meeting}/attendees/{attendee}', [MeetingController::class, 'updateAttendee'])->middleware('permission:meetings.manage')->name('attendees.update');
         Route::delete('{meeting}/attendees/{attendee}', [MeetingController::class, 'destroyAttendee'])->middleware('permission:meetings.manage')->name('attendees.destroy');
@@ -208,6 +241,40 @@ Route::middleware('auth')->group(function () {
         Route::put('{staff}', [StaffController::class, 'update'])->middleware('permission:staff.edit')->name('update');
         Route::delete('{staff}', [StaffController::class, 'destroy'])->middleware('permission:staff.delete')->name('destroy');
         Route::post('{staff}/transfers', [StaffTransferController::class, 'store'])->middleware('permission:staff.transfer')->name('transfers.store');
+    });
+
+    // Communion: the notes of speaking to members before it (own permission), and who received it at each service.
+    // The speaking routes come before {service}.
+    Route::prefix('communion/speaking')->name('speaking.')->group(function () {
+        Route::get('/', [SpeakingController::class, 'index'])->middleware('permission:speaking.view')->name('index');
+        Route::get('create', [SpeakingController::class, 'create'])->middleware('permission:speaking.manage')->name('create');
+        Route::post('/', [SpeakingController::class, 'store'])->middleware('permission:speaking.manage')->name('store');
+        Route::get('{note}', [SpeakingController::class, 'show'])->middleware('permission:speaking.view')->name('show');
+        Route::get('{note}/edit', [SpeakingController::class, 'edit'])->middleware('permission:speaking.manage')->name('edit');
+        Route::put('{note}', [SpeakingController::class, 'update'])->middleware('permission:speaking.manage')->name('update');
+        Route::delete('{note}', [SpeakingController::class, 'destroy'])->middleware('permission:speaking.manage')->name('destroy');
+    });
+
+    Route::prefix('communion')->name('communion.')->group(function () {
+        Route::get('/', [CommunionController::class, 'index'])->middleware('permission:communion.view')->name('index');
+        Route::get('create', [CommunionController::class, 'create'])->middleware('permission:communion.manage')->name('create');
+        Route::post('/', [CommunionController::class, 'store'])->middleware('permission:communion.manage')->name('store');
+        Route::get('{service}', [CommunionController::class, 'show'])->middleware('permission:communion.view')->name('show');
+        Route::get('{service}/edit', [CommunionController::class, 'edit'])->middleware('permission:communion.manage')->name('edit');
+        Route::put('{service}', [CommunionController::class, 'update'])->middleware('permission:communion.manage')->name('update');
+        Route::delete('{service}', [CommunionController::class, 'destroy'])->middleware('permission:communion.manage')->name('destroy');
+        Route::post('{service}/communicants', [CommunionController::class, 'communicants'])->middleware('permission:communion.manage')->name('communicants');
+        Route::post('{service}/attendees', [CommunionController::class, 'addAttendee'])->middleware('permission:communion.manage')->name('attendees.store');
+        Route::put('{service}/attendance', [CommunionController::class, 'attendance'])->middleware('permission:communion.manage')->name('attendance');
+        Route::delete('{service}/attendees/{attendee}', [CommunionController::class, 'removeAttendee'])->middleware('permission:communion.manage')->name('attendees.destroy');
+    });
+
+    // Requests members make from the portal. Who sees which type is decided in the controller (Church Settings routing).
+    Route::prefix('people/requests')->name('requests.')->group(function () {
+        Route::get('/', [MemberRequestController::class, 'index'])->name('index');
+        Route::get('{memberRequest}', [MemberRequestController::class, 'show'])->name('show');
+        Route::post('{memberRequest}/review', [MemberRequestController::class, 'review'])->name('review');
+        Route::post('{memberRequest}/decide', [MemberRequestController::class, 'decide'])->name('decide');
     });
 
     // Administration: users, roles, permissions, audit log ----------------------------------------

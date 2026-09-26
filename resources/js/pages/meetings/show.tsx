@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Ban, CheckCheck, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Ban, CheckCheck, Pencil, Plus, Trash2, Users, X } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { ActionDialog } from '@/components/meeting-action-dialog';
@@ -32,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { show as showMember } from '@/routes/members';
 import { destroy, edit, index, minutes, status } from '@/routes/meetings';
 import {
+    committee as addCommitteeAttendees,
     destroy as removeAttendee,
     store as addAttendee,
     update as setAttendance,
@@ -422,6 +423,20 @@ function AttendeesCard({
             )}
             {editable && (
                 <div className="space-y-2 border-t pt-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                            router.post(
+                                addCommitteeAttendees(meetingId).url,
+                                {},
+                                { preserveScroll: true },
+                            )
+                        }
+                    >
+                        <Users /> Add the committee&apos;s members
+                    </Button>
                     <Label>Add an attendee</Label>
                     <MemberPicker
                         invalid={Boolean(errors.member_id)}

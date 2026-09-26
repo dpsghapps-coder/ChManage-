@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import {
     TownSuggestions,
     townTooltip,
@@ -26,6 +27,8 @@ type Settings = {
     followup_days: number;
     /** Days before a committee term ends that it is flagged. */
     term_warning_days: number;
+    /** The member phone number the portal signs people in with. */
+    portal_phone_field: string;
 };
 
 type Presbytery = {
@@ -87,12 +90,23 @@ export default function ChurchSettings({
     settings,
     presbyteries,
     cities,
+    portalPhoneFields,
+    requestTypes,
+    requestHandlers,
+    roles,
 }: {
     settings: Settings;
+    portalPhoneFields: Record<string, string>;
+    requestTypes: { key: string; label: string }[];
+    /** Type => role id ('' = administrators only). */
+    requestHandlers: Record<string, string>;
+    roles: { id: number; name: string }[];
     presbyteries: Presbytery[];
     cities: string[];
 }) {
-    const form = useForm<Settings>({ ...settings });
+    const form = useForm<
+        Settings & { request_handlers: Record<string, string> }
+    >({ ...settings, request_handlers: requestHandlers });
     // Hover text for City: the town's district and region.
     const towns = useGhanaTowns();
 
@@ -241,6 +255,80 @@ export default function ChurchSettings({
                         follow-up” on the Newcomers overview.
                     </p>
                     <InputError message={form.errors.followup_days} />
+                </section>
+
+                <section className="grid gap-2 rounded-lg border p-5">
+                    <h2 className="font-medium">Member portal</h2>
+                    <Label htmlFor="portal_phone_field">
+                        Primary contact number
+                    </Label>
+                    <NativeSelect
+                        id="portal_phone_field"
+                        className="w-48"
+                        value={form.data.portal_phone_field}
+                        onChange={(e) =>
+                            form.setData('portal_phone_field', e.target.value)
+                        }
+                    >
+                        {Object.entries(portalPhoneFields).map(
+                            ([value, label]) => (
+                                <option key={value} value={value}>
+                                    {label}
+                                </option>
+                            ),
+                        )}
+                    </NativeSelect>
+                    <p className="text-xs text-muted-foreground">
+                        Members sign in to the portal with this number and their
+                        date of birth. It is also where the sign-in code is sent
+                        once that is switched on.
+                    </p>
+                    <InputError message={form.errors.portal_phone_field} />
+                </section>
+
+                <section className="grid gap-3 rounded-lg border p-5">
+                    <div>
+                        <h2 className="font-medium">
+                            Who handles member requests
+                        </h2>
+                        <p className="text-xs text-muted-foreground">
+                            Choose the role that receives each kind of request
+                            from the member portal. Only people whose role has
+                            the “Member Requests” permission can act on them.
+                            Administrators see every request, and staff whose
+                            position is Administrator always receive requests to
+                            change details.
+                        </p>
+                    </div>
+                    {requestTypes.map((type) => (
+                        <div
+                            key={type.key}
+                            className="grid items-center gap-2 sm:grid-cols-2"
+                        >
+                            <Label htmlFor={`handler-${type.key}`}>
+                                {type.label}
+                            </Label>
+                            <NativeSelect
+                                id={`handler-${type.key}`}
+                                value={
+                                    form.data.request_handlers[type.key] ?? ''
+                                }
+                                onChange={(e) =>
+                                    form.setData('request_handlers', {
+                                        ...form.data.request_handlers,
+                                        [type.key]: e.target.value,
+                                    })
+                                }
+                            >
+                                <option value="">Administrators only</option>
+                                {roles.map((role) => (
+                                    <option key={role.id} value={role.id}>
+                                        {role.name}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+                    ))}
                 </section>
 
                 {/* The lists these settings draw their suggestions from. */}

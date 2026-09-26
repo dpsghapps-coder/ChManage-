@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Committee;
+use App\Models\CommitteeMember;
 use App\Models\EventVenue;
 use App\Models\Meeting;
 use App\Models\MeetingAction;
@@ -200,6 +201,39 @@ class MeetingController extends Controller
         }
 
         $meeting->attendees()->create(['member_id' => $member?->id, 'name' => $name, 'attendance' => $data['attendance']]);
+
+        return back();
+    }
+
+    /** Fills the list with the committee's members as they stood on the day of the meeting; anyone already listed is left as they are. */
+    public function addCommitteeAttendees(Meeting $meeting): RedirectResponse
+    {
+        $day = $meeting->meeting_date->toDateString();
+        $serving = CommitteeMember::query()->where('committee_id', $meeting->committee_id)->where('started_on', '<=', $day)
+            ->where(fn ($q) => $q->whereNull('ends_on')->orWhere('ends_on', '>=', $day))->get(['member_id', 'name']);
+
+        if ($serving->isEmpty()) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => "Nobody was serving on {$meeting->committee->name} on that day. Add its members on the Committees page first."]);
+
+            return back();
+        }
+
+        $already = $meeting->attendees()->whereNotNull('member_id')->pluck('member_id')->all();
+        $guests = $meeting->attendees()->whereNull('member_id')->pluck('name')->map(fn ($n) => mb_strtolower($n))->all();
+        $added = 0;
+
+        foreach ($serving as $term) {
+            // A member is matched by their record, a guest (who has none) by name, so pressing the button twice never repeats anyone.
+            if ($term->member_id ? in_array($term->member_id, $already, true) : in_array(mb_strtolower($term->name), $guests, true)) {
+                continue;
+            }
+
+            $meeting->attendees()->create(['member_id' => $term->member_id, 'name' => $term->name, 'attendance' => 'present']);
+            $term->member_id ? $already[] = $term->member_id : $guests[] = mb_strtolower($term->name);
+            $added++;
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $added > 0 ? "{$added} committee member".($added === 1 ? '' : 's').' added as present. Change anyone who was absent or sent apologies.' : 'They are all on the list already.']);
 
         return back();
     }

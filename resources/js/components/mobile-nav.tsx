@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Contact, Grip, House, Menu } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -13,7 +13,12 @@ import {
 import { useSidebar } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { usePermission } from '@/hooks/use-permission';
-import { moduleSections, platformItems, quickActions } from '@/lib/navigation';
+import {
+    isVisible,
+    moduleSections,
+    platformItems,
+    quickActions,
+} from '@/lib/navigation';
 import type { GatedNavItem } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
@@ -39,8 +44,9 @@ export function MobileNav() {
         [setOpenMobile],
     );
 
+    const badges = (usePage().props.badges ?? {}) as Record<string, number>;
     const visible = (items: GatedNavItem[]) =>
-        items.filter((item) => !item.permission || can(item.permission));
+        items.filter((item) => isVisible(item, can, badges));
     const actions = visible(quickActions);
     const sections = [
         { title: 'General', items: visible(platformItems) },

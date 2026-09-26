@@ -56,6 +56,19 @@ class ChurchSetting extends Model
         return $days > 0 ? $days : self::DEFAULT_TERM_WARNING_DAYS;
     }
 
+    /** The member phone number the portal signs people in with. */
+    public const PORTAL_PHONE = 'portal_phone_field';
+
+    /** Member column => label. */
+    public const PORTAL_PHONE_FIELDS = ['mobile' => 'Mobile', 'telephone' => 'Telephone', 'office_phone' => 'Office phone'];
+
+    public static function portalPhoneField(): string
+    {
+        $field = static::values([self::PORTAL_PHONE])[self::PORTAL_PHONE] ?? null;
+
+        return array_key_exists((string) $field, self::PORTAL_PHONE_FIELDS) ? $field : 'mobile';
+    }
+
     /** @param  list<string>  $keys  @return array<string, ?string> */
     public static function values(array $keys): array
     {

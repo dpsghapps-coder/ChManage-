@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,9 +13,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-/** The main (adult) register. Junior Youth and Children Service live in {@see YoungMember}. */
-class Member extends Model
+/**
+ * The main (adult) register. Junior Youth and Children Service live in {@see YoungMember}.
+ * A member can also sign in to the member portal (the `member` guard) — never to the staff side, which uses {@see User}.
+ */
+class Member extends Model implements AuthenticatableContract
 {
+    use Authenticatable;
+
     protected $guarded = [];
 
     /** Generational groups: stored value => name. CS and JY only reach older under-18 records on this register. */

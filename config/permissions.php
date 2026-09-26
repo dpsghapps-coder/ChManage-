@@ -122,6 +122,26 @@ return [
                 'promote' => 'Make a newcomer a member',
             ],
         ],
+        'communion' => [
+            'label' => 'Communion',
+            'actions' => [
+                'view' => 'View communion services and who received communion',
+                'manage' => 'Create communion services and record who received communion',
+            ],
+        ],
+        'speaking' => [
+            'label' => 'Speaking (counselling notes)',
+            'actions' => [
+                'view' => 'Read the notes of speaking to members before communion (every read is logged)',
+                'manage' => 'Write, change and delete speaking notes',
+            ],
+        ],
+        'requests' => [
+            'label' => 'Member Requests',
+            'actions' => [
+                'manage' => 'Receive and decide the member requests routed to this role (Church Settings)',
+            ],
+        ],
         'sms' => [
             'label' => 'SMS',
             'actions' => [
@@ -191,7 +211,7 @@ return [
         'admin' => ['*'],
         'admin_super_user' => [
             'members.*', 'contributions.*', 'income.*', 'expenses.*', 'budgets.*', 'banking.*', 'payroll.view',
-            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'events.*', 'meetings.*', 'committees.*', 'sms.*', 'reports.view', 'staff.*',
+            'assets.*', 'attendance.*', 'visitors.*', 'newcomers.*', 'events.*', 'meetings.*', 'committees.*', 'communion.*', 'sms.*', 'reports.view', 'staff.*',
             'users.view', 'roles.view', 'permissions.view',
         ],
         'admin_user' => [

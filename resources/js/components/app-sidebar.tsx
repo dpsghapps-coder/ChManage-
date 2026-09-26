@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -13,7 +13,12 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { usePermission } from '@/hooks/use-permission';
-import { moduleSections, platformItems, systemSection } from '@/lib/navigation';
+import {
+    isVisible,
+    moduleSections,
+    platformItems,
+    systemSection,
+} from '@/lib/navigation';
 import type { GatedNavItem } from '@/lib/navigation';
 import { dashboard } from '@/routes';
 
@@ -21,8 +26,9 @@ export function AppSidebar() {
     const { can } = usePermission();
     // On a phone, Dashboard and the modules live in the app drawer (MobileNav); the sidebar keeps System.
     const { isMobile } = useSidebar();
+    const badges = (usePage().props.badges ?? {}) as Record<string, number>;
     const visible = (items: GatedNavItem[]) =>
-        items.filter((item) => !item.permission || can(item.permission));
+        items.filter((item) => isVisible(item, can, badges));
 
     return (
         <Sidebar collapsible="icon" variant="inset">

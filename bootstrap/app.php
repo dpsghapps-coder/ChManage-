@@ -2,9 +2,11 @@
 
 use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\EnsurePortalMember;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectIfNotSetUp;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -24,10 +26,16 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'permission' => CheckPermission::class,
+            'portal' => EnsurePortalMember::class,
         ]);
+
+        // Portal pages have their own sign-in; everything else uses the staff one.
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('portal', 'portal/*') ? route('portal.login') : route('login'));
+        $middleware->redirectUsersTo(fn (Request $request) => $request->is('portal', 'portal/*') ? route('portal.home') : '/');
 
         $middleware->web(append: [
             HandleAppearance::class,
+            RedirectIfNotSetUp::class,
             EnsureUserIsActive::class,
             EnsurePasswordIsChanged::class,
             HandleInertiaRequests::class,

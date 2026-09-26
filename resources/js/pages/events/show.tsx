@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Ban, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { Ban, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { DetailList } from '@/components/detail-list';
 import {
@@ -9,12 +9,21 @@ import {
     hostTone,
 } from '@/components/events-nav';
 import type { EventRow } from '@/components/events-nav';
+import { MemberPicker } from '@/components/member-picker';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { show as showMember } from '@/routes/members';
 import { calendar, destroy, edit, index, status } from '@/routes/events';
+import {
+    clear as clearParticipants,
+    destroy as removeParticipant,
+    store as addParticipant,
+} from '@/routes/events/participants';
 
 type Detail = EventRow & {
     description: string | null;
@@ -29,6 +38,16 @@ type Props = {
     hosts: Record<string, string>;
     scopes: Record<string, string>;
     visibilities: Record<string, string>;
+    participants: Participant[];
+    groups: { id: number; name: string }[];
+    committees: { id: number; name: string }[];
+};
+
+type Participant = {
+    id: number;
+    member_id: number | null;
+    name: string;
+    source: string | null;
 };
 
 export default function EventShow({
@@ -36,6 +55,9 @@ export default function EventShow({
     hosts,
     scopes,
     visibilities,
+    participants,
+    groups,
+    committees,
 }: Props) {
     const { can } = usePermission();
     const manage = can('events.manage');
@@ -164,10 +186,19 @@ export default function EventShow({
                     )}
                 </section>
 
+                <ParticipantsCard
+                    eventId={e.id}
+                    participants={participants}
+                    groups={groups}
+                    committees={committees}
+                    hostGroup={e.host_type === 'group' ? e.host : null}
+                    hostCommittee={e.host_type === 'committee' ? e.host : null}
+                    editable={manage}
+                />
+
                 <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                    Participants, attendance, budget, tasks, expenses and
-                    documents will appear here as those parts of the system are
-                    built.
+                    Attendance, budget, tasks, expenses and documents will
+                    appear here as those parts of the system are built.
                 </p>
 
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -213,6 +244,242 @@ export default function EventShow({
                 </div>
             </div>
         </>
+    );
+}
+
+/** Who the event is for: a whole group or committee at once, or people one by one. It is copied onto the event when added. */
+function ParticipantsCard({
+    eventId,
+    participants,
+    groups,
+    committees,
+    hostGroup,
+    hostCommittee,
+    editable,
+}: {
+    eventId: number;
+    participants: Participant[];
+    groups: { id: number; name: string }[];
+    committees: { id: number; name: string }[];
+    hostGroup: string | null;
+    hostCommittee: string | null;
+    editable: boolean;
+}) {
+    // The host's own group or committee is offered first.
+    const [groupId, setGroupId] = useState<string>(
+        String(groups.find((g) => g.name === hostGroup)?.id ?? ''),
+    );
+    const [committeeId, setCommitteeId] = useState<string>(
+        String(committees.find((c) => c.name === hostCommittee)?.id ?? ''),
+    );
+    const [name, setName] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [clearing, setClearing] = useState(false);
+
+    const add = (
+        payload: Record<string, string | number>,
+        reset?: () => void,
+    ) =>
+        router.post(addParticipant(eventId).url, payload, {
+            preserveScroll: true,
+            onError: (errors) => setError(errors.member_id ?? null),
+            onSuccess: () => {
+                setError(null);
+                reset?.();
+            },
+        });
+
+    return (
+        <section className="space-y-3 rounded-lg border p-5">
+            <div className="flex items-center justify-between gap-2">
+                <h2 className="font-medium">
+                    Participants ({participants.length})
+                </h2>
+                {editable &&
+                    participants.length > 0 &&
+                    (clearing ? (
+                        <span className="flex items-center gap-2 text-sm">
+                            Remove everyone?
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() =>
+                                    router.delete(
+                                        clearParticipants(eventId).url,
+                                        {
+                                            preserveScroll: true,
+                                            onSuccess: () => setClearing(false),
+                                        },
+                                    )
+                                }
+                            >
+                                Yes
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setClearing(false)}
+                            >
+                                No
+                            </Button>
+                        </span>
+                    ) : (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setClearing(true)}
+                        >
+                            Clear list
+                        </Button>
+                    ))}
+            </div>
+
+            {participants.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                    No one has been added to this event yet.
+                </p>
+            ) : (
+                <ul className="grid gap-x-6 sm:grid-cols-2">
+                    {participants.map((p) => (
+                        <li
+                            key={p.id}
+                            className="flex items-center justify-between gap-2 border-b py-1.5 text-sm"
+                        >
+                            <span className="min-w-0 truncate">
+                                {p.member_id ? (
+                                    <Link
+                                        href={showMember(p.member_id)}
+                                        className="hover:underline"
+                                    >
+                                        {p.name}
+                                    </Link>
+                                ) : (
+                                    p.name
+                                )}
+                                {p.source && (
+                                    <span className="ml-2 text-xs text-muted-foreground">
+                                        {p.source}
+                                    </span>
+                                )}
+                            </span>
+                            {editable && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-6"
+                                    aria-label={`Remove ${p.name}`}
+                                    onClick={() =>
+                                        router.delete(
+                                            removeParticipant([eventId, p.id])
+                                                .url,
+                                            { preserveScroll: true },
+                                        )
+                                    }
+                                >
+                                    <X />
+                                </Button>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {editable && (
+                <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
+                    <div className="grid content-start gap-2">
+                        <Label htmlFor="participant-group">Add a group</Label>
+                        <div className="flex gap-2">
+                            <NativeSelect
+                                id="participant-group"
+                                value={groupId}
+                                onChange={(ev) => setGroupId(ev.target.value)}
+                            >
+                                <option value="">Select a group…</option>
+                                {groups.map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                        {g.name}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={!groupId}
+                                onClick={() =>
+                                    add({ group_id: Number(groupId) })
+                                }
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Everyone who has the group ticked on their bio.
+                        </p>
+                    </div>
+                    <div className="grid content-start gap-2">
+                        <Label htmlFor="participant-committee">
+                            Add a committee
+                        </Label>
+                        <div className="flex gap-2">
+                            <NativeSelect
+                                id="participant-committee"
+                                value={committeeId}
+                                onChange={(ev) =>
+                                    setCommitteeId(ev.target.value)
+                                }
+                            >
+                                <option value="">Select a committee…</option>
+                                {committees.map((c) => (
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={!committeeId}
+                                onClick={() =>
+                                    add({ committee_id: Number(committeeId) })
+                                }
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Those serving on it on the day of the event.
+                        </p>
+                    </div>
+                    <div className="grid content-start gap-2 sm:col-span-2">
+                        <Label>Add one person</Label>
+                        <MemberPicker
+                            invalid={Boolean(error)}
+                            onPick={(member) => add({ member_id: member.id })}
+                        />
+                        <div className="flex gap-2">
+                            <Input
+                                value={name}
+                                onChange={(ev) => setName(ev.target.value)}
+                                placeholder="Or type the name of someone outside the church"
+                                maxLength={150}
+                                aria-label="Name of a guest"
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={!name.trim()}
+                                onClick={() => add({ name }, () => setName(''))}
+                            >
+                                Add
+                            </Button>
+                        </div>
+                        {error && (
+                            <p className="text-sm text-destructive">{error}</p>
+                        )}
+                    </div>
+                </div>
+            )}
+        </section>
     );
 }
 

@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\MemberRequest;
 use App\Support\CommitteeTerms;
+use App\Support\RequestAccess;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -54,19 +56,32 @@ class HandleInertiaRequests extends Middleware
     /** @return array<string, int> */
     private function badges(Request $request): array
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
-        if (! $user || ! $user->hasAnyPermission(['committees.manage'])) {
+        if (! $user) {
             return [];
         }
 
-        return ['committees' => CommitteeTerms::endingSoon()->count()];
+        $badges = [];
+
+        if ($user->hasAnyPermission(['committees.manage'])) {
+            $badges['committees'] = CommitteeTerms::endingSoon()->count();
+        }
+
+        // Present (even when 0) only for people who handle some member requests, which also shows them the menu item.
+        $handled = RequestAccess::types($user);
+
+        if ($handled !== []) {
+            $badges['requests'] = MemberRequest::whereIn('type', $handled)->whereIn('status', MemberRequest::OPEN)->count();
+        }
+
+        return $badges;
     }
 
     /** @return array<string, mixed>|null */
     private function authUser(Request $request): ?array
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         if (! $user) {
             return null;
@@ -91,7 +106,7 @@ class HandleInertiaRequests extends Middleware
     /** @return list<string> */
     private function permissions(Request $request): array
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         if (! $user) {
             return [];
